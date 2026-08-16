@@ -1,0 +1,6 @@
+{
+  "ENVIRONMENT": "development",
+  "APP_NAME": "Interna (Dev)",
+  "API_BASE_URL": "https://dev/v1",
+  "DEBUG_MODE": "true"
+}

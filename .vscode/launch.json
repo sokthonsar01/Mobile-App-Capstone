@@ -1,0 +1,21 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Interna (Dev)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define-from-file=config/env_dev.json"
+      ]
+    },
+    {
+      "name": "Interna (Prod)",
+      "request": "launch",
+      "type": "dart",
+      "args": [
+        "--dart-define-from-file=config/env_prod.json"
+      ]
+    }
+  ]
+}

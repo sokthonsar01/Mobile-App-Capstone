@@ -1,0 +1,6 @@
+{
+  "ENVIRONMENT": "production",
+  "APP_NAME": "Interna (Prod)",
+  "API_BASE_URL": "https://api/v1",
+  "DEBUG_MODE": "false"
+}
