@@ -5,6 +5,7 @@
       "name": "Interna (Dev)",
       "request": "launch",
       "type": "dart",
+      "deviceId": "653C5CD2-C0C0-411A-BD45-982151F3C0FD",
       "args": [
         "--dart-define-from-file=config/env_dev.json"
       ]
@@ -13,6 +14,7 @@
       "name": "Interna (Prod)",
       "request": "launch",
       "type": "dart",
+      "deviceId": "653C5CD2-C0C0-411A-BD45-982151F3C0FD",
       "args": [
         "--dart-define-from-file=config/env_prod.json"
       ]
