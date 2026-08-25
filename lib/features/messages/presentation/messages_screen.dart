@@ -71,8 +71,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
       bottomNavigationBar: AppBottomNav(
         currentIndex: 3,
         onTap: (int index) {
-          // TODO(team): connect this to the real tab switching
-          // once the home screen and its navigation exist.
+          if (index == 0) {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
         },
       ),
     );

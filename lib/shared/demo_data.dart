@@ -2,6 +2,7 @@
 ///
 /// Delete this whole file when the real API is connected.
 /// Nothing here talks to a server. It is just lists we typed by hand.
+library;
 
 // ---------------------------------------------------------------------------
 // Models
