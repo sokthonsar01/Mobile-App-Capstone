@@ -80,7 +80,6 @@ class DevMenuScreen extends StatelessWidget {
       ),
     );
   }
-
   /// Builds one row that opens a screen when you tap it.
   /// We wrote it once here instead of copying ListTile 12 times.
   Widget _open(BuildContext context, String label, Widget screen) {
