@@ -6,7 +6,13 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/reset_success_screen.dart';
 import 'features/auth/presentation/signup_screen.dart';
+import 'features/home/data/internship_model.dart';
+import 'features/home/presentation/application_details_screen.dart';
+import 'features/home/presentation/application_submitted_screen.dart';
+import 'features/home/presentation/company_profile_screen.dart';
+import 'features/home/presentation/create_post_screen.dart';
 import 'features/home/presentation/home_screen.dart';
+import 'features/home/presentation/internship_details_screen.dart';
 import 'features/home/presentation/offline_error_screen.dart';
 import 'features/messages/presentation/chat_screen.dart';
 import 'features/messages/presentation/messages_screen.dart';
@@ -25,6 +31,11 @@ class DevMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sampleInternship = demoInternships.firstWhere(
+      (e) => e.id == 'hanuman-06',
+      orElse: () => demoInternships.first,
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Dev menu (delete before submit)'),
@@ -42,6 +53,33 @@ class DevMenuScreen extends StatelessWidget {
             context,
             '★ No Connection / Offline Error State',
             const OfflineErrorScreen(),
+          ),
+
+          const _SectionTitle('Internship & Application Screens'),
+          _open(
+            context,
+            '★ Internship Details (90% Match & Specs)',
+            InternshipDetailsScreen(internship: sampleInternship),
+          ),
+          _open(
+            context,
+            '★ Application Submitted (Success Screen)',
+            ApplicationSubmittedScreen(internship: sampleInternship),
+          ),
+          _open(
+            context,
+            '★ Application Details (Stage Stepper & Submission)',
+            ApplicationDetailsScreen(internship: sampleInternship),
+          ),
+          _open(
+            context,
+            '★ Company Profile (Hanuman Estate)',
+            CompanyProfileScreen(internship: sampleInternship),
+          ),
+          _open(
+            context,
+            '★ Create Post / Community Posting',
+            const CreatePostScreen(),
           ),
 
           const _SectionTitle('Auth flow'),
