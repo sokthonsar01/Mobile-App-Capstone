@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
+import 'package:interna/features/home/presentation/offline_error_screen.dart';
 
 void main() {
   testWidgets('HomeScreen full smoke and interaction test', (WidgetTester tester) async {
@@ -54,5 +55,22 @@ void main() {
 
     expect(find.text('About the Internship'), findsOneWidget);
     expect(find.text('APPLY NOW'), findsOneWidget);
+  });
+
+  testWidgets('OfflineErrorScreen renders No Connection banner and suggestions', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: OfflineErrorScreen(),
+      ),
+    );
+
+    await tester.pump();
+
+    expect(find.text('No connection'), findsOneWidget);
+    expect(find.text('Please check your connection!'), findsOneWidget);
+    expect(find.byIcon(Icons.wifi_off_rounded), findsOneWidget);
+    expect(find.text('Welcome back, Max!'), findsOneWidget);
+    expect(find.text('Internship Explorer'), findsOneWidget);
+    expect(find.text('Suggestions'), findsOneWidget);
   });
 }
