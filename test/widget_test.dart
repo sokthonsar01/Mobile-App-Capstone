@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:interna/features/home/data/internship_model.dart';
+import 'package:interna/features/home/presentation/application_details_screen.dart';
+import 'package:interna/features/home/presentation/application_submitted_screen.dart';
+import 'package:interna/features/home/presentation/company_profile_screen.dart';
+import 'package:interna/features/home/presentation/create_post_screen.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
 import 'package:interna/features/home/presentation/offline_error_screen.dart';
 
@@ -49,12 +54,13 @@ void main() {
 
     expect(find.text('Marketing Intern at Chip Mong'), findsOneWidget);
 
-    // 5. Test "View Details" Bottom Sheet
+    // 5. Test "View Details" navigates to Internship Details Screen
     await tester.tap(find.text('View Details').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('About the Internship'), findsOneWidget);
-    expect(find.text('APPLY NOW'), findsOneWidget);
+    expect(find.text('Matching Percentage: 90%'), findsOneWidget);
+    expect(find.text('Internship Information'), findsOneWidget);
+    expect(find.text('Apply Now'), findsOneWidget);
   });
 
   testWidgets('OfflineErrorScreen renders No Connection banner and suggestions', (WidgetTester tester) async {
@@ -72,5 +78,46 @@ void main() {
     expect(find.text('Welcome back, Max!'), findsOneWidget);
     expect(find.text('Internship Explorer'), findsOneWidget);
     expect(find.text('Suggestions'), findsOneWidget);
+  });
+
+  testWidgets('Application screens smoke test', (WidgetTester tester) async {
+    final item = demoInternships.first;
+
+    // Test Success Screen
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ApplicationSubmittedScreen(internship: item),
+      ),
+    );
+    expect(find.text('Application submitted'), findsOneWidget);
+    expect(find.text('Back to Home'), findsOneWidget);
+    expect(find.text('View Application'), findsOneWidget);
+
+    // Test Application Details Screen
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ApplicationDetailsScreen(internship: item),
+      ),
+    );
+    expect(find.text('Application Details'), findsOneWidget);
+    expect(find.text('Current Stage: Under Review'), findsOneWidget);
+    expect(find.text('Your Submission:'), findsOneWidget);
+
+    // Test Company Profile Screen
+    await tester.pumpWidget(
+      MaterialApp(
+        home: CompanyProfileScreen(internship: item),
+      ),
+    );
+    expect(find.text('Company Profile'), findsOneWidget);
+
+    // Test Create Post Screen
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: CreatePostScreen(),
+      ),
+    );
+    expect(find.text('Create Post'), findsOneWidget);
+    expect(find.text('Post title'), findsOneWidget);
   });
 }
