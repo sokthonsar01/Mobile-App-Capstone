@@ -7,6 +7,7 @@ import 'package:interna/features/home/presentation/company_profile_screen.dart';
 import 'package:interna/features/home/presentation/create_post_screen.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
 import 'package:interna/features/home/presentation/offline_error_screen.dart';
+import 'package:interna/features/profile/presentation/edit_profile_screen.dart';
 
 void main() {
   testWidgets('HomeScreen full smoke and interaction test', (WidgetTester tester) async {
@@ -17,7 +18,8 @@ void main() {
     );
 
     // 1. Check Header & Top Banner
-    expect(find.text('Welcome back, Max!'), findsOneWidget);
+    expect(find.text('Good afternoon, Max 👋'), findsOneWidget);
+    expect(find.text('Find internships that fit you.'), findsOneWidget);
     expect(find.text('Internship Explorer'), findsOneWidget);
     expect(find.text('Suggestions'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
@@ -102,6 +104,9 @@ void main() {
     expect(find.text('Application Details'), findsOneWidget);
     expect(find.text('Current Stage: Under Review'), findsOneWidget);
     expect(find.text('Your Submission:'), findsOneWidget);
+    expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('Back to Home'), 200);
+    expect(find.text('Back to Home'), findsOneWidget);
 
     // Test Company Profile Screen
     await tester.pumpWidget(
@@ -119,5 +124,15 @@ void main() {
     );
     expect(find.text('Create Post'), findsOneWidget);
     expect(find.text('Post title'), findsOneWidget);
+
+    // Test Edit Profile Screen
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: EditProfileScreen(),
+      ),
+    );
+    expect(find.text('Max Verstappen'), findsWidgets);
+    expect(find.text('Fullname'), findsOneWidget);
+    expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
   });
 }

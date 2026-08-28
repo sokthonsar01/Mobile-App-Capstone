@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
+import 'home_screen.dart';
 
 /// Screen displaying submitted application status, review stepper, and submission attachments.
 class ApplicationDetailsScreen extends StatefulWidget {
@@ -112,7 +113,17 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
             color: AppColors.heading,
             size: 20,
           ),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+              );
+            }
+          },
         ),
         title: Text(
           'Application Details',
@@ -124,6 +135,21 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
         ),
         centerTitle: true,
         actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.home_outlined,
+              color: AppColors.heading,
+              size: 24,
+            ),
+            tooltip: 'Back to Home',
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(
               Icons.link_rounded,
@@ -431,7 +457,38 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
               ],
             ),
           ),
-          const SizedBox(height: 20),
+
+          const SizedBox(height: 16),
+
+          // 4. Back to Home Button
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pushAndRemoveUntil(
+                context,
+                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                (route) => false,
+              );
+            },
+            icon: const Icon(Icons.home_rounded, size: 20),
+            label: Text(
+              'Back to Home',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+              minimumSize: const Size.fromHeight(50),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 24),
         ],
       ),
     );
