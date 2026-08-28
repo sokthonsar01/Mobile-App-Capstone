@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../home/presentation/home_screen.dart';
 import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
@@ -193,26 +194,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   /// TODO(team): call the real login API here once a backend is chosen.
   void _handleLogin() {
-    final String email = _emailController.text.trim();
-    final String password = _passwordController.text;
-
-    debugPrint('LOGIN pressed');
-    debugPrint('email: $email');
-    debugPrint('password length: ${password.length}');
-    debugPrint('remember me: $_rememberMe');
-
-    _showMessage('Login is not connected yet.');
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
-  /// TODO(team): call Google Sign-In here once a backend is chosen.
   void _handleGoogleSignIn() {
-    _showMessage('Google sign in is not connected yet.');
-  }
-
-  /// Shows a short gray bar at the bottom of the screen.
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
     );
   }
 }

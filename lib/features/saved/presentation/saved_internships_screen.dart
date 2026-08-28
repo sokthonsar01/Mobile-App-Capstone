@@ -52,7 +52,9 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
       bottomNavigationBar: AppBottomNav(
         currentIndex: 4,
         onTap: (int index) {
-          // TODO(team): connect to the real tab switching later.
+          if (index == 0) {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          }
         },
       ),
     );

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-// ===== TEMP FOR TESTING - REMOVE BEFORE COMMITTING =====
-// import 'features/splash/presentation/splash_screen.dart';
-import 'dev_menu_screen.dart';
+import 'features/splash/presentation/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,8 +14,7 @@ class MyApp extends StatelessWidget {
       title: 'Interna',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(useMaterial3: true),
-      // TEMP FOR TESTING. Put back:  home: const SplashScreen(),
-      home: const DevMenuScreen(),
+      home: const SplashScreen(),
     );
   }
 }
