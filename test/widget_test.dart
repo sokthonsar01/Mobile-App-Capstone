@@ -1,30 +1,58 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:interna/main.dart';
+import 'package:interna/features/home/presentation/home_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('HomeScreen full smoke and interaction test', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: HomeScreen(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // 1. Check Header & Top Banner
+    expect(find.text('Welcome back, Max!'), findsOneWidget);
+    expect(find.text('Internship Explorer'), findsOneWidget);
+    expect(find.text('Suggestions'), findsOneWidget);
+    expect(find.text('All'), findsOneWidget);
+    expect(find.text('Tech'), findsOneWidget);
+    expect(find.text('Marketing'), findsOneWidget);
+    expect(find.text('Design'), findsOneWidget);
+    expect(find.text('Finance'), findsOneWidget);
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    // 2. Check default card items rendered
+    expect(find.text('Marketing Intern at Chip Mong'), findsOneWidget);
+    expect(find.text('Finance Intern at Canadia Bank'), findsOneWidget);
+
+    // 3. Test Search Box Live Filtering
+    await tester.enterText(find.byType(TextField), 'Cellcard');
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('AI Specialist Intern at Cellcard'), findsOneWidget);
+    expect(find.text('Marketing Intern at Chip Mong'), findsNothing);
+
+    // Clear search
+    await tester.tap(find.byIcon(Icons.clear_rounded));
+    await tester.pump();
+
+    // 4. Test Category Filter
+    await tester.tap(find.text('Design'));
+    await tester.pump();
+
+    expect(find.text('UX/UI Intern at Smart'), findsOneWidget);
+    expect(find.text('Finance Intern at Canadia Bank'), findsNothing);
+
+    // Switch back to All
+    await tester.tap(find.text('All'));
+    await tester.pump();
+
+    expect(find.text('Marketing Intern at Chip Mong'), findsOneWidget);
+
+    // 5. Test "View Details" Bottom Sheet
+    await tester.tap(find.text('View Details').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('About the Internship'), findsOneWidget);
+    expect(find.text('APPLY NOW'), findsOneWidget);
   });
 }
