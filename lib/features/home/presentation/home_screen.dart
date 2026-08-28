@@ -10,6 +10,8 @@ import '../../saved/presentation/saved_internships_screen.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
+import 'application_details_screen.dart';
+import 'create_post_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 /// Supports both online and offline (Error State) modes.
@@ -129,8 +131,16 @@ class _HomeScreenState extends State<HomeScreen>
 
   void _handleBottomNavTap(int index) {
     if (index == 0) {
-      // Already on home, toggle offline/online demo if tapped or scroll
       return;
+    } else if (index == 1) {
+      _openFilters();
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ApplicationDetailsScreen(),
+        ),
+      );
     } else if (index == 3) {
       Navigator.push(
         context,
@@ -139,10 +149,8 @@ class _HomeScreenState extends State<HomeScreen>
     } else if (index == 4) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SavedInternshipsScreen()),
+        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
       );
-    } else if (index == 2) {
-      _openFilters();
     }
   }
 
@@ -355,63 +363,83 @@ class _HomeScreenState extends State<HomeScreen>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Profile Avatar
+          // Greeting Text & Subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Good afternoon, Max 👋',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.heading,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Find internships that fit you.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.hintText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Notification Bell in styled round card
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
+                  builder: (context) => const NotificationsScreen(),
                 ),
               );
             },
             child: Container(
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
+                color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.2),
-                  width: 2,
+                  color: Colors.grey.withValues(alpha: 0.18),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const InitialsAvatar(
-                name: 'Max Verstappen',
-                size: 40,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(
+                    Icons.notifications_none_rounded,
+                    color: AppColors.heading,
+                    size: 22,
+                  ),
+                  Positioned(
+                    right: 10,
+                    top: 10,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: AppColors.danger,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-
-          // Notification Bell with unread dot
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.heading,
-                  size: 28,
-                ),
-              ),
-              Positioned(
-                right: 12,
-                top: 10,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.danger,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -437,33 +465,17 @@ class _HomeScreenState extends State<HomeScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting Row with "Filters" Pill
+          // Row with "Internship Explorer" and "Filters" Pill
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back, Max!',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Internship Explorer',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+              Text(
+                'Internship Explorer',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
                 ),
               ),
 
