@@ -12,15 +12,26 @@ import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
+/// Supports both online and offline (Error State) modes.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isOffline;
+
+  const HomeScreen({
+    super.key,
+    this.isOffline = false,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+
+  late bool _isOffline;
+  late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
 
   String _selectedCategory = 'All';
   String? _selectedLocation;
@@ -37,8 +48,31 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _isOffline = widget.isOffline;
+
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    _shimmerAnimation = Tween<double>(begin: 0.45, end: 0.9).animate(
+      CurvedAnimation(
+        parent: _shimmerController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    if (_isOffline) {
+      _shimmerController.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -95,7 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleBottomNavTap(int index) {
     if (index == 0) {
-      // Already on home, scroll to top
+      // Already on home, toggle offline/online demo if tapped or scroll
       return;
     } else if (index == 3) {
       Navigator.push(
@@ -124,7 +158,7 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
           children: [
-            // Top App Bar with Profile Avatar and Notification Bell
+            // Top App Bar: Profile or "No connection" Red Banner
             _buildTopHeader(),
 
             // Hero Blue Banner Card with Search & Filters
@@ -146,8 +180,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Suggestions List or Empty State
-            if (items.isEmpty)
+            // Suggestions List or Skeleton Loading when Offline
+            if (_isOffline)
+              _buildSkeletonList()
+            else if (items.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -216,8 +252,104 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Top Bar: Profile avatar on left + Notification bell on right.
+  /// Top Bar: Profile avatar on left (Online) OR Centered "No connection" Pill (Offline).
   Widget _buildTopHeader() {
+    if (_isOffline) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(width: 44),
+            Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isOffline = !_isOffline;
+                      if (_isOffline) {
+                        _shimmerController.repeat(reverse: true);
+                      } else {
+                        _shimmerController.stop();
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD92D20),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD92D20).withValues(alpha: 0.35),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.wifi_off_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'No connection',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Please check your connection!',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.95),
+                                height: 1.1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(
+                Icons.notifications_none_rounded,
+                color: AppColors.heading,
+                size: 28,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
@@ -487,6 +619,33 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }).toList(),
       ),
+    );
+  }
+
+  /// Skeleton Loading Placeholders for Error/Offline state.
+  Widget _buildSkeletonList() {
+    return AnimatedBuilder(
+      animation: _shimmerAnimation,
+      builder: (context, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: List.generate(3, (index) {
+              return Container(
+                width: double.infinity,
+                height: 146,
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEBEBEB).withValues(
+                    alpha: _shimmerAnimation.value,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 }

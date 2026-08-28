@@ -7,6 +7,7 @@ import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/reset_success_screen.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/home/presentation/home_screen.dart';
+import 'features/home/presentation/offline_error_screen.dart';
 import 'features/messages/presentation/chat_screen.dart';
 import 'features/messages/presentation/messages_screen.dart';
 import 'features/notifications/presentation/notifications_screen.dart';
@@ -36,6 +37,11 @@ class DevMenuScreen extends StatelessWidget {
             context,
             '★ Home / Internship Explorer',
             const HomeScreen(),
+          ),
+          _open(
+            context,
+            '★ No Connection / Offline Error State',
+            const OfflineErrorScreen(),
           ),
 
           const _SectionTitle('Auth flow'),
