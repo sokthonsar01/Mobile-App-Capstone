@@ -6,6 +6,7 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/reset_success_screen.dart';
 import 'features/auth/presentation/signup_screen.dart';
+import 'features/home/presentation/home_screen.dart';
 import 'features/messages/presentation/chat_screen.dart';
 import 'features/messages/presentation/messages_screen.dart';
 import 'features/notifications/presentation/notifications_screen.dart';
@@ -30,6 +31,13 @@ class DevMenuScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const _SectionTitle('Main App / Dashboard'),
+          _open(
+            context,
+            '★ Home / Internship Explorer',
+            const HomeScreen(),
+          ),
+
           const _SectionTitle('Auth flow'),
           _open(context, '1. Onboarding', const OnboardingScreen()),
           _open(context, '2. Login', const LoginScreen()),
