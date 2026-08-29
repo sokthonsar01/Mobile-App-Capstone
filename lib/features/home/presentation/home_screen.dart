@@ -10,17 +10,30 @@ import '../../saved/presentation/saved_internships_screen.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
+import 'application_details_screen.dart';
+import 'create_post_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
+/// Supports both online and offline (Error State) modes.
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isOffline;
+
+  const HomeScreen({
+    super.key,
+    this.isOffline = false,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _searchController = TextEditingController();
+
+  late bool _isOffline;
+  late AnimationController _shimmerController;
+  late Animation<double> _shimmerAnimation;
 
   String _selectedCategory = 'All';
   String? _selectedLocation;
@@ -37,8 +50,31 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    _isOffline = widget.isOffline;
+
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1400),
+    );
+
+    _shimmerAnimation = Tween<double>(begin: 0.45, end: 0.9).animate(
+      CurvedAnimation(
+        parent: _shimmerController,
+        curve: Curves.easeInOut,
+      ),
+    );
+
+    if (_isOffline) {
+      _shimmerController.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
 
@@ -95,8 +131,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _handleBottomNavTap(int index) {
     if (index == 0) {
-      // Already on home, scroll to top
       return;
+    } else if (index == 1) {
+      _openFilters();
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ApplicationDetailsScreen(),
+        ),
+      );
     } else if (index == 3) {
       Navigator.push(
         context,
@@ -105,10 +149,8 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (index == 4) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SavedInternshipsScreen()),
+        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
       );
-    } else if (index == 2) {
-      _openFilters();
     }
   }
 
@@ -124,7 +166,7 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
           children: [
-            // Top App Bar with Profile Avatar and Notification Bell
+            // Top App Bar: Profile or "No connection" Red Banner
             _buildTopHeader(),
 
             // Hero Blue Banner Card with Search & Filters
@@ -146,8 +188,10 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
 
-            // Suggestions List or Empty State
-            if (items.isEmpty)
+            // Suggestions List or Skeleton Loading when Offline
+            if (_isOffline)
+              _buildSkeletonList()
+            else if (items.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 24,
@@ -216,70 +260,186 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Top Bar: Profile avatar on left + Notification bell on right.
+  /// Top Bar: Profile avatar on left (Online) OR Centered "No connection" Pill (Offline).
   Widget _buildTopHeader() {
+    if (_isOffline) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const SizedBox(width: 44),
+            Expanded(
+              child: Center(
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      _isOffline = !_isOffline;
+                      if (_isOffline) {
+                        _shimmerController.repeat(reverse: true);
+                      } else {
+                        _shimmerController.stop();
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFD92D20),
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFD92D20).withValues(alpha: 0.35),
+                          blurRadius: 14,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.wifi_off_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'No connection',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                height: 1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              'Please check your connection!',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.white.withValues(alpha: 0.95),
+                                height: 1.1,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            IconButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const NotificationsScreen(),
+                  ),
+                );
+              },
+              icon: const Icon(
+                Icons.notifications_none_rounded,
+                color: AppColors.heading,
+                size: 28,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Profile Avatar
+          // Greeting Text & Subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Good afternoon, Max 👋',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.heading,
+                    letterSpacing: -0.2,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Find internships that fit you.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.hintText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Notification Bell in styled round card
           GestureDetector(
             onTap: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const EditProfileScreen(),
+                  builder: (context) => const NotificationsScreen(),
                 ),
               );
             },
             child: Container(
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
+                color: Colors.white,
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.2),
-                  width: 2,
+                  color: Colors.grey.withValues(alpha: 0.18),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
-              child: const InitialsAvatar(
-                name: 'Max Verstappen',
-                size: 40,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  const Icon(
+                    Icons.notifications_none_rounded,
+                    color: AppColors.heading,
+                    size: 22,
+                  ),
+                  Positioned(
+                    right: 10,
+                    top: 10,
+                    child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                        color: AppColors.danger,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ),
-
-          // Notification Bell with unread dot
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              IconButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const NotificationsScreen(),
-                    ),
-                  );
-                },
-                icon: const Icon(
-                  Icons.notifications_none_rounded,
-                  color: AppColors.heading,
-                  size: 28,
-                ),
-              ),
-              Positioned(
-                right: 12,
-                top: 10,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.danger,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -305,33 +465,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Greeting Row with "Filters" Pill
+          // Row with "Internship Explorer" and "Filters" Pill
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Welcome back, Max!',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Internship Explorer',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
+              Text(
+                'Internship Explorer',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
                 ),
               ),
 
@@ -487,6 +631,33 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }).toList(),
       ),
+    );
+  }
+
+  /// Skeleton Loading Placeholders for Error/Offline state.
+  Widget _buildSkeletonList() {
+    return AnimatedBuilder(
+      animation: _shimmerAnimation,
+      builder: (context, child) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            children: List.generate(3, (index) {
+              return Container(
+                width: double.infinity,
+                height: 146,
+                margin: const EdgeInsets.only(bottom: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFEBEBEB).withValues(
+                    alpha: _shimmerAnimation.value,
+                  ),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              );
+            }),
+          ),
+        );
+      },
     );
   }
 }

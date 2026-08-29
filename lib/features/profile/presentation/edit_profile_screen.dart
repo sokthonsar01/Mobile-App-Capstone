@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../../home/presentation/home_screen.dart';
 import '../widgets/logout_sheet.dart';
 import 'update_password_screen.dart';
 
@@ -129,22 +130,49 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Share and settings icons on the right.
+              // Top Bar: Back button on the left, Share and settings icons on the right.
               Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    onPressed: () => _showMessage('Share is not built yet.'),
-                    icon: const Icon(Icons.reply_outlined,
-                        color: Colors.white, size: 26),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    onPressed: () {
+                      if (Navigator.canPop(context)) {
+                        Navigator.pop(context);
+                      } else {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HomeScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
                   ),
-                  IconButton(
-                    onPressed: _openSettingsMenu,
-                    icon: const Icon(Icons.settings_outlined,
-                        color: Colors.white, size: 26),
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => _showMessage('Share is not built yet.'),
+                        icon: const Icon(Icons.reply_outlined,
+                            color: Colors.white, size: 26),
+                      ),
+                      IconButton(
+                        onPressed: _openSettingsMenu,
+                        icon: const Icon(Icons.settings_outlined,
+                            color: Colors.white, size: 26),
+                      ),
+                    ],
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
               const InitialsAvatar(name: 'Max Verstappen', size: 60),
               const SizedBox(height: 10),
               Text(
