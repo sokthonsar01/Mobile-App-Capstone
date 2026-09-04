@@ -6,7 +6,6 @@ import '../../../shared/widgets/shared_widgets.dart';
 import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
-import '../../saved/presentation/saved_internships_screen.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
@@ -90,7 +89,9 @@ class _HomeScreenState extends State<HomeScreen>
 
       // Location filter
       if (_selectedLocation != null &&
-          !item.location.toLowerCase().contains(_selectedLocation!.toLowerCase())) {
+          !item.location.toLowerCase().contains(
+            _selectedLocation!.toLowerCase(),
+          )) {
         return false;
       }
 
@@ -615,7 +616,9 @@ class _HomeScreenState extends State<HomeScreen>
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryBlue : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.primaryBlue
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
