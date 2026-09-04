@@ -6,22 +6,17 @@ import '../../../shared/widgets/shared_widgets.dart';
 import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
-import '../../saved/presentation/saved_internships_screen.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
 import 'application_details_screen.dart';
-import 'create_post_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 /// Supports both online and offline (Error State) modes.
 class HomeScreen extends StatefulWidget {
   final bool isOffline;
 
-  const HomeScreen({
-    super.key,
-    this.isOffline = false,
-  });
+  const HomeScreen({super.key, this.isOffline = false});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -60,10 +55,7 @@ class _HomeScreenState extends State<HomeScreen>
     );
 
     _shimmerAnimation = Tween<double>(begin: 0.45, end: 0.9).animate(
-      CurvedAnimation(
-        parent: _shimmerController,
-        curve: Curves.easeInOut,
-      ),
+      CurvedAnimation(parent: _shimmerController, curve: Curves.easeInOut),
     );
 
     if (_isOffline) {
@@ -90,7 +82,9 @@ class _HomeScreenState extends State<HomeScreen>
 
       // Location filter
       if (_selectedLocation != null &&
-          !item.location.toLowerCase().contains(_selectedLocation!.toLowerCase())) {
+          !item.location.toLowerCase().contains(
+            _selectedLocation!.toLowerCase(),
+          )) {
         return false;
       }
 
@@ -292,7 +286,9 @@ class _HomeScreenState extends State<HomeScreen>
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFD92D20).withValues(alpha: 0.35),
+                          color: const Color(
+                            0xFFD92D20,
+                          ).withValues(alpha: 0.35),
                           blurRadius: 14,
                           offset: const Offset(0, 6),
                         ),
@@ -406,9 +402,7 @@ class _HomeScreenState extends State<HomeScreen>
               decoration: BoxDecoration(
                 color: Colors.white,
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.18),
-                ),
+                border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.04),
@@ -615,7 +609,9 @@ class _HomeScreenState extends State<HomeScreen>
                   vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryBlue : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.primaryBlue
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -648,9 +644,9 @@ class _HomeScreenState extends State<HomeScreen>
                 height: 146,
                 margin: const EdgeInsets.only(bottom: 14),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEBEBEB).withValues(
-                    alpha: _shimmerAnimation.value,
-                  ),
+                  color: const Color(
+                    0xFFEBEBEB,
+                  ).withValues(alpha: _shimmerAnimation.value),
                   borderRadius: BorderRadius.circular(16),
                 ),
               );
