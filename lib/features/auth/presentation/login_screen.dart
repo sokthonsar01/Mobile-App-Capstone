@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../shared/validators.dart';
 // Your teammate's screen. We only open it, we never edit it.
@@ -8,6 +10,7 @@ import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
+import 'dart:async';
 
 /// The login screen.
 ///
@@ -31,12 +34,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _rememberMe = false;
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -183,49 +181,47 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Button actions
-  // -------------------------------------------------------------------------
-
-  /// TODO(team): there is no backend yet, so we do not check the email and
-  /// password against a server. We only check the fields are filled in,
-  /// then open the home screen.
-  ///
-  /// When the backend is ready, call the login API here and open the home
-  /// screen only after the server says the account is correct.
-  void _handleLogin() {
-    // validate() runs the check on every field inside the Form.
-    // If any field fails, it draws the red message and returns false,
-    // so we stop here.
+  Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
       return;
     }
 
-    debugPrint('LOGIN pressed');
-    debugPrint('email: ${_emailController.text.trim()}');
-    debugPrint('remember me: $_rememberMe');
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
-    _goToHome();
+    try {
+      await Supabase.instance.client.auth.signInWithPassword(
+        email: email,
+        password: password,
+      );
+
+      if (mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        _showMessage('Login failed: $e');
+      }
+    }
   }
 
-  /// Opens the home screen and removes the login screen behind it.
-  ///
-  /// We use pushAndRemoveUntil, not push, on purpose. With a plain push the
-  /// login screen would still be in the stack, so the phone back button
-  /// would take a logged-in user back to the login form. Returning false
-  /// for every old route removes all of them.
-  void _goToHome() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
-  }
-
-  /// TODO(team): call Google Sign-In here once a backend is chosen.
-  void _handleGoogleSignIn() {
-    _showMessage('Google sign in is not connected yet.');
+  Future<void> _handleGoogleSignIn() async {
+    try {
+      await Supabase.instance.client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: kIsWeb
+            ? Uri.base.origin
+            : 'io.supabase.interna://login-callback',
+      );
+    } catch (e) {
+      if (mounted) {
+        _showMessage('Google Sign-In failed: $e');
+      }
+    }
   }
 
   void _showMessage(String message) {
@@ -233,4 +229,29 @@ class _LoginScreenState extends State<LoginScreen> {
       SnackBar(content: Text(message)),
     );
   }
+
+    late final StreamSubscription<AuthState> _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription =
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+      if (data.session != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSubscription.cancel();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
 }

@@ -2,7 +2,7 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Interna (Dev)",
+      "name": "Interna (Dev Mobile)",
       "request": "launch",
       "type": "dart",
       "deviceId": "653C5CD2-C0C0-411A-BD45-982151F3C0FD",
@@ -11,12 +11,21 @@
       ]
     },
     {
-      "name": "Interna (Prod)",
+      "name": "Interna (Prod Mobile)",
       "request": "launch",
       "type": "dart",
       "deviceId": "653C5CD2-C0C0-411A-BD45-982151F3C0FD",
       "args": [
         "--dart-define-from-file=config/env_prod.json"
+      ]
+    },
+    {
+      "name": "Interna (Web 5000)",
+      "request": "launch",
+      "type": "dart",
+      "deviceId": "chrome",
+      "args": [
+        "--web-port=5000"
       ]
     }
   ]
