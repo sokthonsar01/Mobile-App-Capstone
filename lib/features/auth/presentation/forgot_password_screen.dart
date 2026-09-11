@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/validators.dart';
 import '../auth_navigation.dart';
 import '../widgets/auth_widgets.dart';
 import 'check_email_screen.dart';
@@ -13,6 +14,7 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
 
   @override
@@ -31,51 +33,47 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             horizontal: kScreenPadding,
             vertical: 24,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const AuthHeader(
-                title: 'Forgot Password?',
-                subtitle:
-                    'To reset your password, you need your email or '
-                    'mobile number that can be authenticated',
-              ),
-
-              const SizedBox(height: 40),
-
-              Center(
-                child: Image.asset(
-                  'assets/images/illustration_key.png',
-                  height: 170,
-                  fit: BoxFit.contain,
+          child: Form(
+            key: _formKey,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const AuthHeader(
+                  title: 'Forgot Password?',
+                  subtitle:
+                      'To reset your password, you need your email or '
+                      'mobile number that can be authenticated',
                 ),
-              ),
-
-              const SizedBox(height: 40),
-
-              AuthTextField(
-                label: 'Email',
-                hint: 'maxverstappen1@gmail.com',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-              ),
-
-              const SizedBox(height: 24),
-
-              PrimaryButton(
-                text: 'RESET PASSWORD',
-                onPressed: _handleResetPassword,
-              ),
-
-              const SizedBox(height: 16),
-
-              PrimaryButton(
-                text: 'BACK TO LOGIN',
-                onPressed: () => backToLogin(context),
-              ),
-
-              const SizedBox(height: 24),
-            ],
+                const SizedBox(height: 40),
+                Center(
+                  child: Image.asset(
+                    'assets/images/illustration_key.png',
+                    height: 170,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 40),
+                AuthTextField(
+                  label: 'Email',
+                  hint: 'maxverstappen1@gmail.com',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  validator: validateEmail,
+                ),
+                const SizedBox(height: 24),
+                PrimaryButton(
+                  text: 'RESET PASSWORD',
+                  onPressed: _handleResetPassword,
+                ),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  text: 'BACK TO LOGIN',
+                  onPressed: () => backToLogin(context),
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
@@ -84,18 +82,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   /// TODO(team): send the real reset email here once a backend is chosen.
   void _handleResetPassword() {
-    debugPrint('RESET PASSWORD pressed for ${_emailController.text.trim()}');
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please fix the field marked in red.'),
+        ),
+      );
+      return;
+    }
+
+    final String email = _emailController.text.trim();
+    debugPrint('RESET PASSWORD pressed for $email');
 
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CheckEmailScreen(
-          // If the user typed nothing, show the example email
-          // so the next screen never looks empty.
-          email: _emailController.text.trim().isEmpty
-              ? 'brandonelouis@gmial.com'
-              : _emailController.text.trim(),
-        ),
+        builder: (context) => CheckEmailScreen(email: email),
       ),
     );
   }

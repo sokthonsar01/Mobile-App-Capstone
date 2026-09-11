@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../shared/app_colors.dart';
 import '../auth_colors.dart';
 
 /// Space on the left and right side of every auth screen.
@@ -34,6 +35,11 @@ class AuthTextField extends StatefulWidget {
   /// Changes the phone keyboard (for example, show "@" for email).
   final TextInputType keyboardType;
 
+  /// The check that runs when the user presses the button.
+  /// It returns null when the value is OK, or the red error message.
+  /// Pass one of the functions from `lib/shared/validators.dart`.
+  final String? Function(String?)? validator;
+
   const AuthTextField({
     super.key,
     required this.label,
@@ -41,6 +47,7 @@ class AuthTextField extends StatefulWidget {
     required this.controller,
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
+    this.validator,
   });
 
   @override
@@ -66,9 +73,13 @@ class _AuthTextFieldState extends State<AuthTextField> {
           ),
         ),
         const SizedBox(height: 10),
-        TextField(
+        // TextFormField, not TextField. The extra "Form" part is what
+        // lets the Form on the screen check every field at once and
+        // draw the red message under the wrong ones.
+        TextFormField(
           controller: widget.controller,
           keyboardType: widget.keyboardType,
+          validator: widget.validator,
           // Hide the letters only when this is a password AND the eye is off.
           obscureText: widget.isPassword && _isHidden,
           style: GoogleFonts.plusJakartaSans(
@@ -89,6 +100,15 @@ class _AuthTextFieldState extends State<AuthTextField> {
             ),
             enabledBorder: _buildBorder(AuthColors.border),
             focusedBorder: _buildBorder(AuthColors.primaryBlue),
+            // Red outline when the check fails.
+            errorBorder: _buildBorder(AppColors.danger),
+            focusedErrorBorder: _buildBorder(AppColors.danger),
+            errorStyle: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              color: AppColors.danger,
+            ),
+            // The message can be two lines on a small phone.
+            errorMaxLines: 2,
             // Show the eye icon only on password fields.
             suffixIcon: widget.isPassword
                 ? IconButton(
