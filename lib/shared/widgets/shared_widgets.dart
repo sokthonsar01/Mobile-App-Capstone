@@ -202,7 +202,7 @@ class InitialsAvatar extends StatelessWidget {
 /// If they do, delete this widget and use theirs instead.
 /// It is on purpose in `shared/` so only one version survives.
 class AppBottomNav extends StatelessWidget {
-  /// Which icon is blue. 0 = home, 1 = explore, 3 = chat, 4 = saved.
+  /// 0 = Home, 1 = Explore, 2 = Tracker, 3 = Community, 4 = Profile.
   final int currentIndex;
 
   /// Called with the index the user tapped.
@@ -217,53 +217,110 @@ class AppBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 68,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, -2),
           ),
         ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _navIcon(Icons.home_outlined, 0),
-          _navIcon(Icons.workspaces_outlined, 1),
-          _centerButton(),
-          _navIcon(Icons.chat_bubble_outline, 3),
-          _navIcon(Icons.bookmark_border, 4),
-        ],
-      ),
-    );
-  }
-
-  Widget _navIcon(IconData icon, int index) {
-    return IconButton(
-      onPressed: () => onTap(index),
-      icon: Icon(
-        icon,
-        size: 26,
-        // The selected icon is blue, the others are dark gray.
-        color: currentIndex == index ? AppColors.primaryBlue : Colors.black54,
-      ),
-    );
-  }
-
-  Widget _centerButton() {
-    return GestureDetector(
-      onTap: () => onTap(2),
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: const BoxDecoration(
-          color: AppColors.primaryBlue,
-          shape: BoxShape.circle,
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey.withValues(alpha: 0.15),
+            width: 0.8,
+          ),
         ),
-        child: const Icon(Icons.add, color: Colors.white, size: 26),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 58,
+          child: Row(
+            children: [
+              _navItem(
+                icon: Icons.home_outlined,
+                activeIcon: Icons.home_rounded,
+                label: 'Home',
+                index: 0,
+              ),
+              _navItem(
+                icon: Icons.school_outlined,
+                activeIcon: Icons.school_rounded,
+                label: 'Explore',
+                index: 1,
+              ),
+              _navItem(
+                icon: Icons.assignment_outlined,
+                activeIcon: Icons.assignment_rounded,
+                label: 'Tracker',
+                index: 2,
+              ),
+              _navItem(
+                icon: Icons.groups_outlined,
+                activeIcon: Icons.groups_rounded,
+                label: 'Community',
+                index: 3,
+              ),
+              _navItem(
+                icon: Icons.person_outline_rounded,
+                activeIcon: Icons.person_rounded,
+                label: 'Profile',
+                index: 4,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _navItem({
+    required IconData icon,
+    required IconData activeIcon,
+    required String label,
+    required int index,
+  }) {
+    final bool isSelected = currentIndex == index;
+
+    return Expanded(
+      child: InkWell(
+        onTap: () => onTap(index),
+        splashColor: Colors.transparent,
+        highlightColor: Colors.transparent,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Top active indicator bar matching reference mockup
+            Container(
+              height: 3,
+              width: 38,
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primaryBlue : Colors.transparent,
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(3),
+                  bottomRight: Radius.circular(3),
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Icon(
+              isSelected ? activeIcon : icon,
+              size: 22,
+              color: isSelected ? AppColors.primaryBlue : const Color(0xFF8E95A5),
+            ),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                color: isSelected ? AppColors.primaryBlue : const Color(0xFF8E95A5),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
+        ),
       ),
     );
   }
