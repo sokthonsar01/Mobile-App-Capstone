@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/validators.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../../home/presentation/home_screen.dart';
 import '../widgets/logout_sheet.dart';
@@ -16,6 +17,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
   // We start the fields with the demo values from the mockup.
   final TextEditingController _fullNameController =
       TextEditingController(text: 'Max Verstappen');
@@ -55,12 +58,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _buildHeader(),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
-              child: Column(
+              child: Form(
+                key: _formKey,
+                autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SoftTextField(
                     label: 'Fullname',
                     controller: _fullNameController,
+                    validator: validateFullName,
                   ),
                   const SizedBox(height: 20),
                   SoftTextField(
@@ -82,6 +89,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     label: 'Email address',
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
+                    validator: validateEmail,
                   ),
                   const SizedBox(height: 20),
                   _buildPhoneRow(),
@@ -89,10 +97,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   SoftTextField(
                     label: 'Location',
                     controller: _locationController,
+                    validator: (String? value) =>
+                        validateRequired(value, 'your location'),
                   ),
                   const SizedBox(height: 40),
                   WideButton(text: 'SAVE', onPressed: _handleSave),
                 ],
+              ),
               ),
             ),
           ],
@@ -130,6 +141,29 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Top bar: back arrow on the left,
+              // share and settings on the right.
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Navigator.canPop is true only when there is another
+                  // screen behind this one. If Edit Profile is the very
+                  // first screen, we show empty space instead of an arrow
+                  // that would do nothing when tapped.
+                  if (Navigator.canPop(context))
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.arrow_back,
+                          color: Colors.white, size: 26),
+                    )
+                  else
+                    const SizedBox(width: 48),
+
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () =>
+                            _showMessage('Share is not built yet.'),
               // Top Bar: Back button on the left, Share and settings icons on the right.
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -452,6 +486,18 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   /// TODO(team): send the profile to the server once a backend is chosen.
   void _handleSave() {
+    if (!_formKey.currentState!.validate()) {
+      _showMessage('Please fix the fields marked in red.');
+      return;
+    }
+
+    // The phone number is not inside a SoftTextField, so the Form does
+    // not check it. We check it by hand here.
+    if (_phoneController.text.trim().isEmpty) {
+      _showMessage('Please enter your phone number.');
+      return;
+    }
+
     debugPrint('SAVE pressed');
     debugPrint('name: ${_fullNameController.text}');
     debugPrint('birth: ${_birthDateController.text}');

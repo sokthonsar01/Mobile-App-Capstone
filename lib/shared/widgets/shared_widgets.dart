@@ -27,6 +27,10 @@ class SoftTextField extends StatefulWidget {
   /// What happens when the user taps the box. Used by the date field.
   final VoidCallback? onTap;
 
+  /// The check that runs when the user presses the button.
+  /// null result = OK, a String = the red error message.
+  final String? Function(String?)? validator;
+
   const SoftTextField({
     super.key,
     required this.label,
@@ -36,6 +40,7 @@ class SoftTextField extends StatefulWidget {
     this.keyboardType = TextInputType.text,
     this.suffix,
     this.onTap,
+    this.validator,
   });
 
   @override
@@ -65,11 +70,12 @@ class _SoftTextFieldState extends State<SoftTextField> {
             borderRadius: BorderRadius.circular(12),
             boxShadow: softShadow,
           ),
-          child: TextField(
+          child: TextFormField(
             controller: widget.controller,
             readOnly: widget.readOnly,
             onTap: widget.onTap,
             keyboardType: widget.keyboardType,
+            validator: widget.validator,
             obscureText: widget.isPassword && _isHidden,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
@@ -77,6 +83,11 @@ class _SoftTextFieldState extends State<SoftTextField> {
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
+              errorStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: AppColors.danger,
+              ),
+              errorMaxLines: 2,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 18,
                 vertical: 16,
