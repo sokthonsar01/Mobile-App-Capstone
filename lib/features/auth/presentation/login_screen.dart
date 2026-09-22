@@ -1,21 +1,18 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../shared/validators.dart';
-// Your teammate's screen. We only open it, we never edit it.
 import '../../home/presentation/home_screen.dart';
 import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
-import 'dart:async';
 
-/// The login screen.
-///
-/// Front end only. The buttons do not talk to any server yet.
-/// When the team chooses a backend, we only change _handleLogin().
+/// Login screen.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -24,16 +21,30 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  /// The key is how we talk to the Form below.
-  /// `_formKey.currentState!.validate()` runs every field check at once
-  /// and returns true only when all of them pass.
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _rememberMe = false;
   late final StreamSubscription<AuthState> _authSubscription;
+<<<<<<< HEAD
+=======
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
+      if (data.session != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    });
+  }
+>>>>>>> f0997da (feat(auth): sign in with Supabase email and Google OAuth)
 
   @override
   void initState() {
@@ -67,9 +78,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           child: Form(
             key: _formKey,
-            // onUserInteraction: the red message updates while the user
-            // fixes a field they already touched. Before they touch
-            // anything, the screen stays clean.
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,7 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// "Welcome To" in black and "INTERNA" in blue, in one line.
   Widget _buildTitle() {
     return RichText(
       text: TextSpan(
@@ -146,7 +153,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// Checkbox on the left, "Forgot Password ?" on the right.
   Widget _buildRememberRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -243,8 +249,24 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showMessage(String message) {
+<<<<<<< HEAD
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
   }
+=======
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  void _goToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (Route<dynamic> route) => false,
+    );
+  }
+>>>>>>> f0997da (feat(auth): sign in with Supabase email and Google OAuth)
 }
