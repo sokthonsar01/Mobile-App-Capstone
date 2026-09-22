@@ -7,7 +7,7 @@ import '../../../shared/widgets/shared_widgets.dart';
 import '../widgets/logout_sheet.dart';
 import 'update_password_screen.dart';
 
-/// Edit Profile screen: blue header on top, a form under it, SAVE at the end.
+/// Edit Profile screen.
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -18,22 +18,23 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  // We start the fields with the demo values from the mockup.
-  final TextEditingController _fullNameController =
-      TextEditingController(text: 'Max Verstappen');
-  final TextEditingController _birthDateController =
-      TextEditingController(text: '06 August 1992');
-  final TextEditingController _emailController =
-      TextEditingController(text: 'maxverstappen1@gmail.com');
-  final TextEditingController _phoneController =
-      TextEditingController(text: '99 946 638');
-  final TextEditingController _locationController =
-      TextEditingController(text: 'Phnom Penh, Cambodia');
+  final TextEditingController _fullNameController = TextEditingController(
+    text: 'Max Verstappen',
+  );
+  final TextEditingController _birthDateController = TextEditingController(
+    text: '06 August 1992',
+  );
+  final TextEditingController _emailController = TextEditingController(
+    text: 'maxverstappen1@gmail.com',
+  );
+  final TextEditingController _phoneController = TextEditingController(
+    text: '99 946 638',
+  );
+  final TextEditingController _locationController = TextEditingController(
+    text: 'Phnom Penh, Cambodia',
+  );
 
-  /// 'Male' or 'Female'. Controls which radio circle is filled.
   String _gender = 'Male';
-
-  /// The country code shown in the small dropdown.
   String _countryCode = '+855';
 
   @override
@@ -61,48 +62,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SoftTextField(
-                    label: 'Fullname',
-                    controller: _fullNameController,
-                    validator: validateFullName,
-                  ),
-                  const SizedBox(height: 20),
-                  SoftTextField(
-                    label: 'Date of birth',
-                    controller: _birthDateController,
-                    // readOnly stops the keyboard. The user picks a date
-                    // from the calendar instead of typing it.
-                    readOnly: true,
-                    onTap: _pickBirthDate,
-                    suffix: const Icon(
-                      Icons.calendar_month_outlined,
-                      color: AppColors.heading,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SoftTextField(
+                      label: 'Fullname',
+                      controller: _fullNameController,
+                      validator: validateFullName,
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  _buildGenderRow(),
-                  const SizedBox(height: 20),
-                  SoftTextField(
-                    label: 'Email address',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: validateEmail,
-                  ),
-                  const SizedBox(height: 20),
-                  _buildPhoneRow(),
-                  const SizedBox(height: 20),
-                  SoftTextField(
-                    label: 'Location',
-                    controller: _locationController,
-                    validator: (String? value) =>
-                        validateRequired(value, 'your location'),
-                  ),
-                  const SizedBox(height: 40),
-                  WideButton(text: 'SAVE', onPressed: _handleSave),
-                ],
-              ),
+                    const SizedBox(height: 20),
+                    SoftTextField(
+                      label: 'Date of birth',
+                      controller: _birthDateController,
+                      readOnly: true,
+                      onTap: _pickBirthDate,
+                      suffix: const Icon(
+                        Icons.calendar_month_outlined,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    _buildGenderRow(),
+                    const SizedBox(height: 20),
+                    SoftTextField(
+                      label: 'Email address',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: validateEmail,
+                    ),
+                    const SizedBox(height: 20),
+                    _buildPhoneRow(),
+                    const SizedBox(height: 20),
+                    SoftTextField(
+                      label: 'Location',
+                      controller: _locationController,
+                      validator: (String? value) =>
+                          validateRequired(value, 'your location'),
+                    ),
+                    const SizedBox(height: 40),
+                    WideButton(text: 'SAVE', onPressed: _handleSave),
+                  ],
+                ),
               ),
             ),
           ],
@@ -111,17 +110,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Header
-  // -------------------------------------------------------------------------
-
   Widget _buildHeader() {
-    // No fixed height on purpose.
-    //
-    // Before, this Container had `height: 220`. On a phone with a taller
-    // status bar or a bigger system font, the avatar + name + button need
-    // more than 220 and Flutter shows the yellow "BOTTOM OVERFLOWED" stripe.
-    // With no height, the box grows to fit whatever is inside it.
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -136,15 +125,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
           child: Column(
-            // min = be only as tall as the things inside.
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+<<<<<<< HEAD
 <<<<<<< HEAD
               // Top Bar: Back button on the left, Share and settings icons on the right.
 =======
               // Top bar: back arrow on the left, share and settings on the right.
 >>>>>>> 0bb2333 (Fix syntax errors in login_screen and edit_profile_screen)
+=======
+>>>>>>> edd8679 (style: format edit profile screen with dart format)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -166,13 +157,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       IconButton(
                         onPressed: () =>
                             _showMessage('Share is not built yet.'),
-                        icon: const Icon(Icons.reply_outlined,
-                            color: Colors.white, size: 26),
+                        icon: const Icon(
+                          Icons.reply_outlined,
+                          color: Colors.white,
+                          size: 26,
+                        ),
                       ),
                       IconButton(
                         onPressed: _openSettingsMenu,
-                        icon: const Icon(Icons.settings_outlined,
-                            color: Colors.white, size: 26),
+                        icon: const Icon(
+                          Icons.settings_outlined,
+                          color: Colors.white,
+                          size: 26,
+                        ),
                       ),
                     ],
                   ),
@@ -197,7 +194,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               const SizedBox(height: 12),
-              // The soft "Change image" pill button.
               GestureDetector(
                 onTap: () =>
                     _showMessage('Choosing an image is not built yet.'),
@@ -226,10 +222,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Gender
-  // -------------------------------------------------------------------------
-
   Widget _buildGenderRow() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,7 +246,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  /// One white box with a circle and a word inside.
   Widget _genderOption(String value) {
     final bool isSelected = _gender == value;
 
@@ -269,7 +260,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         ),
         child: Row(
           children: [
-            // The circle. Blue ring + blue dot when selected.
             Container(
               width: 22,
               height: 22,
@@ -307,10 +297,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Phone number (country code + number in one white box)
-  // -------------------------------------------------------------------------
-
   Widget _buildPhoneRow() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,13 +322,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: const EdgeInsets.only(left: 14),
                 child: DropdownButton<String>(
                   value: _countryCode,
-                  // Removes the default underline so it matches the design.
                   underline: const SizedBox.shrink(),
                   items: const ['+855', '+66', '+84', '+1']
-                      .map((code) => DropdownMenuItem<String>(
-                            value: code,
-                            child: Text(code),
-                          ))
+                      .map(
+                        (code) => DropdownMenuItem<String>(
+                          value: code,
+                          child: Text(code),
+                        ),
+                      )
                       .toList(),
                   onChanged: (String? newCode) {
                     if (newCode == null) return;
@@ -354,7 +341,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
               ),
-              // The thin gray line between the code and the number.
               Container(width: 1, height: 26, color: AppColors.border),
               Expanded(
                 child: TextField(
@@ -380,11 +366,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Actions
-  // -------------------------------------------------------------------------
-
-  /// Opens the calendar that comes with Flutter. No extra package needed.
   Future<void> _pickBirthDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -394,9 +375,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
 
     if (picked == null) return;
-
-    // mounted is true only while the screen is still on the display.
-    // We check it because we used await above and the user may have left.
     if (!mounted) return;
 
     setState(() {
@@ -404,13 +382,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     });
   }
 
-  /// Turns a DateTime into "06 August 1992".
   String _formatDate(DateTime date) {
     const List<String> months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
     ];
-    // padLeft(2, '0') turns 6 into "06".
     final String day = date.day.toString().padLeft(2, '0');
     return '$day ${months[date.month - 1]} ${date.year}';
   }
@@ -456,15 +442,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  /// TODO(team): send the profile to the server once a backend is chosen.
   void _handleSave() {
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
       return;
     }
 
-    // The phone number is not inside a SoftTextField, so the Form does
-    // not check it. We check it by hand here.
     if (_phoneController.text.trim().isEmpty) {
       _showMessage('Please enter your phone number.');
       return;
@@ -479,8 +462,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }
