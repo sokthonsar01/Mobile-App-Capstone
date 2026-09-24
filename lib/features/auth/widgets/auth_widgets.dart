@@ -231,6 +231,51 @@ class GoogleButton extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
+// 3b. Outlined button with text only ("CONTINUE AS GUEST")
+// ---------------------------------------------------------------------------
+
+/// Same shape as [GoogleButton] but with no logo, so the three buttons on the
+/// login screen line up. Use it for a second choice that is not the main
+/// action. The main action stays [PrimaryButton], the filled blue one.
+class SecondaryButton extends StatelessWidget {
+  final String text;
+  final VoidCallback onPressed;
+
+  const SecondaryButton({
+    super.key,
+    required this.text,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: kButtonHeight,
+      child: OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: AuthColors.primaryBlue,
+          side: const BorderSide(color: AuthColors.primaryBlue, width: 1),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: Text(
+          text,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.8,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
 // 4. Bottom line: "You don't have an account yet?  Sign up"
 // ---------------------------------------------------------------------------
 

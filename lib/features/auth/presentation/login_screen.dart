@@ -98,6 +98,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 PrimaryButton(text: 'LOGIN', onPressed: _handleLogin),
                 const SizedBox(height: 16),
                 GoogleButton(onPressed: _handleGoogleSignIn),
+                const SizedBox(height: 16),
+                SecondaryButton(
+                  text: 'CONTINUE AS GUEST',
+                  onPressed: _handleGuest,
+                ),
                 const SizedBox(height: 20),
                 BottomLinkRow(
                   question: "You don't have an account yet?",
@@ -228,6 +233,19 @@ class _LoginScreenState extends State<LoginScreen> {
     } catch (e) {
       _showMessage('Google Sign-In failed: $e');
     }
+  }
+
+  /// Opens the app without logging in.
+  ///
+  /// Nothing is saved and nothing is sent to any server. A guest is only a
+  /// person with no Supabase session, so there is no guest account to create.
+  /// The screens themselves decide what a guest may do, using requireLogin()
+  /// from lib/features/auth/auth_guard.dart.
+  void _handleGuest() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
   void _showMessage(String message) {
