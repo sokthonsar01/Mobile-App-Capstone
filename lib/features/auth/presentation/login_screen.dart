@@ -1,21 +1,18 @@
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../shared/validators.dart';
-// Your teammate's screen. We only open it, we never edit it.
 import '../../home/presentation/home_screen.dart';
 import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
-import 'dart:async';
 
-/// The login screen.
-///
-/// Front end only. The buttons do not talk to any server yet.
-/// When the team chooses a backend, we only change _handleLogin().
+/// Login screen.
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -24,25 +21,35 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  /// The key is how we talk to the Form below.
-  /// `_formKey.currentState!.validate()` runs every field check at once
-  /// and returns true only when all of them pass.
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   bool _rememberMe = false;
+  late final StreamSubscription<AuthState> _authSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
+      data,
+    ) {
+      if (data.session != null && mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const HomeScreen()),
+        );
+      }
+    });
+  }
 
   @override
   void dispose() {
+    _authSubscription.cancel();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
-  // dispose() runs when the screen is closed.
-  // Controllers hold memory, so we must clean them up here.
-
 
   @override
   Widget build(BuildContext context) {
@@ -56,9 +63,6 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           child: Form(
             key: _formKey,
-            // onUserInteraction: the red message updates while the user
-            // fixes a field they already touched. Before they touch
-            // anything, the screen stays clean.
             autovalidateMode: AutovalidateMode.onUserInteraction,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,6 +98,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 PrimaryButton(text: 'LOGIN', onPressed: _handleLogin),
                 const SizedBox(height: 16),
                 GoogleButton(onPressed: _handleGoogleSignIn),
+                const SizedBox(height: 16),
+                SecondaryButton(
+                  text: 'CONTINUE AS GUEST',
+                  onPressed: _handleGuest,
+                ),
                 const SizedBox(height: 20),
                 BottomLinkRow(
                   question: "You don't have an account yet?",
@@ -115,7 +124,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// "Welcome To" in black and "INTERNA" in blue, in one line.
   Widget _buildTitle() {
     return RichText(
       text: TextSpan(
@@ -135,7 +143,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  /// Checkbox on the left, "Forgot Password ?" on the right.
   Widget _buildRememberRow() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -189,63 +196,12 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // -------------------------------------------------------------------------
-  // Button actions
-  // -------------------------------------------------------------------------
-
-  /// TODO(team): there is no backend yet, so we do not check the email and
-  /// password against a server. We only check the fields are filled in,
-  /// then open the home screen.
-  ///
-  /// When the backend is ready, call the login API here and open the home
-  /// screen only after the server says the account is correct.
-  void _handleLogin() {
-    // validate() runs the check on every field inside the Form.
-    // If any field fails, it draws the red message and returns false,
-    // so we stop here.
-    if (!_formKey.currentState!.validate()) {
-      _showMessage('Please fix the fields marked in red.');
-      return;
-    }
-
-    debugPrint('LOGIN pressed');
-    debugPrint('email: ${_emailController.text.trim()}');
-    debugPrint('remember me: $_rememberMe');
-
-    _goToHome();
-  }
-
-  /// Opens the home screen and removes the login screen behind it.
-  ///
-  /// We use pushAndRemoveUntil, not push, on purpose. With a plain push the
-  /// login screen would still be in the stack, so the phone back button
-  /// would take a logged-in user back to the login form. Returning false
-  /// for every old route removes all of them.
-  void _goToHome() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
-  }
-
-  /// TODO(team): call Google Sign-In here once a backend is chosen.
-  void _handleGoogleSignIn() {
-    _showMessage('Google sign in is not connected yet.');
-  }
-
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   Future<void> _handleLogin() async {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter both email and password')),
-      );
+    if (!_formKey.currentState!.validate()) {
+      _showMessage('Please fix the fields marked in red.');
       return;
     }
 
@@ -262,11 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Login failed: $e')));
-      }
+      _showMessage('Login failed: $e');
     }
   }
 
@@ -274,39 +226,40 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb ? Uri.base.origin : 'io.supabase.interna://login-callback',
+        redirectTo: kIsWeb
+            ? Uri.base.origin
+            : 'io.supabase.interna://login-callback',
       );
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Google Sign-In failed: $e')));
-      }
+      _showMessage('Google Sign-In failed: $e');
     }
   }
 
-    late final StreamSubscription<AuthState> _authSubscription;
-
-  @override
-  void initState() {
-    super.initState();
-    _authSubscription =
-        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
-      if (data.session != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    });
+  /// Opens the app without logging in.
+  ///
+  /// Nothing is saved and nothing is sent to any server. A guest is only a
+  /// person with no Supabase session, so there is no guest account to create.
+  /// The screens themselves decide what a guest may do, using requireLogin()
+  /// from lib/features/auth/auth_guard.dart.
+  void _handleGuest() {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+    );
   }
 
-  @override
-  void dispose() {
-    _authSubscription.cancel();
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  void _showMessage(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
+  void _goToHome() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomeScreen()),
+      (Route<dynamic> route) => false,
+    );
+  }
 }
