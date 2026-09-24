@@ -133,6 +133,6 @@ void main() {
     );
     expect(find.text('Max Verstappen'), findsWidgets);
     expect(find.text('Fullname'), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
+    expect(find.text('SAVE'), findsOneWidget);
   });
 }

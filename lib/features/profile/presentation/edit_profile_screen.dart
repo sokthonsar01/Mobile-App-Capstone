@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/validators.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../home/presentation/home_screen.dart';
 import '../widgets/logout_sheet.dart';
 import 'update_password_screen.dart';
 
@@ -141,7 +140,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+<<<<<<< HEAD
               // Top Bar: Back button on the left, Share and settings icons on the right.
+=======
+              // Top bar: back arrow on the left, share and settings on the right.
+>>>>>>> 0bb2333 (Fix syntax errors in login_screen and edit_profile_screen)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -157,24 +160,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                     )
                   else
-                    IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: () {
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HomeScreen(),
-                          ),
-                          (route) => false,
-                        );
-                      },
-                      icon: const Icon(
-                        Icons.arrow_back_ios_new_rounded,
-                        color: Colors.white,
-                        size: 22,
-                      ),
-                    ),
+                    const SizedBox(width: 48),
                   Row(
                     children: [
                       IconButton(
