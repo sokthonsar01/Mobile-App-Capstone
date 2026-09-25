@@ -27,24 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _rememberMe = false;
   late final StreamSubscription<AuthState> _authSubscription;
-<<<<<<< HEAD
-=======
 
-  @override
-  void initState() {
-    super.initState();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
-      data,
-    ) {
-      if (data.session != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    });
-  }
->>>>>>> f0997da (feat(auth): sign in with Supabase email and Google OAuth)
 
   @override
   void initState() {
@@ -278,6 +261,7 @@ class _LoginScreenState extends State<LoginScreen> {
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
+<<<<<<< HEAD
 
   void _goToHome() {
     Navigator.pushAndRemoveUntil(
@@ -287,4 +271,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 >>>>>>> f0997da (feat(auth): sign in with Supabase email and Google OAuth)
+=======
+>>>>>>> 0394377 (fix(auth): clean up unused declaration after merge)
 }
