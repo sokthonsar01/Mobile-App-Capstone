@@ -4,6 +4,7 @@ import 'config/app_env.dart';
 import 'features/splash/presentation/splash_screen.dart';
 import 'shared/page_transitions.dart';
 
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
