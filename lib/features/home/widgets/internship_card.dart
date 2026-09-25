@@ -4,8 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/internship_model.dart';
+import '../presentation/internship_details_screen.dart';
 import 'company_logo_widget.dart';
-import 'internship_details_sheet.dart';
 
 /// Card showing one internship opportunity in the suggestions list.
 class InternshipCard extends StatelessWidget {
@@ -34,12 +34,18 @@ class InternshipCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: () => showInternshipDetailsSheet(
-            context,
-            internship,
-            isSaved: isSaved,
-            onToggleSave: onToggleSave,
-          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => InternshipDetailsScreen(
+                  internship: internship,
+                  initialSaved: isSaved,
+                  onToggleSave: onToggleSave,
+                ),
+              ),
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(

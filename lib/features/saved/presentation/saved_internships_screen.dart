@@ -4,6 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/demo_data.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../../home/presentation/application_details_screen.dart';
+import '../../messages/presentation/messages_screen.dart';
+import '../../profile/presentation/edit_profile_screen.dart';
 
 /// The list of internships the user saved.
 class SavedInternshipsScreen extends StatefulWidget {
@@ -50,10 +53,31 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
         ),
       ),
       bottomNavigationBar: AppBottomNav(
-        currentIndex: 4,
+        currentIndex: 2,
         onTap: (int index) {
-          if (index == 0) {
+          if (index == 0 || index == 1) {
             Navigator.popUntil(context, (route) => route.isFirst);
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const ApplicationDetailsScreen(),
+              ),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const MessagesScreen(),
+              ),
+            );
+          } else if (index == 4) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const EditProfileScreen(),
+              ),
+            );
           }
         },
       ),
