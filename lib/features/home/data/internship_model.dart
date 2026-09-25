@@ -37,6 +37,72 @@ class InternshipOpportunity {
   /// Full display title like "Marketing Intern at Chip Mong"
   String get displayTitle => '$role at $company';
 
+  /// Path to the company logo PNG image asset.
+  String get logoAssetPath {
+    switch (logoKey) {
+      case 'chip_mong':
+        return 'assets/images/logos/Chigmong logo.png';
+      case 'canadia':
+        return 'assets/images/logos/Canada bank logo.png';
+      case 'cellcard':
+        return 'assets/images/logos/Cellcard logo.png';
+      case 'aba':
+        return 'assets/images/logos/ABA Logo.png';
+      case 'smart':
+        return 'assets/images/logos/smart logo.png';
+      case 'hanuman':
+        return 'assets/images/logos/Hanuman beer logo.png';
+      case 'meoys':
+        return 'assets/images/logos/Moeys Logo.png';
+      default:
+        return 'assets/images/main_logo.png';
+    }
+  }
+
+  /// Path to the 750x350 card poster PNG image asset.
+  String get posterAssetPath {
+    switch (logoKey) {
+      case 'chip_mong':
+        return 'assets/images/posters/Chigmong card 750 x 350.png';
+      case 'canadia':
+        return 'assets/images/posters/Canada bank card 750 x 350.png';
+      case 'cellcard':
+        return 'assets/images/posters/Cellcard card 750 x 350.png';
+      case 'aba':
+        return 'assets/images/posters/aba card 750 x 350.png';
+      case 'smart':
+        return 'assets/images/posters/Smart card  750 x 350.png';
+      case 'hanuman':
+        return 'assets/images/posters/hanuman card 750 x 350.png';
+      case 'meoys':
+        return 'assets/images/posters/Moeys card 750 x 350.png';
+      default:
+        return '';
+    }
+  }
+
+  /// Path to the 1280x480 wide banner poster PNG image asset.
+  String get bannerPosterAssetPath {
+    switch (logoKey) {
+      case 'chip_mong':
+        return 'assets/images/posters/Chipmong card 1280 x 480.png';
+      case 'canadia':
+        return 'assets/images/posters/Canada bank Card 1280 x 480.png';
+      case 'cellcard':
+        return 'assets/images/posters/Cellcard card 1280 x 480.png';
+      case 'aba':
+        return 'assets/images/posters/aba Card 1280 x 480.png';
+      case 'smart':
+        return 'assets/images/posters/smart card 1280 x 480.png';
+      case 'hanuman':
+        return 'assets/images/posters/Hanuman Card 1280 x 480 (2).png';
+      case 'meoys':
+        return 'assets/images/posters/Moeys card 1280 x 480.png';
+      default:
+        return '';
+    }
+  }
+
   InternshipOpportunity copyWith({
     String? id,
     String? role,
