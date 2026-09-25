@@ -128,14 +128,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-<<<<<<< HEAD
-<<<<<<< HEAD
               // Top Bar: Back button on the left, Share and settings icons on the right.
-=======
-              // Top bar: back arrow on the left, share and settings on the right.
->>>>>>> 0bb2333 (Fix syntax errors in login_screen and edit_profile_screen)
-=======
->>>>>>> edd8679 (style: format edit profile screen with dart format)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [

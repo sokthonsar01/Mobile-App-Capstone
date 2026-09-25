@@ -41,6 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     });
+  }
   @override
   void dispose() {
     _authSubscription.cancel();
@@ -250,27 +251,9 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showMessage(String message) {
-<<<<<<< HEAD
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
-  }
-=======
     if (!mounted) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
   }
-<<<<<<< HEAD
-
-  void _goToHome() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
-  }
->>>>>>> f0997da (feat(auth): sign in with Supabase email and Google OAuth)
-=======
->>>>>>> 0394377 (fix(auth): clean up unused declaration after merge)
 }

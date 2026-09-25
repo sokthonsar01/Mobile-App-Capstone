@@ -35,93 +35,67 @@ class CompanyLogoWidget extends StatelessWidget {
   }
 
   Widget _buildLogoContent() {
+    String? url;
     switch (logoKey) {
       case 'chip_mong':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network(
-              'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZBznQbTGb-NmhCY84hvAJEH2Cdyl3T_Rf3fKnB2anXy4Yt35DgWN9pFKF&s=10',
-            ),
-          ],
-        );
-
+        url =
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZBznQbTGb-NmhCY84hvAJEH2Cdyl3T_Rf3fKnB2anXy4Yt35DgWN9pFKF&s=10';
+        break;
       case 'canadia':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network(
-              'https://hrincjobs-pro.s3.amazonaws.com/media/public/filer_public/e9/72/e97240fd-c1ba-49fb-9f5e-59f20bc92212/canadiaa.jpg',
-            ),
-          ],
-        );
-
+        url =
+            'https://hrincjobs-pro.s3.amazonaws.com/media/public/filer_public/e9/72/e97240fd-c1ba-49fb-9f5e-59f20bc92212/canadiaa.jpg';
+        break;
       case 'cellcard':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ90FPfI8T4ifz4LNsO-c2W0dsLV6l8Pdw-LcJQ915F-g&s=10'),
-          ],
-        );
-
+        url =
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ90FPfI8T4ifz4LNsO-c2W0dsLV6l8Pdw-LcJQ915F-g&s=10';
+        break;
       case 'aba':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network('https://play-lh.googleusercontent.com/O7xMXY5ehCEVwpR0MlKYQOK5QJ1oFIw4EoXQqyt_vgDKT3Uvn1g8FIz_fNDDhWH4Zbdclp54WhRMnI8vzyE9OeU=w240-h480-rw'),
-          ],
-        );
-
+        url =
+            'https://play-lh.googleusercontent.com/O7xMXY5ehCEVwpR0MlKYQOK5QJ1oFIw4EoXQqyt_vgDKT3Uvn1g8FIz_fNDDhWH4Zbdclp54WhRMnI8vzyE9OeU=w240-h480-rw';
+        break;
       case 'smart':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network('https://images.seeklogo.com/logo-png/30/2/smart-axiata-logo-png_seeklogo-309284.png'),
-          ],
-        );
-
+        url =
+            'https://images.seeklogo.com/logo-png/30/2/smart-axiata-logo-png_seeklogo-309284.png';
+        break;
       case 'hanuman':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network('https://images.seeklogo.com/logo-png/61/1/hanuman-beer-logo-png_seeklogo-617034.png'),
-          ],
-        );
-
+        url =
+            'https://images.seeklogo.com/logo-png/61/1/hanuman-beer-logo-png_seeklogo-617034.png';
+        break;
       case 'meoys':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.network('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShOXD4X1UoMvxK3VGJWSw7HG--7Vg4WFCxy5edJloa3w&s'),
-          ],
-        );
-
-      default:
-        return Container(
-          width: size - 8,
-          height: size - 8,
-          decoration: BoxDecoration(
-            color: brandColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              companyName.isNotEmpty ? companyName[0].toUpperCase() : '?',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: brandColor,
-              ),
-            ),
-          ),
-        );
+        url =
+            'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShOXD4X1UoMvxK3VGJWSw7HG--7Vg4WFCxy5edJloa3w&s';
+        break;
     }
+
+    if (url != null) {
+      return Image.network(
+        url,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stackTrace) => _buildFallbackInitial(),
+      );
+    }
+
+    return _buildFallbackInitial();
+  }
+
+  Widget _buildFallbackInitial() {
+    return Container(
+      width: size - 8,
+      height: size - 8,
+      decoration: BoxDecoration(
+        color: brandColor.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Center(
+        child: Text(
+          companyName.isNotEmpty ? companyName[0].toUpperCase() : '?',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: brandColor,
+          ),
+        ),
+      ),
+    );
   }
 }
