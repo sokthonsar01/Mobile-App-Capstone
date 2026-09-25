@@ -14,6 +14,7 @@ import '../widgets/company_logo_widget.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
 import '../widgets/internship_details_sheet.dart';
+import 'application_details_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 class HomeScreen extends StatefulWidget {
@@ -141,6 +142,15 @@ class _HomeScreenState extends State<HomeScreen> {
   void _handleBottomNavTap(int index) {
     if (index == 0) {
       return;
+    } else if (index == 1) {
+      _openFilters();
+    } else if (index == 2) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const ApplicationDetailsScreen(),
+        ),
+      );
     } else if (index == 3) {
       Navigator.push(
         context,
@@ -149,10 +159,8 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (index == 4) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const SavedInternshipsScreen()),
+        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
       );
-    } else if (index == 2) {
-      _openFilters();
     }
   }
 
