@@ -3,31 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../data/application_tracker_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import '../widgets/internship_details_sheet.dart';
 import 'home_screen.dart';
-
-/// Application model representing a student's tracked application.
-class TrackedApplication {
-  final String id;
-  final InternshipOpportunity internship;
-  final String appliedDate;
-  final String deadline;
-  String lastUpdated;
-  String status;
-  final String? interviewInfo;
-
-  TrackedApplication({
-    required this.id,
-    required this.internship,
-    required this.appliedDate,
-    required this.deadline,
-    required this.lastUpdated,
-    required this.status,
-    this.interviewInfo,
-  });
-}
 
 /// The main Application Tracker Page for students to track every internship applied for.
 class ApplicationTrackerScreen extends StatefulWidget {
@@ -41,9 +21,6 @@ class ApplicationTrackerScreen extends StatefulWidget {
 class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   String _selectedFilter = 'All';
 
-  // Sample applications dataset using demoInternships
-  late List<TrackedApplication> _applications;
-
   final List<String> _filters = [
     'All',
     'Applied',
@@ -54,83 +31,16 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     'Withdrawn',
   ];
 
-  @override
-  void initState() {
-    super.initState();
-    _applications = [
-      TrackedApplication(
-        id: 'app-01',
-        internship: demoInternships.firstWhere(
-          (e) => e.logoKey == 'chip_mong',
-          orElse: () => demoInternships[0],
-        ),
-        appliedDate: 'Jan 15, 2026',
-        lastUpdated: 'Feb 02, 2026',
-        deadline: 'Feb 14, 2026',
-        status: 'Under Review',
-      ),
-      TrackedApplication(
-        id: 'app-02',
-        internship: demoInternships.firstWhere(
-          (e) => e.logoKey == 'canadia',
-          orElse: () => demoInternships[1],
-        ),
-        appliedDate: 'Jan 20, 2026',
-        lastUpdated: 'Feb 08, 2026',
-        deadline: 'Feb 23, 2026',
-        status: 'Interview',
-        interviewInfo:
-            'Scheduled for Feb 28, 2026 at 10:00 AM (Google Meet Video Call)',
-      ),
-      TrackedApplication(
-        id: 'app-03',
-        internship: demoInternships.firstWhere(
-          (e) => e.logoKey == 'cellcard',
-          orElse: () => demoInternships[2],
-        ),
-        appliedDate: 'Jan 10, 2026',
-        lastUpdated: 'Feb 12, 2026',
-        deadline: 'Feb 14, 2026',
-        status: 'Offer',
-        interviewInfo: 'Offer Extended • Response Deadline: March 01, 2026',
-      ),
-      TrackedApplication(
-        id: 'app-04',
-        internship: demoInternships.firstWhere(
-          (e) => e.logoKey == 'aba',
-          orElse: () => demoInternships[3],
-        ),
-        appliedDate: 'Feb 01, 2026',
-        lastUpdated: 'Feb 01, 2026',
-        deadline: 'Feb 14, 2026',
-        status: 'Applied',
-      ),
-      TrackedApplication(
-        id: 'app-05',
-        internship: demoInternships.firstWhere(
-          (e) => e.logoKey == 'smart',
-          orElse: () => demoInternships[4],
-        ),
-        appliedDate: 'Jan 05, 2026',
-        lastUpdated: 'Jan 25, 2026',
-        deadline: 'Feb 14, 2026',
-        status: 'Rejected',
-      ),
-    ];
-  }
-
   // Count helper functions for summary cards
-  int _countByStatus(String status) {
-    return _applications.where((app) => app.status == status).length;
+  int _countByStatus(List<TrackedApplication> apps, String status) {
+    return apps.where((app) => app.status == status).length;
   }
 
-  List<TrackedApplication> get _filteredApplications {
+  List<TrackedApplication> _filterApplications(List<TrackedApplication> apps) {
     if (_selectedFilter == 'All') {
-      return _applications;
+      return apps;
     }
-    return _applications
-        .where((app) => app.status == _selectedFilter)
-        .toList();
+    return apps.where((app) => app.status == _selectedFilter).toList();
   }
 
   Color _getStatusColor(String status) {
@@ -196,10 +106,8 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                setState(() {
-                  app.status = 'Withdrawn';
-                  app.lastUpdated = 'Feb 14, 2026';
-                });
+                ApplicationTrackerStore.instance
+                    .updateStatus(app.id, 'Withdrawn');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -238,6 +146,86 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     );
   }
 
+  /// Show confirmation popup before removing a Withdrawn or Rejected application from Tracker
+  void _confirmRemoveApplication(TrackedApplication app) {
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Text(
+            'Remove from Tracker',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.heading,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to remove the application for ${app.internship.role} at ${app.internship.company} from your history?',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              color: AppColors.bodyText,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.bodyText,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                final removed =
+                    ApplicationTrackerStore.instance.removeFromTracker(app.id);
+                if (removed) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Application for ${app.internship.company} removed from Tracker.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ),
+                      backgroundColor: const Color(0xFF64748B),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                'Remove',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   /// Show detailed application modal when "View Details" is clicked
   void _showApplicationDetailsModal(TrackedApplication app) {
     final statusColor = _getStatusColor(app.status);
@@ -245,6 +233,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         app.status == 'Under Review' ||
         app.status == 'Interview';
     final canDecline = app.status == 'Offer';
+    final canRemove = app.status == 'Withdrawn' || app.status == 'Rejected';
 
     showModalBottomSheet(
       context: context,
@@ -519,6 +508,60 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                         ),
                       ],
                     )
+                  else if (canRemove)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                color: Color(0xFFCBD5E1),
+                                width: 1.2,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Close',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.heading,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _confirmRemoveApplication(app);
+                            },
+                            icon: const Icon(Icons.delete_outline_rounded, size: 18),
+                            label: Text(
+                              'Remove',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFDC2626),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
                   else
                     SizedBox(
                       width: double.infinity,
@@ -555,142 +598,147 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filteredApps = _filteredApplications;
+    return ValueListenableBuilder<List<TrackedApplication>>(
+      valueListenable: ApplicationTrackerStore.instance,
+      builder: (context, allApps, child) {
+        final filteredApps = _filterApplications(allApps);
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.heading,
-            size: 20,
-          ),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-              );
-            }
-          },
-        ),
-        title: Text(
-          'Application Tracker',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.heading,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SafeArea(
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-          children: [
-            // Subtitle Header
-            Text(
-              'Track & manage your internship applications',
+        return Scaffold(
+          backgroundColor: const Color(0xFFF8FAFC),
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.heading,
+                size: 20,
+              ),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  );
+                }
+              },
+            ),
+            title: Text(
+              'Application Tracker',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 13.5,
-                fontWeight: FontWeight.w500,
-                color: AppColors.bodyText,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.heading,
               ),
             ),
-            const SizedBox(height: 16),
-
-            // Top Summary Cards Row (Responsive Grid / Row)
-            _buildSummaryCardsRow(),
-
-            const SizedBox(height: 20),
-
-            // Filter Tabs Bar
-            _buildFilterTabs(),
-
-            const SizedBox(height: 16),
-
-            // Application Cards List or Empty State
-            if (filteredApps.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 48),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.assignment_turned_in_outlined,
-                        size: 56,
-                        color: AppColors.hintText.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No applications found',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.heading,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'No applications under status "$_selectedFilter".',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          color: AppColors.hintText,
-                        ),
-                      ),
-                    ],
+            centerTitle: true,
+          ),
+          body: SafeArea(
+            child: ListView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+              children: [
+                // Subtitle Header
+                Text(
+                  'Track & manage your internship applications',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13.5,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.bodyText,
                   ),
                 ),
-              )
-            else
-              Column(
-                children: filteredApps.map((app) {
-                  return _buildApplicationCard(app);
-                }).toList(),
-              ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 2,
-        onTap: (int index) {
-          if (index == 0 || index == 1) {
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-              (route) => false,
-            );
-          } else if (index == 2) {
-            return;
-          } else if (index == 3) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const HomeScreen(),
-              ),
-            );
-          } else if (index == 4) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const HomeScreen(),
-              ),
-            );
-          }
-        },
-      ),
+                const SizedBox(height: 16),
+
+                // Top Summary Cards Row (Responsive Grid / Row)
+                _buildSummaryCardsRow(allApps),
+
+                const SizedBox(height: 20),
+
+                // Filter Tabs Bar
+                _buildFilterTabs(),
+
+                const SizedBox(height: 16),
+
+                // Application Cards List or Empty State
+                if (filteredApps.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 48),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.assignment_turned_in_outlined,
+                            size: 56,
+                            color: AppColors.hintText.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No applications found',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.heading,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'No applications under status "$_selectedFilter".',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: AppColors.hintText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Column(
+                    children: filteredApps.map((app) {
+                      return _buildApplicationCard(app);
+                    }).toList(),
+                  ),
+              ],
+            ),
+          ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 2,
+            onTap: (int index) {
+              if (index == 0 || index == 1) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomeScreen()),
+                  (route) => false,
+                );
+              } else if (index == 2) {
+                return;
+              } else if (index == 3) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                );
+              } else if (index == 4) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const HomeScreen(),
+                  ),
+                );
+              }
+            },
+          ),
+        );
+      },
     );
   }
 
   /// Top Summary Cards displaying count metrics
-  Widget _buildSummaryCardsRow() {
+  Widget _buildSummaryCardsRow(List<TrackedApplication> apps) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final double cardWidth = (constraints.maxWidth - 24) / 2;
@@ -701,28 +749,28 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           children: [
             _summaryCard(
               title: 'Applied',
-              count: _countByStatus('Applied'),
+              count: _countByStatus(apps, 'Applied'),
               color: const Color(0xFF2563EB),
               icon: Icons.send_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Under Review',
-              count: _countByStatus('Under Review'),
+              count: _countByStatus(apps, 'Under Review'),
               color: const Color(0xFF7C3AED),
               icon: Icons.access_time_filled_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Interview',
-              count: _countByStatus('Interview'),
+              count: _countByStatus(apps, 'Interview'),
               color: const Color(0xFFEA580C),
               icon: Icons.video_camera_front_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Offer',
-              count: _countByStatus('Offer'),
+              count: _countByStatus(apps, 'Offer'),
               color: const Color(0xFF16A34A),
               icon: Icons.workspace_premium_rounded,
               width: cardWidth,
@@ -857,6 +905,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
   /// Application Card showing details, progress tracker, and actions
   Widget _buildApplicationCard(TrackedApplication app) {
     final statusColor = _getStatusColor(app.status);
+    final isRemovable = app.status == 'Withdrawn' || app.status == 'Rejected';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -989,7 +1038,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
 
           const SizedBox(height: 16),
 
-          // Action Buttons: "View Internship" & "View Details"
+          // Action Buttons: "View Internship", "View Details", and optional "Remove"
           Row(
             children: [
               Expanded(
@@ -1020,7 +1069,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
                 child: ElevatedButton(
                   onPressed: () => _showApplicationDetailsModal(app),
@@ -1042,6 +1091,28 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   ),
                 ),
               ),
+              if (isRemovable) ...[
+                const SizedBox(width: 8),
+                IconButton(
+                  onPressed: () => _confirmRemoveApplication(app),
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: Color(0xFFDC2626),
+                    size: 20,
+                  ),
+                  tooltip: 'Remove from Tracker',
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFFFEF2F2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                      side: const BorderSide(
+                        color: Color(0xFFFCA5A5),
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ],

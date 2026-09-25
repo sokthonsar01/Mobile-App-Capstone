@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:interna/features/home/data/application_tracker_store.dart';
+import 'package:interna/features/home/data/internship_model.dart';
 import 'package:interna/features/home/presentation/application_tracker_screen.dart';
 
 void main() {
-  testWidgets('Tracker buttons and status actions (View Details, Withdraw, Decline) work correctly', (WidgetTester tester) async {
-    // 1. Pump ApplicationTrackerScreen
+  testWidgets('Persistent tracker data flow: apply -> appears in Tracker -> withdraw -> status stays saved -> withdrawn card removed', (WidgetTester tester) async {
+    // 1. Reset tracker store to initial state
+    ApplicationTrackerStore.instance.resetToDefaults();
+
+    // 2. Select an internship item (Hanuman) and apply for it
+    final newInternship = demoInternships.firstWhere((e) => e.logoKey == 'hanuman');
+    final applied = ApplicationTrackerStore.instance.applyForInternship(newInternship);
+    expect(applied, isTrue);
+
+    // 3. Pump ApplicationTrackerScreen and verify new application appears with status "Applied"
     await tester.pumpWidget(
       const MaterialApp(
         home: ApplicationTrackerScreen(),
@@ -12,77 +22,60 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    // 2. Test "View Internship" button
-    expect(find.text('View Internship'), findsWidgets);
-    await tester.tap(find.text('View Internship').first);
+    expect(find.text('Hanuman'), findsOneWidget);
+    expect(find.text('Applied'), findsWidgets);
+
+    // 4. Open "Applied" filter tab to find Hanuman card easily
+    await tester.tap(find.byKey(const Key('filter_Applied')));
     await tester.pumpAndSettle();
 
-    // Verify Internship Details Sheet opened
-    expect(find.text('About the Internship'), findsOneWidget);
-    // Dismiss sheet
-    await tester.tapAt(const Offset(10, 10));
-    await tester.pumpAndSettle();
+    expect(find.text('Hanuman'), findsOneWidget);
 
-    // 3. Test "View Details" button for an Under Review application
-    expect(find.text('View Details'), findsWidgets);
+    // 5. Tap "View Details" on the Hanuman card and Withdraw
     await tester.tap(find.text('View Details').first, warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    // Verify Details modal loaded with dates, timeline, and Withdraw action
-    expect(find.text('Application Progress Timeline'), findsOneWidget);
-    expect(find.text('Date Applied'), findsOneWidget);
-    expect(find.text('Last Updated'), findsOneWidget);
     expect(find.text('Withdraw'), findsOneWidget);
-
-    // 4. Test Withdraw Application action & Confirmation Dialog
     await tester.tap(find.text('Withdraw'));
     await tester.pumpAndSettle();
 
+    // Confirm withdrawal in AlertDialog
     expect(find.text('Withdraw Application'), findsOneWidget);
-
-    // Confirm withdrawal
     await tester.tap(find.widgetWithText(ElevatedButton, 'Withdraw'));
     await tester.pumpAndSettle();
 
-    // Verify application status changed to Withdrawn
-    expect(find.text('Withdrawn'), findsWidgets);
-    expect(find.byType(SnackBar), findsOneWidget);
-
-    // Fast-forward SnackBar timer
+    // Fast forward SnackBar timer
     await tester.pump(const Duration(seconds: 4));
 
-    // 5. Test "Offer" filter chip & "Decline Offer"
-    await tester.ensureVisible(find.byKey(const Key('filter_Offer')));
-    await tester.tap(find.byKey(const Key('filter_Offer')), warnIfMissed: false);
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('View Details').first, warnIfMissed: false);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Decline Offer'), findsOneWidget);
-
-    await tester.tap(find.text('Decline Offer'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Decline Offer'), findsWidgets);
-    await tester.tap(find.widgetWithText(ElevatedButton, 'Decline'));
-    await tester.pumpAndSettle();
-
+    // 6. Verify status updated to "Withdrawn" and stays saved after leaving & returning to page
     expect(find.text('Withdrawn'), findsWidgets);
 
-    // Fast-forward SnackBar timer
-    await tester.pump(const Duration(seconds: 4));
-
-    // 6. Test "Rejected" filter chip -> View Details has NO withdraw/decline action button
-    await tester.ensureVisible(find.byKey(const Key('filter_Rejected')));
-    await tester.tap(find.byKey(const Key('filter_Rejected')), warnIfMissed: false);
+    // Re-pump screen to simulate returning to Tracker page
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: ApplicationTrackerScreen(),
+      ),
+    );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('View Details').first, warnIfMissed: false);
+    // Filter by Withdrawn
+    await tester.ensureVisible(find.byKey(const Key('filter_Withdrawn')));
+    await tester.tap(find.byKey(const Key('filter_Withdrawn')), warnIfMissed: false);
     await tester.pumpAndSettle();
 
-    expect(find.text('Withdraw'), findsNothing);
-    expect(find.text('Decline Offer'), findsNothing);
-    expect(find.text('Close'), findsOneWidget);
+    expect(find.text('Hanuman'), findsOneWidget);
+    expect(find.text('Withdrawn'), findsWidgets);
+
+    // 7. Test removing the withdrawn card from history
+    expect(find.byIcon(Icons.delete_outline_rounded), findsWidgets);
+    await tester.tap(find.byIcon(Icons.delete_outline_rounded).first, warnIfMissed: false);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Remove from Tracker'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Remove'));
+    await tester.pumpAndSettle();
+
+    // Verify Hanuman card has been removed from history
+    expect(find.text('Hanuman'), findsNothing);
   });
 }

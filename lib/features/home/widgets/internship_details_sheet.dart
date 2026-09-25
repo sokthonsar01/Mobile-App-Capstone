@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../data/application_tracker_store.dart';
 import '../data/internship_model.dart';
 import '../presentation/application_submitted_screen.dart';
 import 'company_logo_widget.dart';
@@ -270,6 +271,7 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
               child: WideButton(
                 text: 'APPLY NOW',
                 onPressed: () {
+                  ApplicationTrackerStore.instance.applyForInternship(item);
                   Navigator.pop(context);
                   Navigator.push(
                     context,

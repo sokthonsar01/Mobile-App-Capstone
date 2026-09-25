@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../data/application_tracker_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import 'application_submitted_screen.dart';
@@ -194,6 +195,7 @@ class CompanyProfileScreen extends StatelessWidget {
           // 4. Apply Button
           ElevatedButton(
             onPressed: () {
+              ApplicationTrackerStore.instance.applyForInternship(item);
               Navigator.push(
                 context,
                 MaterialPageRoute(
