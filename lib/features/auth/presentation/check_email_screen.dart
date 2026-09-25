@@ -73,7 +73,9 @@ class CheckEmailScreen extends StatelessWidget {
                 onLinkTap: () {
                   // TODO(team): send the email again once a backend is chosen.
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Resend is not connected yet.')),
+                    const SnackBar(
+                      content: Text('Resend is not connected yet.'),
+                    ),
                   );
                 },
               ),
