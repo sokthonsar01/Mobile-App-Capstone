@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../auth/presentation/login_screen.dart';
+import '../../../shared/widgets/blinking_face.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -126,12 +127,9 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ],
                     ),
-                    child: Image.asset(
-                      'assets/images/main_logo.png',
-                      fit: BoxFit.contain,
-                      filterQuality: FilterQuality.high,
-                      isAntiAlias: true,
-                    ),
+                    // The logo face is drawn in code so the eyes can blink.
+                    // 88 box - 16 padding on each side = 56 of drawing room.
+                    child: const BlinkingFace(size: 56),
                   ),
                 ),
               ),
