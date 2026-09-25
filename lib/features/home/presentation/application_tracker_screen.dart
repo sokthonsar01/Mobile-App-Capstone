@@ -14,14 +14,18 @@ class TrackedApplication {
   final InternshipOpportunity internship;
   final String appliedDate;
   final String deadline;
+  String lastUpdated;
   String status;
+  final String? interviewInfo;
 
   TrackedApplication({
     required this.id,
     required this.internship,
     required this.appliedDate,
     required this.deadline,
+    required this.lastUpdated,
     required this.status,
+    this.interviewInfo,
   });
 }
 
@@ -47,6 +51,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     'Interview',
     'Offer',
     'Rejected',
+    'Withdrawn',
   ];
 
   @override
@@ -60,6 +65,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           orElse: () => demoInternships[0],
         ),
         appliedDate: 'Jan 15, 2026',
+        lastUpdated: 'Feb 02, 2026',
         deadline: 'Feb 14, 2026',
         status: 'Under Review',
       ),
@@ -70,8 +76,11 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           orElse: () => demoInternships[1],
         ),
         appliedDate: 'Jan 20, 2026',
+        lastUpdated: 'Feb 08, 2026',
         deadline: 'Feb 23, 2026',
         status: 'Interview',
+        interviewInfo:
+            'Scheduled for Feb 28, 2026 at 10:00 AM (Google Meet Video Call)',
       ),
       TrackedApplication(
         id: 'app-03',
@@ -80,8 +89,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           orElse: () => demoInternships[2],
         ),
         appliedDate: 'Jan 10, 2026',
+        lastUpdated: 'Feb 12, 2026',
         deadline: 'Feb 14, 2026',
         status: 'Offer',
+        interviewInfo: 'Offer Extended • Response Deadline: March 01, 2026',
       ),
       TrackedApplication(
         id: 'app-04',
@@ -90,6 +101,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           orElse: () => demoInternships[3],
         ),
         appliedDate: 'Feb 01, 2026',
+        lastUpdated: 'Feb 01, 2026',
         deadline: 'Feb 14, 2026',
         status: 'Applied',
       ),
@@ -100,6 +112,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           orElse: () => demoInternships[4],
         ),
         appliedDate: 'Jan 05, 2026',
+        lastUpdated: 'Jan 25, 2026',
         deadline: 'Feb 14, 2026',
         status: 'Rejected',
       ),
@@ -120,125 +133,6 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         .toList();
   }
 
-  void _updateStatus(TrackedApplication app, String newStatus) {
-    setState(() {
-      app.status = newStatus;
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          'Status updated to "$newStatus" for ${app.internship.company}',
-          style: GoogleFonts.plusJakartaSans(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
-        ),
-        backgroundColor: _getStatusColor(newStatus),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  void _showUpdateStatusModal(TrackedApplication app) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Update Application Status',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.heading,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Select the current status for ${app.internship.role} at ${app.internship.company}:',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    color: AppColors.bodyText,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: [
-                    'Applied',
-                    'Under Review',
-                    'Interview',
-                    'Offer',
-                    'Rejected',
-                  ].map((status) {
-                    final isSelected = app.status == status;
-                    final color = _getStatusColor(status);
-
-                    return GestureDetector(
-                      onTap: () {
-                        Navigator.pop(ctx);
-                        _updateStatus(app, status);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? color
-                              : color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: color,
-                            width: isSelected ? 2 : 1,
-                          ),
-                        ),
-                        child: Text(
-                          status,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: isSelected ? Colors.white : color,
-                          ),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Color _getStatusColor(String status) {
     switch (status) {
       case 'Applied':
@@ -251,9 +145,412 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         return const Color(0xFF16A34A); // Green
       case 'Rejected':
         return const Color(0xFFDC2626); // Red
+      case 'Withdrawn':
+        return const Color(0xFF64748B); // Slate Grey
       default:
         return AppColors.primaryBlue;
     }
+  }
+
+  /// Show confirmation popup before withdrawing application or declining offer
+  void _confirmWithdrawOrDecline(TrackedApplication app) {
+    final isOffer = app.status == 'Offer';
+    final actionTitle = isOffer ? 'Decline Offer' : 'Withdraw Application';
+    final actionMessage = isOffer
+        ? 'Are you sure you want to decline the internship offer from ${app.internship.company}? This action cannot be undone.'
+        : 'Are you sure you want to withdraw your application for ${app.internship.role} at ${app.internship.company}? This action cannot be undone.';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: Text(
+            actionTitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.heading,
+            ),
+          ),
+          content: Text(
+            actionMessage,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              color: AppColors.bodyText,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.bodyText,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                setState(() {
+                  app.status = 'Withdrawn';
+                  app.lastUpdated = 'Feb 14, 2026';
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Application for ${app.internship.company} marked as Withdrawn.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                    backgroundColor: const Color(0xFF64748B),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: Text(
+                isOffer ? 'Decline' : 'Withdraw',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Show detailed application modal when "View Details" is clicked
+  void _showApplicationDetailsModal(TrackedApplication app) {
+    final statusColor = _getStatusColor(app.status);
+    final canWithdraw = app.status == 'Applied' ||
+        app.status == 'Under Review' ||
+        app.status == 'Interview';
+    final canDecline = app.status == 'Offer';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
+          child: SafeArea(
+            top: false,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Header Row: Company Logo + Role & Company + Status Badge
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CompanyLogoWidget(
+                        logoKey: app.internship.logoKey,
+                        companyName: app.internship.company,
+                        brandColor: app.internship.brandColor,
+                        size: 48,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              app.internship.role,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.heading,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              app.internship.company,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.bodyText,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: statusColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: statusColor.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          app.status,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: statusColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Dates Info Box
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFFE2E8F0),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Date Applied',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.hintText,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              app.appliedDate,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.heading,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              'Last Updated',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.hintText,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              app.lastUpdated,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.heading,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Progress Timeline
+                  Text(
+                    'Application Progress Timeline',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.heading,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildProgressTracker(app.status),
+
+                  if (app.interviewInfo != null) ...[
+                    const SizedBox(height: 20),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFBFDBFE),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.event_note_rounded,
+                            color: Color(0xFF2563EB),
+                            size: 22,
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Interview Details',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1E40AF),
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  app.interviewInfo!,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF1E3A8A),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: 24),
+
+                  // Action Buttons in Details Modal
+                  if (canWithdraw || canDecline)
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(
+                                color: Color(0xFFCBD5E1),
+                                width: 1.2,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Close',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.heading,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              _confirmWithdrawOrDecline(app);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFDC2626),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              canDecline ? 'Decline Offer' : 'Withdraw',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(
+                            color: Color(0xFFCBD5E1),
+                            width: 1.2,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Close',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -520,6 +817,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
+              key: Key('filter_$filter'),
               onTap: () {
                 setState(() => _selectedFilter = filter);
               },
@@ -691,7 +989,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
 
           const SizedBox(height: 16),
 
-          // Action Buttons: "View Internship" & "Update Status"
+          // Action Buttons: "View Internship" & "View Details"
           Row(
             children: [
               Expanded(
@@ -725,7 +1023,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () => _showUpdateStatusModal(app),
+                  onPressed: () => _showApplicationDetailsModal(app),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryBlue,
                     foregroundColor: Colors.white,
@@ -736,7 +1034,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                     ),
                   ),
                   child: Text(
-                    'Update Status',
+                    'View Details',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -760,7 +1058,9 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       activeIndex = 1;
     } else if (currentStatus == 'Interview') {
       activeIndex = 2;
-    } else if (currentStatus == 'Offer' || currentStatus == 'Rejected') {
+    } else if (currentStatus == 'Offer' ||
+        currentStatus == 'Rejected' ||
+        currentStatus == 'Withdrawn') {
       activeIndex = 3;
     }
 
@@ -772,13 +1072,18 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       ),
       child: Row(
         children: List.generate(stages.length, (index) {
-          final isCompleted = index <= activeIndex && currentStatus != 'Rejected';
+          final isCompleted = index <= activeIndex &&
+              currentStatus != 'Rejected' &&
+              currentStatus != 'Withdrawn';
           final isCurrent = index == activeIndex;
           final isRejected = currentStatus == 'Rejected' && index == 3;
+          final isWithdrawn = currentStatus == 'Withdrawn' && index == 3;
 
           Color nodeColor = const Color(0xFFCBD5E1);
           if (isRejected) {
             nodeColor = const Color(0xFFDC2626);
+          } else if (isWithdrawn) {
+            nodeColor = const Color(0xFF64748B);
           } else if (isCompleted) {
             nodeColor = AppColors.primaryBlue;
           }
@@ -802,7 +1107,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: isCompleted || isRejected
+                        color: isCompleted || isRejected || isWithdrawn
                             ? nodeColor
                             : Colors.white,
                         shape: BoxShape.circle,
@@ -818,7 +1123,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                                 size: 12,
                                 color: Colors.white,
                               )
-                            : isRejected
+                            : (isRejected || isWithdrawn)
                                 ? const Icon(
                                     Icons.close_rounded,
                                     size: 12,
