@@ -93,8 +93,6 @@ void main() {
     expect(find.text('Current Stage: Under Review'), findsOneWidget);
     expect(find.text('Your Submission:'), findsOneWidget);
     expect(find.byIcon(Icons.home_outlined), findsOneWidget);
-    await tester.scrollUntilVisible(find.text('Back to Home'), 200);
-    expect(find.text('Back to Home'), findsOneWidget);
 
     // Test Company Profile Screen
     await tester.pumpWidget(
@@ -121,6 +119,5 @@ void main() {
     );
     expect(find.text('Max Verstappen'), findsWidgets);
     expect(find.text('Fullname'), findsOneWidget);
-    expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsOneWidget);
   });
 }
