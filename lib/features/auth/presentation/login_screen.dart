@@ -27,8 +27,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _rememberMe = false;
   late final StreamSubscription<AuthState> _authSubscription;
-
-
   @override
   void initState() {
     super.initState();

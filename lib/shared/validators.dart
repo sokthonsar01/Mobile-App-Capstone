@@ -9,6 +9,7 @@
 /// and the sign up screen show exactly the same wording.
 library;
 
+
 /// Any field that must not be left empty.
 ///
 /// `fieldName` goes inside the message, for example "your full name".
