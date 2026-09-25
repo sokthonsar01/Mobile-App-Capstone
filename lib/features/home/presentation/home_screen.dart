@@ -10,7 +10,6 @@ import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
 import 'application_details_screen.dart';
-import 'create_post_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 /// Supports both online and offline (Error State) modes.

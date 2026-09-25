@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../auth_colors.dart';
+import '../../../shared/app_colors.dart';
 import 'login_screen.dart';
 
 /// First screen the user sees: the app name, a picture, a big sentence
@@ -59,7 +59,7 @@ class OnboardingScreen extends StatelessWidget {
                     TextSpan(text: 'Where\nTalent Meets\n'),
                     TextSpan(
                       text: 'Opportunity!',
-                      style: TextStyle(color: AuthColors.primaryBlue),
+                      style: TextStyle(color: AppColors.primaryBlue),
                     ),
                   ],
                 ),
@@ -73,7 +73,7 @@ class OnboardingScreen extends StatelessWidget {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
                   height: 1.6,
-                  color: AuthColors.bodyText,
+                  color: AppColors.bodyText,
                 ),
               ),
 
@@ -95,7 +95,7 @@ class OnboardingScreen extends StatelessWidget {
                     width: 60,
                     height: 60,
                     decoration: const BoxDecoration(
-                      color: AuthColors.primaryBlue,
+                      color: AppColors.primaryBlue,
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
