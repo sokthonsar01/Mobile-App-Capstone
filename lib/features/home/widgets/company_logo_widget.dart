@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-/// Renders a branded company logo container matching the dashboard mockup.
+/// Renders a branded company logo container loading local asset PNGs or network fallbacks.
 class CompanyLogoWidget extends StatelessWidget {
   final String logoKey;
   final String companyName;
@@ -79,237 +79,45 @@ class CompanyLogoWidget extends StatelessWidget {
   Widget _buildLogoContent() {
     switch (logoKey) {
       case 'chip_mong':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 28,
-              height: 28,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: const Color(0xFFE91E63),
-                  width: 2.5,
-                ),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.all_inclusive,
-                  color: Color(0xFFE91E63),
-                  size: 16,
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'CHIP MONG',
-              maxLines: 1,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 6,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF1E293B),
-                letterSpacing: -0.2,
-              ),
-            ),
-          ],
+        return Image.network(
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQZBznQbTGb-NmhCY84hvAJEH2Cdyl3T_Rf3fKnB2anXy4Yt35DgWN9pFKF&s=10',
+          errorBuilder: (_, __, ___) => const Icon(Icons.business_rounded),
         );
 
       case 'canadia':
-        return Container(
-          width: size - 8,
-          height: size - 8,
-          decoration: BoxDecoration(
-            color: const Color(0xFFC62828),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: const Color(0xFFFFD54F),
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          border: Border.all(
-                            color: const Color(0xFFFFD54F),
-                            width: 1.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'CANADIA BANK',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 5,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return Image.network(
+          'https://hrincjobs-pro.s3.amazonaws.com/media/public/filer_public/e9/72/e97240fd-c1ba-49fb-9f5e-59f20bc92212/canadiaa.jpg',
+          errorBuilder: (_, __, ___) => const Icon(Icons.account_balance_rounded),
         );
 
       case 'cellcard':
-        return Container(
-          width: size - 8,
-          height: size - 8,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF9800),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.wifi_tethering,
-                    color: Colors.white,
-                    size: 22,
-                  ),
-                  const SizedBox(height: 1),
-                  Text(
-                    'cellcard',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 7,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
-                      letterSpacing: -0.2,
-                    ),
-                  ),
-                  Text(
-                    'ROYAL GROUP',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 4.5,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+        return Image.network(
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ90FPfI8T4ifz4LNsO-c2W0dsLV6l8Pdw-LcJQ915F-g&s=10',
+          errorBuilder: (_, __, ___) => const Icon(Icons.wifi_rounded),
         );
 
       case 'aba':
-        return Container(
-          width: size - 8,
-          height: size - 8,
-          decoration: BoxDecoration(
-            color: const Color(0xFF003D6B),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              'ABA',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                fontWeight: FontWeight.w900,
-                color: Colors.white,
-                letterSpacing: 1,
-              ),
-            ),
-          ),
+        return Image.network(
+          'https://play-lh.googleusercontent.com/O7xMXY5ehCEVwpR0MlKYQOK5QJ1oFIw4EoXQqyt_vgDKT3Uvn1g8FIz_fNDDhWH4Zbdclp54WhRMnI8vzyE9OeU=w240-h480-rw',
+          errorBuilder: (_, __, ___) => const Icon(Icons.account_balance_rounded),
         );
 
       case 'smart':
-        return FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Smart',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w800,
-                  color: const Color(0xFF009639),
-                ),
-              ),
-              const SizedBox(width: 2),
-              const Icon(
-                Icons.flare_rounded,
-                color: Color(0xFFE91E63),
-                size: 13,
-              ),
-            ],
-          ),
+        return Image.network(
+          'https://images.seeklogo.com/logo-png/30/2/smart-axiata-logo-png_seeklogo-309284.png',
+          errorBuilder: (_, __, ___) => const Icon(Icons.cell_tower_rounded),
         );
 
       case 'hanuman':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.domain_rounded,
-              color: Color(0xFF1565C0),
-              size: 24,
-            ),
-            const SizedBox(height: 1),
-            Text(
-              'HANUMAN',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 6,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF1565C0),
-              ),
-            ),
-            Text(
-              'ESTATE',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 4.5,
-                fontWeight: FontWeight.w600,
-                color: const Color(0xFFE65100),
-              ),
-            ),
-          ],
+        return Image.network(
+          'https://images.seeklogo.com/logo-png/61/1/hanuman-beer-logo-png_seeklogo-617034.png',
+          errorBuilder: (_, __, ___) => const Icon(Icons.sports_bar_rounded),
         );
 
       case 'meoys':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(
-              Icons.military_tech_rounded,
-              color: Color(0xFFF57F17),
-              size: 26,
-            ),
-            const SizedBox(height: 1),
-            Text(
-              'MEOYS',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 6,
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF8D6E63),
-              ),
-            ),
-          ],
+        return Image.network(
+          'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcShOXD4X1UoMvxK3VGJWSw7HG--7Vg4WFCxy5edJloa3w&s',
+          errorBuilder: (_, __, ___) => const Icon(Icons.school_rounded),
         );
 
       default:
