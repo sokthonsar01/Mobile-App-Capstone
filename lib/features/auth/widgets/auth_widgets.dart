@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
-import '../auth_colors.dart';
 
 /// Space on the left and right side of every auth screen.
 /// Taken from the design: the content starts about 44 pixels from the edge.
@@ -69,7 +68,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
             fontWeight: FontWeight.w700,
-            color: AuthColors.heading,
+            color: AppColors.heading,
           ),
         ),
         const SizedBox(height: 10),
@@ -84,13 +83,13 @@ class _AuthTextFieldState extends State<AuthTextField> {
           obscureText: widget.isPassword && _isHidden,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 15,
-            color: AuthColors.heading,
+            color: AppColors.heading,
           ),
           decoration: InputDecoration(
             hintText: widget.hint,
             hintStyle: GoogleFonts.plusJakartaSans(
               fontSize: 15,
-              color: AuthColors.hintText,
+              color: AppColors.hintText,
             ),
             filled: true,
             fillColor: Colors.white,
@@ -98,8 +97,8 @@ class _AuthTextFieldState extends State<AuthTextField> {
               horizontal: 18,
               vertical: 14,
             ),
-            enabledBorder: _buildBorder(AuthColors.border),
-            focusedBorder: _buildBorder(AuthColors.primaryBlue),
+            enabledBorder: _buildBorder(AppColors.border),
+            focusedBorder: _buildBorder(AppColors.primaryBlue),
             // Red outline when the check fails.
             errorBorder: _buildBorder(AppColors.danger),
             focusedErrorBorder: _buildBorder(AppColors.danger),
@@ -116,7 +115,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
                       _isHidden
                           ? Icons.visibility_off_outlined
                           : Icons.visibility_outlined,
-                      color: AuthColors.heading,
+                      color: AppColors.heading,
                       size: 22,
                     ),
                     // setState tells Flutter to draw this widget again
@@ -162,7 +161,7 @@ class PrimaryButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AuthColors.primaryBlue,
+          backgroundColor: AppColors.primaryBlue,
           foregroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -200,8 +199,8 @@ class GoogleButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor: AuthColors.primaryBlue,
-          side: const BorderSide(color: AuthColors.primaryBlue, width: 1),
+          foregroundColor: AppColors.primaryBlue,
+          side: const BorderSide(color: AppColors.primaryBlue, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -256,8 +255,8 @@ class SecondaryButton extends StatelessWidget {
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
-          foregroundColor: AuthColors.primaryBlue,
-          side: const BorderSide(color: AuthColors.primaryBlue, width: 1),
+          foregroundColor: AppColors.primaryBlue,
+          side: const BorderSide(color: AppColors.primaryBlue, width: 1),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
@@ -304,7 +303,7 @@ class BottomLinkRow extends StatelessWidget {
           question,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            color: AuthColors.bodyText,
+            color: AppColors.bodyText,
           ),
         ),
         const SizedBox(width: 8),
@@ -315,9 +314,9 @@ class BottomLinkRow extends StatelessWidget {
             linkText,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
-              color: AuthColors.primaryBlue,
+              color: AppColors.primaryBlue,
               decoration: TextDecoration.underline,
-              decorationColor: AuthColors.primaryBlue,
+              decorationColor: AppColors.primaryBlue,
             ),
           ),
         ),
@@ -348,7 +347,7 @@ class AuthHeader extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: 30,
             fontWeight: FontWeight.w800,
-            color: AuthColors.heading,
+            color: AppColors.heading,
           ),
         ),
         if (subtitle != null) ...[
@@ -359,7 +358,7 @@ class AuthHeader extends StatelessWidget {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               height: 1.6,
-              color: AuthColors.bodyText,
+              color: AppColors.bodyText,
             ),
           ),
         ],

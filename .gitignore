@@ -47,3 +47,4 @@ app.*.map.json
 # Environment configuration files
 config/env_*.local.json
 
+.agents/Instruction.md

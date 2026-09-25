@@ -7,6 +7,7 @@
 ///
 /// We keep the checks here, not inside the screens, so the login screen
 /// and the sign up screen show exactly the same wording.
+library;
 
 /// Any field that must not be left empty.
 ///

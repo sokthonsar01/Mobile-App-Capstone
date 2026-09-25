@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../shared/app_colors.dart';
 import '../../../shared/validators.dart';
 import '../../home/presentation/home_screen.dart';
-import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
@@ -136,7 +136,7 @@ class _LoginScreenState extends State<LoginScreen> {
           TextSpan(text: 'Welcome To '),
           TextSpan(
             text: 'INTERNA',
-            style: TextStyle(color: AuthColors.primaryBlue),
+            style: TextStyle(color: AppColors.primaryBlue),
           ),
         ],
       ),
@@ -157,8 +157,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 onChanged: (bool? newValue) {
                   setState(() => _rememberMe = newValue ?? false);
                 },
-                activeColor: AuthColors.primaryBlue,
-                side: const BorderSide(color: AuthColors.border, width: 1.5),
+                activeColor: AppColors.primaryBlue,
+                side: const BorderSide(color: AppColors.border, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
                 ),
@@ -169,7 +169,7 @@ class _LoginScreenState extends State<LoginScreen> {
               'Remember me',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: AuthColors.hintText,
+                color: AppColors.hintText,
               ),
             ),
           ],
@@ -188,7 +188,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AuthColors.heading,
+              color: AppColors.heading,
             ),
           ),
         ),
@@ -253,13 +253,5 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _goToHome() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
   }
 }
