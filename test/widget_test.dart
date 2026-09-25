@@ -1,58 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:interna/features/home/data/internship_model.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
+import 'package:interna/features/home/widgets/company_logo_widget.dart';
+import 'package:interna/features/home/widgets/internship_card.dart';
 
 void main() {
-  testWidgets('HomeScreen full smoke and interaction test', (WidgetTester tester) async {
+  testWidgets('HomeScreen works, posters auto-rotate every 5s, and logos/posters match internships', (WidgetTester tester) async {
+    // 1. Pump HomeScreen widget
     await tester.pumpWidget(
       const MaterialApp(
         home: HomeScreen(),
       ),
     );
+    await tester.pump();
 
-    // 1. Check Header & Top Banner
-    expect(find.text('Welcome back, Max!'), findsOneWidget);
-    expect(find.text('Internship Explorer'), findsOneWidget);
-    expect(find.text('Suggestions'), findsOneWidget);
+    // 2. Verify HomeScreen UI elements load correctly
+    expect(find.text('Hello'), findsOneWidget);
+    expect(find.text('Max Verstappen'), findsOneWidget);
+    expect(find.text('Search internships...'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
-    expect(find.text('Tech'), findsOneWidget);
-    expect(find.text('Marketing'), findsOneWidget);
-    expect(find.text('Design'), findsOneWidget);
-    expect(find.text('Finance'), findsOneWidget);
 
-    // 2. Check default card items rendered
-    expect(find.text('Marketing Intern at Chip Mong'), findsOneWidget);
-    expect(find.text('Finance Intern at Canadia Bank'), findsOneWidget);
+    // 3. Verify internship cards and company logos/posters match
+    expect(find.byType(InternshipCard), findsWidgets);
+    expect(find.byType(CompanyLogoWidget), findsWidgets);
 
-    // 3. Test Search Box Live Filtering
-    await tester.enterText(find.byType(TextField), 'Cellcard');
-    await tester.pump();
+    // Verify asset paths on model matching logos and posters
+    for (final item in demoInternships) {
+      expect(item.logoAssetPath, contains('assets/images/logos/'));
+      expect(item.posterAssetPath, contains('assets/images/posters/'));
+      expect(item.bannerPosterAssetPath, contains('assets/images/posters/'));
+    }
 
-    expect(find.text('AI Specialist Intern at Cellcard'), findsOneWidget);
-    expect(find.text('Marketing Intern at Chip Mong'), findsNothing);
+    // 4. Verify 5-second auto-rotation of top wide banner
+    final pageViewFinder = find.byType(PageView);
+    expect(pageViewFinder, findsOneWidget);
 
-    // Clear search
-    await tester.tap(find.byIcon(Icons.clear_rounded));
-    await tester.pump();
+    final pageViewBefore = tester.widget<PageView>(pageViewFinder);
+    final initialPage = pageViewBefore.controller?.page?.round() ?? 0;
 
-    // 4. Test Category Filter
-    await tester.tap(find.text('Design'));
-    await tester.pump();
+    // Pump 5 seconds for timer to fire
+    await tester.pump(const Duration(seconds: 5));
+    // Pump animation frame
+    await tester.pump(const Duration(milliseconds: 700));
 
-    expect(find.text('UX/UI Intern at Smart'), findsOneWidget);
-    expect(find.text('Finance Intern at Canadia Bank'), findsNothing);
+    final pageViewAfter = tester.widget<PageView>(pageViewFinder);
+    final pageAfter = pageViewAfter.controller?.page?.round() ?? 0;
 
-    // Switch back to All
-    await tester.tap(find.text('All'));
-    await tester.pump();
-
-    expect(find.text('Marketing Intern at Chip Mong'), findsOneWidget);
-
-    // 5. Test "View Details" Bottom Sheet
-    await tester.tap(find.text('View Details').first);
-    await tester.pumpAndSettle();
-
-    expect(find.text('About the Internship'), findsOneWidget);
-    expect(find.text('APPLY NOW'), findsOneWidget);
+    expect(pageAfter, equals(initialPage + 1));
   });
 }

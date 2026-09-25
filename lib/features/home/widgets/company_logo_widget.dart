@@ -16,8 +16,31 @@ class CompanyLogoWidget extends StatelessWidget {
     this.size = 64,
   });
 
+  String get _logoAssetPath {
+    switch (logoKey) {
+      case 'chip_mong':
+        return 'assets/images/logos/Chigmong logo.png';
+      case 'canadia':
+        return 'assets/images/logos/Canada bank logo.png';
+      case 'cellcard':
+        return 'assets/images/logos/Cellcard logo.png';
+      case 'aba':
+        return 'assets/images/logos/ABA Logo.png';
+      case 'smart':
+        return 'assets/images/logos/smart logo.png';
+      case 'hanuman':
+        return 'assets/images/logos/Hanuman beer logo.png';
+      case 'meoys':
+        return 'assets/images/logos/Moeys Logo.png';
+      default:
+        return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final assetPath = _logoAssetPath;
+
     return Container(
       width: size,
       height: size,
@@ -31,7 +54,24 @@ class CompanyLogoWidget extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: _buildLogoContent(),
+        child: assetPath.isNotEmpty
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  assetPath,
+                  width: size - 8,
+                  height: size - 8,
+                  fit: BoxFit.contain,
+                  errorBuilder: (context, error, stackTrace) => FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: _buildLogoContent(),
+                  ),
+                ),
+              )
+            : FittedBox(
+                fit: BoxFit.scaleDown,
+                child: _buildLogoContent(),
+              ),
       ),
     );
   }
@@ -83,43 +123,49 @@ class CompanyLogoWidget extends StatelessWidget {
             color: const Color(0xFFC62828),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: const Color(0xFFFFD54F),
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: Container(
-                    width: 8,
-                    height: 8,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
                     decoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       border: Border.all(
                         color: const Color(0xFFFFD54F),
-                        width: 1.5,
+                        width: 2,
+                      ),
+                    ),
+                    child: Center(
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: const Color(0xFFFFD54F),
+                            width: 1.5,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'CANADIA BANK',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 5,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                'CANADIA BANK',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 5,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+            ),
           ),
         );
 
@@ -131,34 +177,40 @@ class CompanyLogoWidget extends StatelessWidget {
             color: const Color(0xFFFF9800),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.wifi_tethering,
-                color: Colors.white,
-                size: 22,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.wifi_tethering,
+                    color: Colors.white,
+                    size: 22,
+                  ),
+                  const SizedBox(height: 1),
+                  Text(
+                    'cellcard',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 7,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: -0.2,
+                    ),
+                  ),
+                  Text(
+                    'ROYAL GROUP',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 4.5,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 1),
-              Text(
-                'cellcard',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 7,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: -0.2,
-                ),
-              ),
-              Text(
-                'ROYAL GROUP',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 4.5,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-            ],
+            ),
           ),
         );
 
