@@ -675,7 +675,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             controller: controller,
             autofocus: true,
             decoration: const InputDecoration(
-              hintText: 'e.g. Kotlin, Node.js, AI Prompting',
+              hintText: 'e.g. Kotlin, Node.js, SQL, Docker',
               border: OutlineInputBorder(),
             ),
           ),

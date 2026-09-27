@@ -199,13 +199,13 @@ class ProfileHeader extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Icon(
-                      Icons.auto_awesome_rounded,
+                      Icons.verified_user_rounded,
                       size: 14,
-                      color: Color(0xFFFFD54F),
+                      color: Colors.white,
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      'Profile active • Tailored for IT Internships',
+                      'Profile active • Ready for Internship Placement',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,

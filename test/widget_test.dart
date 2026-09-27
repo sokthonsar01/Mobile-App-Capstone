@@ -27,7 +27,7 @@ void main() {
     await tester.pump();
 
     // 2. Verify HomeScreen UI elements load correctly
-    expect(find.text('Hello 👋'), findsOneWidget);
+    expect(find.text('Welcome back,'), findsOneWidget);
     expect(find.text('Chhouen Ratanaksombo'), findsOneWidget);
     expect(find.text('Search internships...'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);

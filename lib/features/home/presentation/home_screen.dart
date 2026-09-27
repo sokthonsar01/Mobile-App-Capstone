@@ -300,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Hello 👋',
+                    'Welcome back,',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -404,7 +404,7 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(9),
             ),
             child: const Icon(
-              Icons.auto_awesome_rounded,
+              Icons.school_outlined,
               color: Colors.white,
               size: 16,
             ),
@@ -417,7 +417,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 Row(
                   children: [
                     Text(
-                      'Targeting ${profile.major.split('&').first.trim()}',
+                      'Recommended for ${profile.major.split('&').first.trim()}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
@@ -444,7 +444,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Suggestions tailored to your ${profile.university.split('(').first.trim()} profile & CV',
+                  'Curated for your ${profile.university.split('(').first.trim()} profile and career preferences',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,

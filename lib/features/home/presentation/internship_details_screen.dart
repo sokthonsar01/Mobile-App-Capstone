@@ -406,11 +406,11 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
               ),
               const SizedBox(height: 10),
               _buildStatCard(
-                icon: Icons.auto_awesome_rounded,
-                iconColor: const Color(0xFFF59E0B),
-                bgColor: const Color(0xFFFEF3C7),
+                icon: Icons.verified_outlined,
+                iconColor: const Color(0xFF2563EB),
+                bgColor: const Color(0xFFEFF6FF),
                 label: 'Candidate Match',
-                value: '95% Strong Match',
+                value: '95% Compatibility',
               ),
             ],
           ),
@@ -524,7 +524,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                       borderRadius: BorderRadius.circular(9),
                     ),
                     child: const Icon(
-                      Icons.auto_awesome_rounded,
+                      Icons.school_outlined,
                       color: Colors.white,
                       size: 16,
                     ),
@@ -537,7 +537,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                         Row(
                           children: [
                             Text(
-                              '95% Match with Your Profile',
+                              'Profile Match: 95% Compatibility',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
@@ -547,7 +547,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                           ],
                         ),
                         Text(
-                          'Tailored for ${profile.fullName} (CADT)',
+                          'Aligned with ${profile.fullName} (CADT)',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             color: const Color(0xFF3B82F6),
