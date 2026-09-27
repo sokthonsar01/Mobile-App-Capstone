@@ -9,6 +9,7 @@ import '../../../shared/widgets/shared_widgets.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/data/user_profile_model.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
+import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
@@ -30,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedLocation;
   bool _paymentOnly = false;
 
-  final Set<String> _savedIds = {'cm-01', 'cellcard-03'};
-
   final List<String> _categories = [
     'All',
     'IT',
@@ -47,7 +46,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ? 1000 * demoInternships.length
         : 0;
     _bannerPageController = PageController(initialPage: initialPage);
+    SavedInternshipsStore.instance.savedIdsNotifier.addListener(_onSavedChanged);
     _startAutoSlide();
+  }
+
+  void _onSavedChanged() {
+    if (mounted) setState(() {});
   }
 
   void _startAutoSlide() {
@@ -67,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    SavedInternshipsStore.instance.savedIdsNotifier.removeListener(_onSavedChanged);
     _bannerTimer?.cancel();
     _bannerPageController.dispose();
     _searchController.dispose();
@@ -217,19 +222,14 @@ class _HomeScreenState extends State<HomeScreen> {
             else
               Column(
                 children: items.map((internship) {
-                  final isSaved = _savedIds.contains(internship.id);
+                  final isSaved =
+                      SavedInternshipsStore.instance.isSaved(internship.id);
 
                   return InternshipCard(
                     internship: internship,
                     isSaved: isSaved,
                     onToggleSave: () {
-                      setState(() {
-                        if (isSaved) {
-                          _savedIds.remove(internship.id);
-                        } else {
-                          _savedIds.add(internship.id);
-                        }
-                      });
+                      SavedInternshipsStore.instance.toggleSave(internship.id);
                     },
                   );
                 }).toList(),

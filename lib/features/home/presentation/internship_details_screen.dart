@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../messages/presentation/chat_screen.dart';
 import '../../profile/data/user_profile_model.dart';
+import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import 'application_submitted_screen.dart';
@@ -38,7 +39,8 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
   @override
   void initState() {
     super.initState();
-    _isSaved = widget.initialSaved;
+    _isSaved = SavedInternshipsStore.instance.isSaved(widget.internship.id) ||
+        widget.initialSaved;
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -49,7 +51,10 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
   }
 
   void _toggleSave() {
-    setState(() => _isSaved = !_isSaved);
+    SavedInternshipsStore.instance.toggleSave(widget.internship.id);
+    setState(() {
+      _isSaved = SavedInternshipsStore.instance.isSaved(widget.internship.id);
+    });
     widget.onToggleSave?.call();
     ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
