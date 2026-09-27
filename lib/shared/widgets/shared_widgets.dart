@@ -138,12 +138,14 @@ class InitialsAvatar extends StatelessWidget {
 
   /// true = square with rounded corners (used for company logos).
   final bool isSquare;
+  final String? imageAsset;
 
   const InitialsAvatar({
     super.key,
     required this.name,
     this.size = 44,
     this.isSquare = false,
+    this.imageAsset,
   });
 
   /// "Taylor Swift" -> "TS".  "Cellcard" -> "C".
@@ -171,6 +173,40 @@ class InitialsAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = isSquare ? BorderRadius.circular(10) : BorderRadius.circular(size / 2);
+
+    if (imageAsset != null && imageAsset!.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
+          borderRadius: isSquare ? BorderRadius.circular(10) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: Image.asset(
+            imageAsset!,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildInitials(),
+          ),
+        ),
+      );
+    }
+
+    return _buildInitials();
+  }
+
+  Widget _buildInitials() {
     return Container(
       width: size,
       height: size,
@@ -202,7 +238,7 @@ class InitialsAvatar extends StatelessWidget {
 /// If they do, delete this widget and use theirs instead.
 /// It is on purpose in `shared/` so only one version survives.
 class AppBottomNav extends StatelessWidget {
-  /// 0 = Home, 1 = Explore, 2 = Tracker, 3 = Community, 4 = Profile.
+  /// 0 = Home, 1 = Saved, 2 = Applications, 3 = Messages, 4 = Profile.
   final int currentIndex;
 
   /// Called with the index the user tapped.
@@ -246,21 +282,21 @@ class AppBottomNav extends StatelessWidget {
                 index: 0,
               ),
               _navItem(
-                icon: Icons.school_outlined,
-                activeIcon: Icons.school_rounded,
-                label: 'Explore',
+                icon: Icons.bookmark_outline_rounded,
+                activeIcon: Icons.bookmark_rounded,
+                label: 'Saved',
                 index: 1,
               ),
               _navItem(
                 icon: Icons.assignment_outlined,
                 activeIcon: Icons.assignment_rounded,
-                label: 'Tracker',
+                label: 'Applications',
                 index: 2,
               ),
               _navItem(
-                icon: Icons.groups_outlined,
-                activeIcon: Icons.groups_rounded,
-                label: 'Community',
+                icon: Icons.chat_bubble_outline_rounded,
+                activeIcon: Icons.chat_bubble_rounded,
+                label: 'Messages',
                 index: 3,
               ),
               _navItem(
@@ -312,6 +348,8 @@ class AppBottomNav extends StatelessWidget {
             ),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

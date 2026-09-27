@@ -2,10 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/demo_data.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../home/presentation/application_details_screen.dart';
-import '../../profile/presentation/edit_profile_screen.dart';
 import 'chat_screen.dart';
 
 /// The Messages list screen.
@@ -72,26 +71,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
       ),
       bottomNavigationBar: AppBottomNav(
         currentIndex: 3,
-        onTap: (int index) {
-          if (index == 3) return;
-          if (index == 0 || index == 1) {
-            Navigator.popUntil(context, (route) => route.isFirst);
-          } else if (index == 2) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const ApplicationDetailsScreen(),
-              ),
-            );
-          } else if (index == 4) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EditProfileScreen(),
-              ),
-            );
-          }
-        },
+        onTap: (int index) => navigateToAppTab(context, 3, index),
       ),
     );
   }
@@ -172,7 +152,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatScreen(contactName: chat.name),
+            builder: (context) => ChatScreen(
+              contactName: chat.name,
+              avatarAsset: chat.avatarAsset,
+            ),
           ),
         );
       },
@@ -182,7 +165,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
           // start = line the avatar up with the top of the text.
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InitialsAvatar(name: chat.name, size: 46),
+            InitialsAvatar(
+              name: chat.name,
+              size: 46,
+              imageAsset: chat.avatarAsset,
+            ),
             const SizedBox(width: 14),
             // Expanded gives the name and message all the space that is
             // left, so long text gets cut with "..." instead of

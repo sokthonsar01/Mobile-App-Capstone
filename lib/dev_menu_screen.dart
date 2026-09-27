@@ -46,39 +46,39 @@ class DevMenuScreen extends StatelessWidget {
           const _SectionTitle('Main App / Dashboard'),
           _open(
             context,
-            '★ Home / Internship Explorer',
+            'Home / Internship Explorer',
             const HomeScreen(),
           ),
           _open(
             context,
-            '★ No Connection / Offline Error State',
+            'No Connection / Offline Error State',
             const OfflineErrorScreen(),
           ),
 
           const _SectionTitle('Internship & Application Screens'),
           _open(
             context,
-            '★ Internship Details (90% Match & Specs)',
+            'Internship Details',
             InternshipDetailsScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Application Submitted (Success Screen)',
+            'Application Submitted (Success Screen)',
             ApplicationSubmittedScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Application Details (Stage Stepper & Submission)',
+            'Application Details (Stage Stepper & Submission)',
             ApplicationDetailsScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Company Profile (Hanuman Estate)',
+            'Company Profile (Hanuman Estate)',
             CompanyProfileScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Create Post / Community Posting',
+            'Create Post / Community Posting',
             const CreatePostScreen(),
           ),
 

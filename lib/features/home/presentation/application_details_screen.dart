@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
+import '../../../shared/widgets/shared_widgets.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import 'home_screen.dart';
@@ -490,6 +492,10 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
 
           const SizedBox(height: 24),
         ],
+      ),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 2,
+        onTap: (int index) => navigateToAppTab(context, 2, index),
       ),
     );
   }

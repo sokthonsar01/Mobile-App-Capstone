@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
+import '../../profile/data/user_profile_model.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
-import '../../saved/presentation/saved_internships_screen.dart';
+import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
@@ -30,8 +31,6 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedLocation;
   bool _paymentOnly = false;
 
-  final Set<String> _savedIds = {'cm-01', 'cellcard-03'};
-
   final List<String> _categories = [
     'All',
     'IT',
@@ -47,7 +46,12 @@ class _HomeScreenState extends State<HomeScreen> {
         ? 1000 * demoInternships.length
         : 0;
     _bannerPageController = PageController(initialPage: initialPage);
+    SavedInternshipsStore.instance.savedIdsNotifier.addListener(_onSavedChanged);
     _startAutoSlide();
+  }
+
+  void _onSavedChanged() {
+    if (mounted) setState(() {});
   }
 
   void _startAutoSlide() {
@@ -67,6 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    SavedInternshipsStore.instance.savedIdsNotifier.removeListener(_onSavedChanged);
     _bannerTimer?.cancel();
     _bannerPageController.dispose();
     _searchController.dispose();
@@ -137,21 +142,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleBottomNavTap(int index) {
-    if (index == 0) {
-      return;
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MessagesScreen()),
-      );
-    } else if (index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SavedInternshipsScreen()),
-      );
-    } else if (index == 2) {
-      _openFilters();
-    }
+    navigateToAppTab(context, 0, index);
   }
 
   @override
@@ -184,7 +175,12 @@ class _HomeScreenState extends State<HomeScreen> {
             // 4. Horizontal Category Chips Row with Filter Icon Button
             _buildCategoryChips(),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+
+            // Personalized Recommendation Banner
+            _buildPersonalizedMatchBanner(),
+
+            const SizedBox(height: 14),
 
             // 5. Suggestions Feed List or Empty State
             if (items.isEmpty)
@@ -226,19 +222,14 @@ class _HomeScreenState extends State<HomeScreen> {
             else
               Column(
                 children: items.map((internship) {
-                  final isSaved = _savedIds.contains(internship.id);
+                  final isSaved =
+                      SavedInternshipsStore.instance.isSaved(internship.id);
 
                   return InternshipCard(
                     internship: internship,
                     isSaved: isSaved,
                     onToggleSave: () {
-                      setState(() {
-                        if (isSaved) {
-                          _savedIds.remove(internship.id);
-                        } else {
-                          _savedIds.add(internship.id);
-                        }
-                      });
+                      SavedInternshipsStore.instance.toggleSave(internship.id);
                     },
                   );
                 }).toList(),
@@ -255,42 +246,52 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Top Bar: Profile avatar with Hello & Name on left + Notification bell on right.
   Widget _buildTopHeader() {
+    final profile = currentDemoProfile;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         // Profile Icon Button + Hello, User Name
         GestureDetector(
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            await Navigator.push(
               context,
               MaterialPageRoute(
                 builder: (context) => const EditProfileScreen(),
               ),
             );
+            setState(() {});
           },
           child: Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
                   border: Border.all(
-                    color: const Color(0xFFE2E8F0),
-                    width: 1.2,
+                    color: AppColors.primaryBlue.withValues(alpha: 0.3),
+                    width: 1.5,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.04),
+                      color: Colors.black.withValues(alpha: 0.06),
                       blurRadius: 6,
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.person_rounded,
-                  color: AppColors.heading,
-                  size: 24,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(22),
+                  child: Image.asset(
+                    profile.avatarAsset,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.person_rounded,
+                      color: AppColors.heading,
+                      size: 24,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -299,7 +300,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Hello',
+                    'Welcome back,',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -307,10 +308,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Text(
-                    'Max Verstappen',
+                    profile.fullName,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w800,
                       color: AppColors.heading,
                     ),
                   ),
@@ -373,6 +374,97 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ],
+    );
+  }
+
+  /// Personalized Recommendation Match Banner powered by User Profile Major & Goals
+  Widget _buildPersonalizedMatchBanner() {
+    final profile = currentDemoProfile;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFBFDBFE)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: const Icon(
+              Icons.school_outlined,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Recommended for ${profile.major.split('&').first.trim()}',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF1E40AF),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '95% Match',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Curated for your ${profile.university.split('(').first.trim()} profile and career preferences',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF3B82F6),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

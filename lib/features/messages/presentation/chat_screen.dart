@@ -9,8 +9,13 @@ import '../../../shared/widgets/shared_widgets.dart';
 class ChatScreen extends StatefulWidget {
   /// Whose chat we opened. Comes from the Messages list.
   final String contactName;
+  final String? avatarAsset;
 
-  const ChatScreen({super.key, required this.contactName});
+  const ChatScreen({
+    super.key,
+    required this.contactName,
+    this.avatarAsset,
+  });
 
   @override
   State<ChatScreen> createState() => _ChatScreenState();
@@ -82,7 +87,11 @@ class _ChatScreenState extends State<ChatScreen> {
             icon: const Icon(Icons.arrow_back_ios_new,
                 color: Colors.black, size: 20),
           ),
-          InitialsAvatar(name: widget.contactName, size: 34),
+          InitialsAvatar(
+            name: widget.contactName,
+            size: 36,
+            imageAsset: widget.avatarAsset,
+          ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
