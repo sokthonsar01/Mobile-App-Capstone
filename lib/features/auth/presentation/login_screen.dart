@@ -64,16 +64,53 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(child: _buildTitle()),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Center(
-                  child: Image.asset(
-                    'assets/images/illustration_intern.png',
-                    height: 250,
-                    fit: BoxFit.contain,
+                  child: Column(
+                    children: [
+                      // Brand App Icon
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  AppColors.primaryBlue.withValues(alpha: 0.28),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.school_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      // Title
+                      _buildTitle(),
+                      const SizedBox(height: 8),
+                      // Subtitle
+                      Text(
+                        'Discover and apply for top internship opportunities across Cambodia',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          color: AppColors.bodyText,
+                          height: 1.45,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 32),
                 AuthTextField(
                   label: 'Email',
                   hint: 'maxverstappen1@gmail.com',
@@ -123,14 +160,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildTitle() {
     return RichText(
+      textAlign: TextAlign.center,
       text: TextSpan(
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: FontWeight.w800,
-          color: Colors.black,
+          color: AppColors.heading,
+          letterSpacing: -0.4,
         ),
         children: const [
-          TextSpan(text: 'Welcome To '),
+          TextSpan(text: 'Welcome to '),
           TextSpan(
             text: 'INTERNA',
             style: TextStyle(color: AppColors.primaryBlue),
