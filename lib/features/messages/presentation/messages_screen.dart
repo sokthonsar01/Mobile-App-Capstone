@@ -152,7 +152,10 @@ class _MessagesScreenState extends State<MessagesScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => ChatScreen(contactName: chat.name),
+            builder: (context) => ChatScreen(
+              contactName: chat.name,
+              avatarAsset: chat.avatarAsset,
+            ),
           ),
         );
       },
@@ -162,7 +165,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
           // start = line the avatar up with the top of the text.
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            InitialsAvatar(name: chat.name, size: 46),
+            InitialsAvatar(
+              name: chat.name,
+              size: 46,
+              imageAsset: chat.avatarAsset,
+            ),
             const SizedBox(width: 14),
             // Expanded gives the name and message all the space that is
             // left, so long text gets cut with "..." instead of
