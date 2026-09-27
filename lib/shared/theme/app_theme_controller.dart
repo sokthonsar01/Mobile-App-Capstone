@@ -7,7 +7,7 @@ class AppThemeController {
 
   /// Reactive notifier for the active ThemeMode.
   final ValueNotifier<ThemeMode> themeModeNotifier =
-      ValueNotifier<ThemeMode>(ThemeMode.system);
+      ValueNotifier<ThemeMode>(ThemeMode.light);
 
   ThemeMode get currentThemeMode => themeModeNotifier.value;
 

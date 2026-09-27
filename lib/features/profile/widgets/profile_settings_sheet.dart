@@ -19,179 +19,205 @@ void showProfileSettingsSheet(BuildContext context) {
       return ValueListenableBuilder<ThemeMode>(
         valueListenable: AppThemeController.instance.themeModeNotifier,
         builder: (context, currentMode, _) {
-          return SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Drag Handle
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
+          final isDark = AppColors.isDark;
+
+          return Container(
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF1E293B) : Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Drag Handle
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF475569) : const Color(0xFFCBD5E1),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+
+                    // Header
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Settings',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0D0141),
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(
+                            Icons.close_rounded,
+                            color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6D678B),
+                            size: 22,
+                          ),
+                          onPressed: () => Navigator.pop(sheetContext),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 1. Theme / Appearance Section
+                    Text(
+                      'APPEARANCE & THEME',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6D678B),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      padding: const EdgeInsets.all(5),
                       decoration: BoxDecoration(
-                        color: AppColors.cardBorder,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-
-                  // Header
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Settings',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.heading,
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
                         ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.close_rounded, color: AppColors.hintText, size: 22),
-                        onPressed: () => Navigator.pop(sheetContext),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
-                  // 1. Theme / Appearance Section
-                  Text(
-                    'APPEARANCE & THEME',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      color: AppColors.hintText,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: AppColors.lightFill,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _buildThemeModeTile(
-                            label: 'Light',
-                            icon: Icons.light_mode_outlined,
-                            isSelected: currentMode == ThemeMode.light,
-                            onTap: () => AppThemeController.instance.setLightMode(),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: _buildThemeModeTile(
-                            label: 'Dark',
-                            icon: Icons.dark_mode_outlined,
-                            isSelected: currentMode == ThemeMode.dark,
-                            onTap: () => AppThemeController.instance.setDarkMode(),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Expanded(
-                          child: _buildThemeModeTile(
-                            label: 'System',
-                            icon: Icons.settings_brightness_outlined,
-                            isSelected: currentMode == ThemeMode.system,
-                            onTap: () => AppThemeController.instance.setSystemMode(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // 2. Account & Security Section
-                  Text(
-                    'ACCOUNT & SECURITY',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                      color: AppColors.hintText,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: AppColors.cardBorder),
-                    ),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
-                          ),
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.lock_outline_rounded, color: AppColors.primaryBlue, size: 20),
-                          ),
-                          title: Text(
-                            'Update Password',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.5,
-                              color: AppColors.heading,
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildThemeModeTile(
+                              label: 'Light',
+                              icon: Icons.light_mode_outlined,
+                              isDarkTheme: isDark,
+                              isSelected: currentMode == ThemeMode.light,
+                              onTap: () => AppThemeController.instance.setLightMode(),
                             ),
                           ),
-                          trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.hintText),
-                          onTap: () {
-                            Navigator.pop(sheetContext);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const UpdatePasswordScreen(),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _buildThemeModeTile(
+                              label: 'Dark',
+                              icon: Icons.dark_mode_outlined,
+                              isDarkTheme: isDark,
+                              isSelected: currentMode == ThemeMode.dark,
+                              onTap: () => AppThemeController.instance.setDarkMode(),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: _buildThemeModeTile(
+                              label: 'System',
+                              icon: Icons.settings_brightness_outlined,
+                              isDarkTheme: isDark,
+                              isSelected: currentMode == ThemeMode.system,
+                              onTap: () => AppThemeController.instance.setSystemMode(),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // 2. Account & Security Section
+                    Text(
+                      'ACCOUNT & SECURITY',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.8,
+                        color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF6D678B),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          ListTile(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(14)),
+                            ),
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
                               ),
-                            );
-                          },
-                        ),
-                        Divider(height: 1, color: AppColors.cardBorder),
-                        ListTile(
-                          shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
-                          ),
-                          leading: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: AppColors.danger.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
+                              child: const Icon(Icons.lock_outline_rounded, color: AppColors.primaryBlue, size: 20),
                             ),
-                            child: const Icon(Icons.logout_rounded, color: AppColors.danger, size: 20),
-                          ),
-                          title: Text(
-                            'Log Out',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.5,
-                              color: AppColors.danger,
+                            title: Text(
+                              'Update Password',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.5,
+                                color: isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0D0141),
+                              ),
                             ),
+                            trailing: Icon(
+                              Icons.arrow_forward_ios_rounded,
+                              size: 16,
+                              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                            ),
+                            onTap: () {
+                              Navigator.pop(sheetContext);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const UpdatePasswordScreen(),
+                                ),
+                              );
+                            },
                           ),
-                          onTap: () {
-                            Navigator.pop(sheetContext);
-                            showLogoutSheet(context);
-                          },
-                        ),
-                      ],
+                          Divider(
+                            height: 1,
+                            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          ),
+                          ListTile(
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(bottom: Radius.circular(14)),
+                            ),
+                            leading: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.danger.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(Icons.logout_rounded, color: AppColors.danger, size: 20),
+                            ),
+                            title: Text(
+                              'Log Out',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.5,
+                                color: const Color(0xFFEF4444),
+                              ),
+                            ),
+                            onTap: () {
+                              Navigator.pop(sheetContext);
+                              showLogoutSheet(context);
+                            },
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
+                    const SizedBox(height: 10),
+                  ],
+                ),
               ),
             ),
           );
@@ -204,22 +230,30 @@ void showProfileSettingsSheet(BuildContext context) {
 Widget _buildThemeModeTile({
   required String label,
   required IconData icon,
+  required bool isDarkTheme,
   required bool isSelected,
   required VoidCallback onTap,
 }) {
+  final Color activeBg = isDarkTheme ? const Color(0xFF1E293B) : Colors.white;
+  final Color activeText = isDarkTheme ? const Color(0xFFF8FAFC) : const Color(0xFF0D0141);
+  final Color inactiveText = isDarkTheme ? const Color(0xFF64748B) : const Color(0xFF6D678B);
+
   return GestureDetector(
     onTap: onTap,
     child: AnimatedContainer(
       duration: const Duration(milliseconds: 200),
       padding: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
-        color: isSelected ? AppColors.surface : Colors.transparent,
+        color: isSelected ? activeBg : Colors.transparent,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: isSelected
+        border: isSelected && isDarkTheme
+            ? Border.all(color: const Color(0xFF334155))
+            : null,
+        boxShadow: isSelected && !isDarkTheme
             ? [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
-                  blurRadius: 6,
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
               ]
@@ -231,7 +265,7 @@ Widget _buildThemeModeTile({
           Icon(
             icon,
             size: 17,
-            color: isSelected ? AppColors.primaryBlue : AppColors.hintText,
+            color: isSelected ? AppColors.primaryBlue : inactiveText,
           ),
           const SizedBox(width: 6),
           Text(
@@ -239,7 +273,7 @@ Widget _buildThemeModeTile({
             style: GoogleFonts.plusJakartaSans(
               fontSize: 12.5,
               fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-              color: isSelected ? AppColors.heading : AppColors.hintText,
+              color: isSelected ? activeText : inactiveText,
             ),
           ),
         ],
