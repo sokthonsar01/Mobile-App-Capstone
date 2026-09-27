@@ -10,10 +10,8 @@ import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
 import '../../saved/presentation/saved_internships_screen.dart';
 import '../data/internship_model.dart';
-import '../widgets/company_logo_widget.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
-import '../widgets/internship_details_sheet.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 class HomeScreen extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../shared/app_colors.dart';
 import '../../../shared/validators.dart';
-import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 
 /// The "Create an Account" screen. Front end only.
@@ -111,8 +111,8 @@ class _SignupScreenState extends State<SignupScreen> {
             onChanged: (bool? newValue) {
               setState(() => _rememberMe = newValue ?? false);
             },
-            activeColor: AuthColors.primaryBlue,
-            side: const BorderSide(color: AuthColors.border, width: 1.5),
+            activeColor: AppColors.primaryBlue,
+            side: const BorderSide(color: AppColors.border, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5),
             ),
@@ -123,7 +123,7 @@ class _SignupScreenState extends State<SignupScreen> {
           'Remember me',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
-            color: AuthColors.hintText,
+            color: AppColors.hintText,
           ),
         ),
       ],
