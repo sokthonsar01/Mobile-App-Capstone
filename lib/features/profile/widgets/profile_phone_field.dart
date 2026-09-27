@@ -33,9 +33,10 @@ class ProfilePhoneField extends StatelessWidget {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: softShadow,
+            border: Border.all(color: AppColors.cardBorder),
+            boxShadow: AppColors.isDark ? [] : softShadow,
           ),
           child: Row(
             children: [
@@ -43,12 +44,19 @@ class ProfilePhoneField extends StatelessWidget {
                 padding: const EdgeInsets.only(left: 14),
                 child: DropdownButton<String>(
                   value: countryCode,
+                  dropdownColor: AppColors.surface,
                   underline: const SizedBox.shrink(),
                   items: const ['+855', '+66', '+84', '+1']
                       .map(
                         (code) => DropdownMenuItem<String>(
                           value: code,
-                          child: Text(code),
+                          child: Text(
+                            code,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 15,
+                              color: AppColors.heading,
+                            ),
+                          ),
                         ),
                       )
                       .toList(),
@@ -59,7 +67,7 @@ class ProfilePhoneField extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(width: 1, height: 26, color: AppColors.border),
+              Container(width: 1, height: 26, color: AppColors.cardBorder),
               Expanded(
                 child: TextField(
                   controller: controller,

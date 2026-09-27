@@ -214,8 +214,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   color: AppColors.primaryBlue,
                                 ),
                               ),
-                              backgroundColor: const Color(0xFFEFF4FF),
-                              side: const BorderSide(color: Color(0xFFDBEAFE)),
+                              backgroundColor: AppColors.isDark
+                                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                  : const Color(0xFFEFF4FF),
+                              side: BorderSide(
+                                color: AppColors.isDark
+                                    ? const Color(0xFF1E40AF).withValues(alpha: 0.5)
+                                    : const Color(0xFFDBEAFE),
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -268,15 +274,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF1E293B),
+                                    color: AppColors.heading,
                                   ),
                                 ),
-                                backgroundColor: const Color(0xFFF1F5F9),
-                                deleteIcon: const Icon(Icons.close, size: 14),
+                                backgroundColor: AppColors.lightFill,
+                                deleteIcon: Icon(Icons.close, size: 14, color: AppColors.hintText),
                                 onDeleted: () {
                                   setState(() => _skills.remove(skill));
                                 },
-                                side: BorderSide.none,
+                                side: BorderSide(color: AppColors.cardBorder),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -296,7 +302,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   color: AppColors.primaryBlue,
                                 ),
                               ),
-                              backgroundColor: Colors.white,
+                              backgroundColor: AppColors.surface,
                               side: const BorderSide(
                                 color: AppColors.primaryBlue,
                               ),
@@ -466,7 +472,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Divider(height: 1, color: AppColors.cardBorder),
           const SizedBox(height: 16),
           ...children,
         ],
@@ -478,9 +484,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F2),
+        color: AppColors.isDark
+            ? const Color(0xFF4C0519).withValues(alpha: 0.25)
+            : const Color(0xFFFFF1F2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFECDD3)),
+        border: Border.all(
+          color: AppColors.isDark
+              ? const Color(0xFF9F1239).withValues(alpha: 0.5)
+              : const Color(0xFFFECDD3),
+        ),
       ),
       child: Column(
         children: [
@@ -510,7 +522,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF881337),
+                        color: AppColors.isDark ? const Color(0xFFFDA4AF) : const Color(0xFF881337),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -518,7 +530,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       '${currentDemoProfile.cvFileSize} • Updated ${currentDemoProfile.cvLastUpdated}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: const Color(0xFF9F1239),
+                        color: AppColors.isDark ? const Color(0xFFF43F5E) : const Color(0xFF9F1239),
                       ),
                     ),
                   ],
@@ -612,12 +624,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryBlue : Colors.white,
+                color: isSelected ? AppColors.primaryBlue : AppColors.surface,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected
                       ? AppColors.primaryBlue
-                      : const Color(0xFFCBD5E1),
+                      : AppColors.cardBorder,
                 ),
               ),
               child: Center(
@@ -655,11 +667,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               color: isSelected ? AppColors.primaryBlue : AppColors.bodyText,
             ),
           ),
-          selectedColor: const Color(0xFFEFF4FF),
-          backgroundColor: Colors.white,
+          selectedColor: AppColors.isDark
+              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+              : const Color(0xFFEFF4FF),
+          backgroundColor: AppColors.surface,
           checkmarkColor: AppColors.primaryBlue,
           side: BorderSide(
-            color: isSelected ? AppColors.primaryBlue : const Color(0xFFCBD5E1),
+            color: isSelected ? AppColors.primaryBlue : AppColors.cardBorder,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -680,6 +694,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -694,15 +709,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
+            style: GoogleFonts.plusJakartaSans(color: AppColors.heading),
+            decoration: InputDecoration(
               hintText: 'e.g. Kotlin, Node.js, SQL, Docker',
-              border: OutlineInputBorder(),
+              hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.hintText),
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.plusJakartaSans(color: AppColors.hintText),
+              ),
             ),
             ElevatedButton(
               onPressed: () {

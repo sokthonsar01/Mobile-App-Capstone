@@ -48,9 +48,13 @@ class ProfileGenderSelector extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
-          boxShadow: softShadow,
+          border: Border.all(
+            color: isSelected ? AppColors.primaryBlue : AppColors.cardBorder,
+            width: isSelected ? 1.5 : 1,
+          ),
+          boxShadow: AppColors.isDark ? [] : softShadow,
         ),
         child: Row(
           children: [
@@ -60,7 +64,7 @@ class ProfileGenderSelector extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppColors.primaryBlue : AppColors.heading,
+                  color: isSelected ? AppColors.primaryBlue : AppColors.heading.withValues(alpha: 0.6),
                   width: 2,
                 ),
               ),
@@ -82,6 +86,7 @@ class ProfileGenderSelector extends StatelessWidget {
               value,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 15,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 color: AppColors.heading,
               ),
             ),
