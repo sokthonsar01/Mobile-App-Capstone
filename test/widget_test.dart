@@ -14,6 +14,10 @@ import 'package:interna/shared/widgets/shared_widgets.dart';
 
 void main() {
   testWidgets('HomeScreen works, posters auto-rotate every 5s, and logos/posters match internships', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
     // 1. Pump HomeScreen widget
     await tester.pumpWidget(
       const MaterialApp(
@@ -23,8 +27,8 @@ void main() {
     await tester.pump();
 
     // 2. Verify HomeScreen UI elements load correctly
-    expect(find.text('Hello'), findsOneWidget);
-    expect(find.text('Max Verstappen'), findsOneWidget);
+    expect(find.text('Hello 👋'), findsOneWidget);
+    expect(find.text('Chhouen Ratanaksombo'), findsOneWidget);
     expect(find.text('Search internships...'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
 
@@ -119,7 +123,7 @@ void main() {
         home: EditProfileScreen(),
       ),
     );
-    expect(find.text('Max Verstappen'), findsWidgets);
+    expect(find.text('Chhouen Ratanaksombo'), findsWidgets);
     expect(find.text('Fullname'), findsOneWidget);
   });
 }

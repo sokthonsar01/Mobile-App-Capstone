@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../profile/data/user_profile_model.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import 'application_submitted_screen.dart';
@@ -287,12 +288,13 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildProfileRow('Full Name', 'Max Verstappen'),
-                  _buildProfileRow('Email', 'maxverstappen1@gmail.com'),
-                  _buildProfileRow('University', 'Paragon International University'),
-                  _buildProfileRow('Major', 'Data Science & Analytics'),
-                  _buildProfileRow('GPA', '3.85 / 4.0'),
-                  _buildProfileRow('Top Skills', 'Python, SQL, Excel, Business Analytics'),
+                  _buildProfileRow('Full Name', currentDemoProfile.fullName),
+                  _buildProfileRow('Email', currentDemoProfile.email),
+                  _buildProfileRow('University', currentDemoProfile.university),
+                  _buildProfileRow('Major', currentDemoProfile.major),
+                  _buildProfileRow('GPA', currentDemoProfile.gpa),
+                  _buildProfileRow('Top Skills', currentDemoProfile.skills.take(4).join(', ')),
+                  _buildProfileRow('Attached CV', currentDemoProfile.cvFileName),
                 ],
               ),
             ),

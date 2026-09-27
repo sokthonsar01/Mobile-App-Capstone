@@ -138,12 +138,14 @@ class InitialsAvatar extends StatelessWidget {
 
   /// true = square with rounded corners (used for company logos).
   final bool isSquare;
+  final String? imageAsset;
 
   const InitialsAvatar({
     super.key,
     required this.name,
     this.size = 44,
     this.isSquare = false,
+    this.imageAsset,
   });
 
   /// "Taylor Swift" -> "TS".  "Cellcard" -> "C".
@@ -171,6 +173,40 @@ class InitialsAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = isSquare ? BorderRadius.circular(10) : BorderRadius.circular(size / 2);
+
+    if (imageAsset != null && imageAsset!.isNotEmpty) {
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
+          borderRadius: isSquare ? BorderRadius.circular(10) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: Image.asset(
+            imageAsset!,
+            width: size,
+            height: size,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) => _buildInitials(),
+          ),
+        ),
+      );
+    }
+
+    return _buildInitials();
+  }
+
+  Widget _buildInitials() {
     return Container(
       width: size,
       height: size,
