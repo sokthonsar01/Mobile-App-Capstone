@@ -4,11 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
-import '../../saved/presentation/saved_internships_screen.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
@@ -137,21 +136,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _handleBottomNavTap(int index) {
-    if (index == 0) {
-      return;
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MessagesScreen()),
-      );
-    } else if (index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SavedInternshipsScreen()),
-      );
-    } else if (index == 2) {
-      _openFilters();
-    }
+    navigateToAppTab(context, 0, index);
   }
 
   @override

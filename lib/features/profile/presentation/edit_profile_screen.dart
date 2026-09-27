@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/validators.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../widgets/profile_gender_selector.dart';
@@ -127,6 +128,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ),
           ],
         ),
+      ),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 4,
+        onTap: (int index) => navigateToAppTab(context, 4, index),
       ),
     );
   }

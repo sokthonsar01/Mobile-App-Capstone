@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
-import '../../saved/presentation/saved_internships_screen.dart';
-import 'create_post_screen.dart';
-import 'home_screen.dart';
 
 /// Offline / No Connection Error State Screen.
 /// Displays the top "No connection" red toast banner and skeleton loading placeholders.
@@ -108,36 +105,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
       ),
       bottomNavigationBar: AppBottomNav(
         currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CreatePostScreen()),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MessagesScreen()),
-            );
-          } else if (index == 4) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SavedInternshipsScreen(),
-              ),
-            );
-          }
-        },
+        onTap: (index) => navigateToAppTab(context, 0, index),
       ),
     );
   }

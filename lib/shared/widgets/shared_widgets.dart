@@ -202,7 +202,7 @@ class InitialsAvatar extends StatelessWidget {
 /// If they do, delete this widget and use theirs instead.
 /// It is on purpose in `shared/` so only one version survives.
 class AppBottomNav extends StatelessWidget {
-  /// 0 = Home, 1 = Explore, 2 = Tracker, 3 = Community, 4 = Profile.
+  /// 0 = Home, 1 = Saved, 2 = Applications, 3 = Messages, 4 = Profile.
   final int currentIndex;
 
   /// Called with the index the user tapped.
@@ -246,21 +246,21 @@ class AppBottomNav extends StatelessWidget {
                 index: 0,
               ),
               _navItem(
-                icon: Icons.school_outlined,
-                activeIcon: Icons.school_rounded,
-                label: 'Explore',
+                icon: Icons.bookmark_outline_rounded,
+                activeIcon: Icons.bookmark_rounded,
+                label: 'Saved',
                 index: 1,
               ),
               _navItem(
                 icon: Icons.assignment_outlined,
                 activeIcon: Icons.assignment_rounded,
-                label: 'Tracker',
+                label: 'Applications',
                 index: 2,
               ),
               _navItem(
-                icon: Icons.groups_outlined,
-                activeIcon: Icons.groups_rounded,
-                label: 'Community',
+                icon: Icons.chat_bubble_outline_rounded,
+                activeIcon: Icons.chat_bubble_rounded,
+                label: 'Messages',
                 index: 3,
               ),
               _navItem(
@@ -312,6 +312,8 @@ class AppBottomNav extends StatelessWidget {
             ),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

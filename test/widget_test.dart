@@ -10,6 +10,7 @@ import 'package:interna/features/home/presentation/offline_error_screen.dart';
 import 'package:interna/features/home/widgets/company_logo_widget.dart';
 import 'package:interna/features/home/widgets/internship_card.dart';
 import 'package:interna/features/profile/presentation/edit_profile_screen.dart';
+import 'package:interna/shared/widgets/shared_widgets.dart';
 
 void main() {
   testWidgets('HomeScreen works, posters auto-rotate every 5s, and logos/posters match internships', (WidgetTester tester) async {
@@ -92,7 +93,8 @@ void main() {
     expect(find.text('Application Details'), findsOneWidget);
     expect(find.text('Current Stage: Under Review'), findsOneWidget);
     expect(find.text('Your Submission:'), findsOneWidget);
-    expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.home_outlined), findsWidgets);
+    expect(find.byType(AppBottomNav), findsOneWidget);
 
     // Test Company Profile Screen
     await tester.pumpWidget(
