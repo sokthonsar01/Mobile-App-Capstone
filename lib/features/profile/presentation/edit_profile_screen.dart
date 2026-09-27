@@ -374,20 +374,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 18),
-
-                    // Section 6: App Appearance & Theme
-                    _buildSectionCard(
-                      title: 'App Appearance',
-                      icon: Icons.palette_outlined,
-                      iconColor: const Color(0xFF3B82F6),
-                      subtitle:
-                          'Switch between light, dark, or system default mode.',
-                      children: [
-                        _buildThemeSelector(),
-                      ],
-                    ),
-
                     const SizedBox(height: 28),
 
                     // Save Profile Button
@@ -809,109 +795,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     _showMessage(
       'Profile saved! Home recommendations tailored for ${_majorController.text}.',
-    );
-  }
-
-  Widget _buildThemeSelector() {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppThemeController.instance.themeModeNotifier,
-      builder: (context, currentMode, child) {
-        return Row(
-          children: [
-            Expanded(
-              child: _buildThemeOption(
-                label: 'Light',
-                icon: Icons.light_mode_outlined,
-                mode: ThemeMode.light,
-                isSelected: currentMode == ThemeMode.light,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildThemeOption(
-                label: 'Dark',
-                icon: Icons.dark_mode_outlined,
-                mode: ThemeMode.dark,
-                isSelected: currentMode == ThemeMode.dark,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildThemeOption(
-                label: 'System',
-                icon: Icons.settings_brightness_outlined,
-                mode: ThemeMode.system,
-                isSelected: currentMode == ThemeMode.system,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildThemeOption({
-    required String label,
-    required IconData icon,
-    required ThemeMode mode,
-    required bool isSelected,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        AppThemeController.instance.setThemeMode(mode);
-        setState(() {});
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Theme set to $label Mode',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryBlue.withValues(alpha: 0.12)
-              : AppColors.background,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primaryBlue
-                : AppColors.cardBorder,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? AppColors.primaryBlue : AppColors.hintText,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? AppColors.primaryBlue : AppColors.bodyText,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 
