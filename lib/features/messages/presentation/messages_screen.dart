@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/demo_data.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import 'chat_screen.dart';
 
@@ -38,41 +39,46 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(),
-            _buildSearchBox(),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _visibleChats.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No message found.',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: AppColors.hintText,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildTopBar(),
+                _buildSearchBox(),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: _visibleChats.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No message found.',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppColors.hintText,
+                            ),
+                          ),
+                        )
+                      // ListView.builder only builds the rows you can see.
+                      // That keeps a long list fast.
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          itemCount: _visibleChats.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return _buildChatRow(_visibleChats[index]);
+                          },
                         ),
-                      ),
-                    )
-                  // ListView.builder only builds the rows you can see.
-                  // That keeps a long list fast.
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      itemCount: _visibleChats.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return _buildChatRow(_visibleChats[index]);
-                      },
-                    ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 3,
-        onTap: (int index) => navigateToAppTab(context, 3, index),
-      ),
+          ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 3,
+            onTap: (int index) => navigateToAppTab(context, 3, index),
+          ),
+        );
+      },
     );
   }
 
@@ -91,7 +97,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: AppColors.heading,
               ),
             ),
           ),
@@ -105,7 +111,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: Colors.black, size: 24),
+            icon: Icon(Icons.more_vert, color: AppColors.heading, size: 24),
           ),
         ],
       ),
@@ -115,26 +121,26 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget _buildSearchBox() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      // Same rule as the profile header: no fixed height.
-      // We control the size with contentPadding instead, so a bigger
-      // system font can never make it overflow.
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFF7F8FA),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.cardBorder),
         ),
         child: TextField(
           controller: _searchController,
-          // onChanged runs on every letter the user types.
           onChanged: (String value) {
             setState(() => _searchText = value.toLowerCase());
           },
-          style: GoogleFonts.plusJakartaSans(fontSize: 14),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: AppColors.heading,
+          ),
           decoration: InputDecoration(
             border: InputBorder.none,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(vertical: 15),
-            prefixIcon: const Icon(Icons.search, color: AppColors.hintText),
+            prefixIcon: Icon(Icons.search, color: AppColors.hintText),
             hintText: 'Search message',
             hintStyle: GoogleFonts.plusJakartaSans(
               fontSize: 14,
@@ -162,7 +168,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          // start = line the avatar up with the top of the text.
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             InitialsAvatar(
@@ -171,9 +176,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
               imageAsset: chat.avatarAsset,
             ),
             const SizedBox(width: 14),
-            // Expanded gives the name and message all the space that is
-            // left, so long text gets cut with "..." instead of
-            // overflowing the screen.
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +185,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: AppColors.heading,
                     ),
                   ),
                   const SizedBox(height: 4),

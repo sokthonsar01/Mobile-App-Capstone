@@ -20,19 +20,19 @@ class AppThemes {
       primary: AppColors.primaryBlue,
       secondary: Color(0xFF2563EB),
       surface: Colors.white,
-      onSurface: AppColors.heading,
+      onSurface: Color(0xFF0D0141),
       error: AppColors.danger,
     ),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.white,
-      foregroundColor: AppColors.heading,
+      foregroundColor: const Color(0xFF0D0141),
       elevation: 0,
       scrolledUnderElevation: 0,
       centerTitle: true,
       titleTextStyle: GoogleFonts.plusJakartaSans(
         fontSize: 18,
         fontWeight: FontWeight.w800,
-        color: AppColors.heading,
+        color: const Color(0xFF0D0141),
       ),
     ),
     cardTheme: CardThemeData(

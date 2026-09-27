@@ -90,14 +90,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Profile Gradient Header with Photo & Major badge
-            ProfileHeader(
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Profile Gradient Header with Photo & Major badge
+                ProfileHeader(
               name: _fullNameController.text,
               location: _locationController.text,
               major: '${_majorController.text} • ${_universityController.text}',
@@ -327,7 +330,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           controller: _birthDateController,
                           readOnly: true,
                           onTap: _pickBirthDate,
-                          suffix: const Icon(
+                          suffix: Icon(
                             Icons.calendar_month_outlined,
                             color: AppColors.heading,
                           ),
@@ -393,12 +396,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 4,
-        onTap: (int index) => navigateToAppTab(context, 4, index),
-      ),
-    );
-  }
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: 4,
+          onTap: (int index) => navigateToAppTab(context, 4, index),
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildSectionCard({
     required String title,
@@ -411,9 +416,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(color: AppColors.cardBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -834,6 +839,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return GestureDetector(
       onTap: () {
         AppThemeController.instance.setThemeMode(mode);
+        setState(() {});
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -857,13 +863,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryBlue.withValues(alpha: 0.1)
-              : const Color(0xFFF8FAFC),
+              ? AppColors.primaryBlue.withValues(alpha: 0.12)
+              : AppColors.background,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected
                 ? AppColors.primaryBlue
-                : const Color(0xFFE2E8F0),
+                : AppColors.cardBorder,
             width: isSelected ? 1.5 : 1,
           ),
         ),

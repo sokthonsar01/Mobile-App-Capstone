@@ -66,8 +66,9 @@ class _SoftTextFieldState extends State<SoftTextField> {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.cardBorder),
             boxShadow: softShadow,
           ),
           child: TextFormField(
@@ -254,7 +255,7 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -264,7 +265,7 @@ class AppBottomNav extends StatelessWidget {
         ],
         border: Border(
           top: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.15),
+            color: AppColors.cardBorder,
             width: 0.8,
           ),
         ),

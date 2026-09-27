@@ -192,7 +192,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
                 ),
               );
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.notifications_none_rounded,
               color: AppColors.heading,
               size: 28,
@@ -331,7 +331,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
                   fontSize: 13,
                   color: AppColors.hintText,
                 ),
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.search_rounded,
                   color: AppColors.hintText,
                   size: 20,
