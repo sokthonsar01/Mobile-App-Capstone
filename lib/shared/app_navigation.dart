@@ -4,6 +4,7 @@ import '../features/home/presentation/application_tracker_screen.dart';
 import '../features/messages/presentation/messages_screen.dart';
 import '../features/profile/presentation/edit_profile_screen.dart';
 import '../features/saved/presentation/saved_internships_screen.dart';
+import 'page_transitions.dart';
 
 /// Centralized navigation helper for the 5 core bottom tabs in the Internship app:
 /// 0 = Home (Internship explorer & search)
@@ -41,15 +42,24 @@ void navigateToAppTab(BuildContext context, int currentIndex, int targetIndex) {
   if (currentIndex == 0) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (_) => targetScreen),
+      createSmoothPageRoute(page: targetScreen),
     );
   } else {
     Navigator.pushReplacement(
       context,
       PageRouteBuilder(
         pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
+        transitionDuration: const Duration(milliseconds: 220),
+        reverseTransitionDuration: const Duration(milliseconds: 220),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
       ),
     );
   }
