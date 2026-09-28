@@ -7,9 +7,24 @@ class AppThemeController {
 
   /// Reactive notifier for the active ThemeMode.
   final ValueNotifier<ThemeMode> themeModeNotifier =
-      ValueNotifier<ThemeMode>(ThemeMode.system);
+      ValueNotifier<ThemeMode>(ThemeMode.light);
 
   ThemeMode get currentThemeMode => themeModeNotifier.value;
+
+  bool get isDark {
+    if (themeModeNotifier.value == ThemeMode.dark) return true;
+    if (themeModeNotifier.value == ThemeMode.light) return false;
+    return WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+        Brightness.dark;
+  }
+
+  void toggleTheme() {
+    if (isDark) {
+      setLightMode();
+    } else {
+      setDarkMode();
+    }
+  }
 
   void setThemeMode(ThemeMode mode) {
     themeModeNotifier.value = mode;

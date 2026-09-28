@@ -90,14 +90,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 1. Profile Gradient Header with Photo & Major badge
-            ProfileHeader(
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Profile Gradient Header with Photo & Major badge
+                ProfileHeader(
               name: _fullNameController.text,
               location: _locationController.text,
               major: '${_majorController.text} • ${_universityController.text}',
@@ -211,8 +214,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   color: AppColors.primaryBlue,
                                 ),
                               ),
-                              backgroundColor: const Color(0xFFEFF4FF),
-                              side: const BorderSide(color: Color(0xFFDBEAFE)),
+                              backgroundColor: AppColors.isDark
+                                  ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+                                  : const Color(0xFFEFF4FF),
+                              side: BorderSide(
+                                color: AppColors.isDark
+                                    ? const Color(0xFF1E40AF).withValues(alpha: 0.5)
+                                    : const Color(0xFFDBEAFE),
+                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -265,15 +274,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF1E293B),
+                                    color: AppColors.heading,
                                   ),
                                 ),
-                                backgroundColor: const Color(0xFFF1F5F9),
-                                deleteIcon: const Icon(Icons.close, size: 14),
+                                backgroundColor: AppColors.lightFill,
+                                deleteIcon: Icon(Icons.close, size: 14, color: AppColors.hintText),
                                 onDeleted: () {
                                   setState(() => _skills.remove(skill));
                                 },
-                                side: BorderSide.none,
+                                side: BorderSide(color: AppColors.cardBorder),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
@@ -293,7 +302,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   color: AppColors.primaryBlue,
                                 ),
                               ),
-                              backgroundColor: Colors.white,
+                              backgroundColor: AppColors.surface,
                               side: const BorderSide(
                                 color: AppColors.primaryBlue,
                               ),
@@ -327,7 +336,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           controller: _birthDateController,
                           readOnly: true,
                           onTap: _pickBirthDate,
-                          suffix: const Icon(
+                          suffix: Icon(
                             Icons.calendar_month_outlined,
                             color: AppColors.heading,
                           ),
@@ -365,20 +374,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ],
                     ),
 
-                    const SizedBox(height: 18),
-
-                    // Section 6: App Appearance & Theme
-                    _buildSectionCard(
-                      title: 'App Appearance',
-                      icon: Icons.palette_outlined,
-                      iconColor: const Color(0xFF3B82F6),
-                      subtitle:
-                          'Switch between light, dark, or system default mode.',
-                      children: [
-                        _buildThemeSelector(),
-                      ],
-                    ),
-
                     const SizedBox(height: 28),
 
                     // Save Profile Button
@@ -393,12 +388,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 4,
-        onTap: (int index) => navigateToAppTab(context, 4, index),
-      ),
-    );
-  }
+        bottomNavigationBar: AppBottomNav(
+          currentIndex: 4,
+          onTap: (int index) => navigateToAppTab(context, 4, index),
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildSectionCard({
     required String title,
@@ -411,9 +408,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        border: Border.all(color: AppColors.cardBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -461,7 +458,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          Divider(height: 1, color: AppColors.cardBorder),
           const SizedBox(height: 16),
           ...children,
         ],
@@ -473,9 +470,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF1F2),
+        color: AppColors.isDark
+            ? const Color(0xFF4C0519).withValues(alpha: 0.25)
+            : const Color(0xFFFFF1F2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFFECDD3)),
+        border: Border.all(
+          color: AppColors.isDark
+              ? const Color(0xFF9F1239).withValues(alpha: 0.5)
+              : const Color(0xFFFECDD3),
+        ),
       ),
       child: Column(
         children: [
@@ -505,7 +508,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
-                        color: const Color(0xFF881337),
+                        color: AppColors.isDark ? const Color(0xFFFDA4AF) : const Color(0xFF881337),
                       ),
                     ),
                     const SizedBox(height: 2),
@@ -513,7 +516,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       '${currentDemoProfile.cvFileSize} • Updated ${currentDemoProfile.cvLastUpdated}',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
-                        color: const Color(0xFF9F1239),
+                        color: AppColors.isDark ? const Color(0xFFF43F5E) : const Color(0xFF9F1239),
                       ),
                     ),
                   ],
@@ -607,12 +610,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               margin: const EdgeInsets.symmetric(horizontal: 4),
               padding: const EdgeInsets.symmetric(vertical: 10),
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.primaryBlue : Colors.white,
+                color: isSelected ? AppColors.primaryBlue : AppColors.surface,
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                   color: isSelected
                       ? AppColors.primaryBlue
-                      : const Color(0xFFCBD5E1),
+                      : AppColors.cardBorder,
                 ),
               ),
               child: Center(
@@ -650,11 +653,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               color: isSelected ? AppColors.primaryBlue : AppColors.bodyText,
             ),
           ),
-          selectedColor: const Color(0xFFEFF4FF),
-          backgroundColor: Colors.white,
+          selectedColor: AppColors.isDark
+              ? const Color(0xFF1E3A8A).withValues(alpha: 0.35)
+              : const Color(0xFFEFF4FF),
+          backgroundColor: AppColors.surface,
           checkmarkColor: AppColors.primaryBlue,
           side: BorderSide(
-            color: isSelected ? AppColors.primaryBlue : const Color(0xFFCBD5E1),
+            color: isSelected ? AppColors.primaryBlue : AppColors.cardBorder,
           ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
@@ -675,6 +680,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context: context,
       builder: (ctx) {
         return AlertDialog(
+          backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
@@ -689,15 +695,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
+            style: GoogleFonts.plusJakartaSans(color: AppColors.heading),
+            decoration: InputDecoration(
               hintText: 'e.g. Kotlin, Node.js, SQL, Docker',
-              border: OutlineInputBorder(),
+              hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.hintText),
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.plusJakartaSans(color: AppColors.hintText),
+              ),
             ),
             ElevatedButton(
               onPressed: () {
@@ -784,108 +795,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     _showMessage(
       'Profile saved! Home recommendations tailored for ${_majorController.text}.',
-    );
-  }
-
-  Widget _buildThemeSelector() {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppThemeController.instance.themeModeNotifier,
-      builder: (context, currentMode, child) {
-        return Row(
-          children: [
-            Expanded(
-              child: _buildThemeOption(
-                label: 'Light',
-                icon: Icons.light_mode_outlined,
-                mode: ThemeMode.light,
-                isSelected: currentMode == ThemeMode.light,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildThemeOption(
-                label: 'Dark',
-                icon: Icons.dark_mode_outlined,
-                mode: ThemeMode.dark,
-                isSelected: currentMode == ThemeMode.dark,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _buildThemeOption(
-                label: 'System',
-                icon: Icons.settings_brightness_outlined,
-                mode: ThemeMode.system,
-                isSelected: currentMode == ThemeMode.system,
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildThemeOption({
-    required String label,
-    required IconData icon,
-    required ThemeMode mode,
-    required bool isSelected,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        AppThemeController.instance.setThemeMode(mode);
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Theme set to $label Mode',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 1),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryBlue.withValues(alpha: 0.1)
-              : const Color(0xFFF8FAFC),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primaryBlue
-                : const Color(0xFFE2E8F0),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Column(
-          children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isSelected ? AppColors.primaryBlue : AppColors.hintText,
-            ),
-            const SizedBox(height: 6),
-            Text(
-              label,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                color: isSelected ? AppColors.primaryBlue : AppColors.bodyText,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

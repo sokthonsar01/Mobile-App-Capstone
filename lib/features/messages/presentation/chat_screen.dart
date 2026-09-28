@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/demo_data.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 
 /// One conversation. Front end only, so the messages are the demo list.
@@ -38,42 +39,47 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                itemCount: _messages.length + 1,
-                itemBuilder: (BuildContext context, int index) {
-                  // The very first item is the gray "Today" label.
-                  if (index == 0) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 12),
-                        child: Text(
-                          'Today',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppColors.hintText,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildTopBar(),
+                Divider(height: 1, color: AppColors.cardBorder),
+                Expanded(
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    itemCount: _messages.length + 1,
+                    itemBuilder: (BuildContext context, int index) {
+                      // The very first item is the gray "Today" label.
+                      if (index == 0) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: Text(
+                              'Today',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: AppColors.hintText,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  }
-                  // index - 1 because item 0 was the "Today" label.
-                  return _buildBubble(_messages[index - 1]);
-                },
-              ),
+                        );
+                      }
+                      // index - 1 because item 0 was the "Today" label.
+                      return _buildBubble(_messages[index - 1]);
+                    },
+                  ),
+                ),
+                _buildInputBar(),
+              ],
             ),
-            _buildInputBar(),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -84,8 +90,11 @@ class _ChatScreenState extends State<ChatScreen> {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.arrow_back_ios_new,
-                color: Colors.black, size: 20),
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: AppColors.heading,
+              size: 20,
+            ),
           ),
           InitialsAvatar(
             name: widget.contactName,
@@ -102,7 +111,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
-                    color: Colors.black,
+                    color: AppColors.heading,
                   ),
                 ),
                 Row(
@@ -130,7 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           IconButton(
             onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: Colors.black, size: 22),
+            icon: Icon(Icons.more_vert, color: AppColors.heading, size: 22),
           ),
         ],
       ),
@@ -203,43 +212,53 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildInputBar() {
-    return Padding(
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        border: Border(top: BorderSide(color: AppColors.cardBorder)),
+      ),
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.attach_file,
-                color: AppColors.bodyText, size: 22),
-          ),
-          Expanded(
-            child: TextField(
-              controller: _messageController,
-              style: GoogleFonts.plusJakartaSans(fontSize: 14),
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Write your message',
-                hintStyle: GoogleFonts.plusJakartaSans(
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.attach_file,
+                  color: AppColors.bodyText, size: 22),
+            ),
+            Expanded(
+              child: TextField(
+                controller: _messageController,
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 14,
-                  color: AppColors.hintText,
+                  color: AppColors.heading,
+                ),
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  hintText: 'Write your message',
+                  hintStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    color: AppColors.hintText,
+                  ),
                 ),
               ),
             ),
-          ),
-          GestureDetector(
-            onTap: _handleSend,
-            child: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primaryBlue,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: softShadow,
+            GestureDetector(
+              onTap: _handleSend,
+              child: Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryBlue,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: softShadow,
+                ),
+                child: const Icon(Icons.send, color: Colors.white, size: 22),
               ),
-              child: const Icon(Icons.send, color: Colors.white, size: 22),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

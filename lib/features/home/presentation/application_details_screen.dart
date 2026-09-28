@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
@@ -30,6 +31,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
+          backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
@@ -104,77 +106,80 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       orElse: () => demoInternships.first,
     );
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.heading,
-            size: 20,
-          ),
-          onPressed: () {
-            if (Navigator.canPop(context)) {
-              Navigator.pop(context);
-            } else {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
-              );
-            }
-          },
-        ),
-        title: Text(
-          'Application Details',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.heading,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.home_outlined,
-              color: AppColors.heading,
-              size: 24,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.heading,
+                size: 20,
+              ),
+              onPressed: () {
+                if (Navigator.canPop(context)) {
+                  Navigator.pop(context);
+                } else {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    (route) => false,
+                  );
+                }
+              },
             ),
-            tooltip: 'Back to Home',
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
-              );
-            },
-          ),
-          IconButton(
-            icon: const Icon(
-              Icons.link_rounded,
-              color: AppColors.heading,
-              size: 24,
+            title: Text(
+              'Application Details',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.heading,
+              ),
             ),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Application link copied to clipboard',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 2),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.home_outlined,
+                  color: AppColors.heading,
+                  size: 24,
                 ),
-              );
-            },
+                tooltip: 'Back to Home',
+                onPressed: () {
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => const HomeScreen()),
+                    (route) => false,
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  Icons.link_rounded,
+                  color: AppColors.heading,
+                  size: 24,
+                ),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Application link copied to clipboard',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
           ),
-        ],
-      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
         physics: const BouncingScrollPhysics(),
@@ -183,9 +188,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
+              border: Border.all(color: AppColors.cardBorder),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.04),
@@ -254,9 +259,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
+              border: Border.all(color: AppColors.cardBorder),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.04),
@@ -307,9 +312,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.grey.withValues(alpha: 0.18)),
+              border: Border.all(color: AppColors.cardBorder),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.04),
@@ -348,10 +353,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF3F4F6),
+                        color: AppColors.isDark
+                            ? const Color(0xFF334155)
+                            : const Color(0xFFF3F4F6),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: Colors.grey.withValues(alpha: 0.25),
+                          color: AppColors.cardBorder,
                         ),
                       ),
                       child: Row(
@@ -493,10 +500,12 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
           const SizedBox(height: 24),
         ],
       ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 2,
-        onTap: (int index) => navigateToAppTab(context, 2, index),
-      ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 2,
+            onTap: (int index) => navigateToAppTab(context, 2, index),
+          ),
+        );
+      },
     );
   }
 

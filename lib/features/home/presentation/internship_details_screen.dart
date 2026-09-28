@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../data/application_tracker_store.dart';
 import '../../messages/presentation/chat_screen.dart';
 import '../../profile/data/user_profile_model.dart';
@@ -81,98 +82,103 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
   Widget build(BuildContext context) {
     final item = widget.internship;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.heading,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Internship Details',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.w800,
-            color: AppColors.heading,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(
-              Icons.share_outlined,
-              color: AppColors.heading,
-              size: 22,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: AppColors.heading,
+                size: 20,
+              ),
+              onPressed: () => Navigator.pop(context),
             ),
-            tooltip: 'Share Opportunity',
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Link copied for ${item.role} at ${item.company}',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 13),
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+            title: Text(
+              'Internship Details',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.heading,
+              ),
+            ),
+            centerTitle: true,
+            actions: [
+              IconButton(
+                icon: Icon(
+                  Icons.share_outlined,
+                  color: AppColors.heading,
+                  size: 22,
                 ),
-              );
-            },
+                tooltip: 'Share Opportunity',
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Link copied for ${item.role} at ${item.company}',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13),
+                      ),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  _isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
+                  color: _isSaved ? AppColors.primaryBlue : AppColors.heading,
+                  size: 24,
+                ),
+                tooltip: 'Save Bookmark',
+                onPressed: _toggleSave,
+              ),
+              const SizedBox(width: 4),
+            ],
           ),
-          IconButton(
-            icon: Icon(
-              _isSaved ? Icons.bookmark_rounded : Icons.bookmark_outline_rounded,
-              color: _isSaved ? AppColors.primaryBlue : AppColors.heading,
-              size: 24,
-            ),
-            tooltip: 'Save Bookmark',
-            onPressed: _toggleSave,
+          body: ListView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
+            physics: const BouncingScrollPhysics(),
+            children: [
+              // 1. Promotional Card Poster (Clean presentation)
+              _buildHeroPoster(item),
+
+              const SizedBox(height: 14),
+
+              // 2. Company & Role Header Card (Guaranteed no overflow)
+              _buildCompanyHeader(item),
+
+              const SizedBox(height: 14),
+
+              // 3. 2x2 Key Information Grid (Spacious, no truncated text)
+              _buildKeyStatsGrid(item),
+
+              const SizedBox(height: 14),
+
+              // 4. Candidate Match Card (Tailored to Chhouen Ratanaksombo & CADT)
+              _buildPersonalizedMatchCard(item),
+
+              const SizedBox(height: 16),
+
+              // 5. Modern Segmented Tab Bar
+              _buildSegmentedTabBar(),
+
+              const SizedBox(height: 14),
+
+              // 6. Tab Content Container
+              _buildTabContent(item),
+            ],
           ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 110),
-        physics: const BouncingScrollPhysics(),
-        children: [
-          // 1. Promotional Card Poster (Clean presentation)
-          _buildHeroPoster(item),
-
-          const SizedBox(height: 14),
-
-          // 2. Company & Role Header Card (Guaranteed no overflow)
-          _buildCompanyHeader(item),
-
-          const SizedBox(height: 14),
-
-          // 3. 2x2 Key Information Grid (Spacious, no truncated text)
-          _buildKeyStatsGrid(item),
-
-          const SizedBox(height: 14),
-
-          // 4. Candidate Match Card (Tailored to Chhouen Ratanaksombo & CADT)
-          _buildPersonalizedMatchCard(item),
-
-          const SizedBox(height: 16),
-
-          // 5. Modern Segmented Tab Bar
-          _buildSegmentedTabBar(),
-
-          const SizedBox(height: 14),
-
-          // 6. Tab Content Container
-          _buildTabContent(item),
-        ],
-      ),
-      bottomSheet: _buildBottomActionBar(item),
+          bottomSheet: _buildBottomActionBar(item),
+        );
+      },
     );
   }
 
@@ -237,9 +243,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -436,9 +442,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -499,13 +505,15 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
 
     return Container(
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFFEFF6FF), Color(0xFFF0FDF4)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: AppColors.isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
+            : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFBFDBFE)),
+        border: Border.all(
+          color: AppColors.isDark
+              ? const Color(0xFF1E40AF)
+              : const Color(0xFFBFDBFE),
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2563EB).withValues(alpha: 0.05),
@@ -648,7 +656,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
   Widget _buildSegmentedTabBar() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
+        color: AppColors.isDark
+            ? const Color(0xFF334155)
+            : const Color(0xFFE2E8F0),
         borderRadius: BorderRadius.circular(12),
       ),
       padding: const EdgeInsets.all(4),
@@ -656,7 +666,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
         controller: _tabController,
         onTap: (index) => setState(() {}),
         indicator: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(9),
           boxShadow: [
             BoxShadow(
@@ -705,9 +715,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -775,9 +785,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -849,9 +859,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: AppColors.cardBorder),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -1012,10 +1022,10 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         border: Border(
           top: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.15),
+            color: AppColors.cardBorder,
           ),
         ),
         boxShadow: [
@@ -1033,11 +1043,13 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
             // Chat with recruiter button
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AppColors.isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.chat_bubble_outline_rounded,
                   color: AppColors.heading,
                   size: 20,
@@ -1061,7 +1073,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
             // Bookmark button
             Container(
               decoration: BoxDecoration(
-                color: const Color(0xFFF1F5F9),
+                color: AppColors.isDark
+                    ? const Color(0xFF334155)
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: IconButton(
