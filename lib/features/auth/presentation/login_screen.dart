@@ -5,9 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../shared/app_colors.dart';
 import '../../../shared/validators.dart';
 import '../../home/presentation/home_screen.dart';
-import '../auth_colors.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
@@ -27,13 +27,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _rememberMe = false;
   late final StreamSubscription<AuthState> _authSubscription;
-
   @override
   void initState() {
     super.initState();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
-      data,
-    ) {
+    _authSubscription =
+        Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       if (data.session != null && mounted) {
         Navigator.pushReplacement(
           context,
@@ -42,7 +40,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     });
   }
-
   @override
   void dispose() {
     _authSubscription.cancel();
@@ -67,16 +64,53 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(child: _buildTitle()),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Center(
-                  child: Image.asset(
-                    'assets/images/illustration_intern.png',
-                    height: 250,
-                    fit: BoxFit.contain,
+                  child: Column(
+                    children: [
+                      // Brand App Icon
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryBlue,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                                  AppColors.primaryBlue.withValues(alpha: 0.28),
+                              blurRadius: 16,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.school_rounded,
+                            color: Colors.white,
+                            size: 32,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      // Title
+                      _buildTitle(),
+                      const SizedBox(height: 8),
+                      // Subtitle
+                      Text(
+                        'Discover and apply for top internship opportunities across Cambodia',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          color: AppColors.bodyText,
+                          height: 1.45,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 32),
                 AuthTextField(
                   label: 'Email',
                   hint: 'maxverstappen1@gmail.com',
@@ -126,17 +160,19 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildTitle() {
     return RichText(
+      textAlign: TextAlign.center,
       text: TextSpan(
         style: GoogleFonts.plusJakartaSans(
-          fontSize: 28,
+          fontSize: 26,
           fontWeight: FontWeight.w800,
-          color: Colors.black,
+          color: AppColors.heading,
+          letterSpacing: -0.4,
         ),
         children: const [
-          TextSpan(text: 'Welcome To '),
+          TextSpan(text: 'Welcome to '),
           TextSpan(
             text: 'INTERNA',
-            style: TextStyle(color: AuthColors.primaryBlue),
+            style: TextStyle(color: AppColors.primaryBlue),
           ),
         ],
       ),
@@ -157,8 +193,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 onChanged: (bool? newValue) {
                   setState(() => _rememberMe = newValue ?? false);
                 },
-                activeColor: AuthColors.primaryBlue,
-                side: const BorderSide(color: AuthColors.border, width: 1.5),
+                activeColor: AppColors.primaryBlue,
+                side: const BorderSide(color: AppColors.border, width: 1.5),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(5),
                 ),
@@ -169,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
               'Remember me',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: AuthColors.hintText,
+                color: AppColors.hintText,
               ),
             ),
           ],
@@ -188,7 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: AuthColors.heading,
+              color: AppColors.heading,
             ),
           ),
         ),
@@ -197,13 +233,13 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
       return;
     }
+
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
 
     try {
       await Supabase.instance.client.auth.signInWithPassword(
@@ -218,7 +254,9 @@ class _LoginScreenState extends State<LoginScreen> {
         );
       }
     } catch (e) {
-      _showMessage('Login failed: $e');
+      if (mounted) {
+        _showMessage('Login failed: $e');
+      }
     }
   }
 
@@ -226,12 +264,13 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       await Supabase.instance.client.auth.signInWithOAuth(
         OAuthProvider.google,
-        redirectTo: kIsWeb
-            ? Uri.base.origin
-            : 'io.supabase.interna://login-callback',
+        redirectTo:
+            kIsWeb ? Uri.base.origin : 'io.supabase.interna://login-callback',
       );
     } catch (e) {
-      _showMessage('Google Sign-In failed: $e');
+      if (mounted) {
+        _showMessage('Google Sign-In failed: $e');
+      }
     }
   }
 
@@ -253,13 +292,5 @@ class _LoginScreenState extends State<LoginScreen> {
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
-  void _goToHome() {
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-      (Route<dynamic> route) => false,
-    );
   }
 }

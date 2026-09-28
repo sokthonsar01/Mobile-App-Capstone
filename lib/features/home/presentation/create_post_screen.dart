@@ -100,15 +100,16 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             Row(
               children: [
                 const InitialsAvatar(
-                  name: 'Max Verstappen',
+                  name: 'Chhouen Ratanaksombo',
                   size: 44,
+                  imageAsset: 'assets/images/sombo_pfp.jpg',
                 ),
                 const SizedBox(width: 12),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Max Verstappen',
+                      'Chhouen Ratanaksombo',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,

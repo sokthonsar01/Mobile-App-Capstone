@@ -10,9 +10,14 @@ import 'package:interna/features/home/presentation/offline_error_screen.dart';
 import 'package:interna/features/home/widgets/company_logo_widget.dart';
 import 'package:interna/features/home/widgets/internship_card.dart';
 import 'package:interna/features/profile/presentation/edit_profile_screen.dart';
+import 'package:interna/shared/widgets/shared_widgets.dart';
 
 void main() {
   testWidgets('HomeScreen works, posters auto-rotate every 5s, and logos/posters match internships', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+
     // 1. Pump HomeScreen widget
     await tester.pumpWidget(
       const MaterialApp(
@@ -22,8 +27,8 @@ void main() {
     await tester.pump();
 
     // 2. Verify HomeScreen UI elements load correctly
-    expect(find.text('Hello'), findsOneWidget);
-    expect(find.text('Max Verstappen'), findsOneWidget);
+    expect(find.text('Welcome back,'), findsOneWidget);
+    expect(find.text('Chhouen Ratanaksombo'), findsOneWidget);
     expect(find.text('Search internships...'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
 
@@ -92,7 +97,8 @@ void main() {
     expect(find.text('Application Details'), findsOneWidget);
     expect(find.text('Current Stage: Under Review'), findsOneWidget);
     expect(find.text('Your Submission:'), findsOneWidget);
-    expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.home_outlined), findsWidgets);
+    expect(find.byType(AppBottomNav), findsOneWidget);
 
     // Test Company Profile Screen
     await tester.pumpWidget(
@@ -117,7 +123,7 @@ void main() {
         home: EditProfileScreen(),
       ),
     );
-    expect(find.text('Max Verstappen'), findsWidgets);
+    expect(find.text('Chhouen Ratanaksombo'), findsWidgets);
     expect(find.text('Fullname'), findsOneWidget);
   });
 }

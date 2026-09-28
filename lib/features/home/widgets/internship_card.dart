@@ -264,7 +264,7 @@ class InternshipCard extends StatelessWidget {
       }
       return item.description;
     }
-    return 'Grow Your Career with ${item.company}!✨';
+    return 'Grow your career with ${item.company}';
   }
 }
 

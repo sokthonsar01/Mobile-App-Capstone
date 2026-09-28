@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/validators.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../home/presentation/home_screen.dart';
-import '../widgets/logout_sheet.dart';
-import 'update_password_screen.dart';
+import '../data/user_profile_model.dart';
+import '../widgets/profile_gender_selector.dart';
+import '../widgets/profile_header.dart';
+import '../widgets/profile_phone_field.dart';
+import '../widgets/profile_settings_sheet.dart';
 
-/// Edit Profile screen.
+/// Comprehensive Internship Seeker Profile Screen.
+/// Contains Academic Major, Resume/CV, Target Internship Roles,
+/// Skills, and Personal Details for intelligent internship recommendations.
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -19,24 +25,53 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-  final TextEditingController _fullNameController = TextEditingController(
-    text: 'Max Verstappen',
-  );
-  final TextEditingController _birthDateController = TextEditingController(
-    text: '06 August 1992',
-  );
-  final TextEditingController _emailController = TextEditingController(
-    text: 'maxverstappen1@gmail.com',
-  );
-  final TextEditingController _phoneController = TextEditingController(
-    text: '99 946 638',
-  );
-  final TextEditingController _locationController = TextEditingController(
-    text: 'Phnom Penh, Cambodia',
-  );
+  // Personal Info Controllers
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _birthDateController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+  late final TextEditingController _locationController;
+
+  // Education & Major Controllers
+  late final TextEditingController _universityController;
+  late final TextEditingController _majorController;
+  late final TextEditingController _degreeLevelController;
+  late final TextEditingController _gpaController;
+  late final TextEditingController _gradYearController;
+
+  // Target Roles & Preferences
+  late String _preferredCategory;
+  late String _workType;
+  late List<String> _targetRoles;
+  late List<String> _skills;
 
   String _gender = 'Male';
   String _countryCode = '+855';
+
+  @override
+  void initState() {
+    super.initState();
+    final p = currentDemoProfile;
+
+    _fullNameController = TextEditingController(text: p.fullName);
+    _birthDateController = TextEditingController(text: p.dateOfBirth);
+    _emailController = TextEditingController(text: p.email);
+    _phoneController = TextEditingController(text: p.phone);
+    _locationController = TextEditingController(text: p.location);
+
+    _universityController = TextEditingController(text: p.university);
+    _majorController = TextEditingController(text: p.major);
+    _degreeLevelController = TextEditingController(text: p.degreeLevel);
+    _gpaController = TextEditingController(text: p.gpa);
+    _gradYearController = TextEditingController(text: p.graduationYear);
+
+    _preferredCategory = p.preferredCategory;
+    _workType = p.workType;
+    _targetRoles = List<String>.from(p.targetRoles);
+    _skills = List<String>.from(p.skills);
+    _gender = p.gender;
+    _countryCode = p.countryCode;
+  }
 
   @override
   void dispose() {
@@ -45,62 +80,312 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.dispose();
     _phoneController.dispose();
     _locationController.dispose();
+    _universityController.dispose();
+    _majorController.dispose();
+    _degreeLevelController.dispose();
+    _gpaController.dispose();
+    _gradYearController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
+            // 1. Profile Gradient Header with Photo & Major badge
+            ProfileHeader(
+              name: _fullNameController.text,
+              location: _locationController.text,
+              major: '${_majorController.text} • ${_universityController.text}',
+              imageAsset: currentDemoProfile.avatarAsset,
+              onShare: () => _showMessage('Share profile is ready.'),
+              onSettings: () => showProfileSettingsSheet(context),
+              onChangeImage: _handleAvatarChange,
+            ),
+
             Padding(
-              padding: const EdgeInsets.fromLTRB(24, 28, 24, 40),
+              padding: const EdgeInsets.fromLTRB(18, 20, 18, 36),
               child: Form(
                 key: _formKey,
                 autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SoftTextField(
-                      label: 'Fullname',
-                      controller: _fullNameController,
-                      validator: validateFullName,
+                    // Section 1: Academic & Major (Crucial for Recommendations)
+                    _buildSectionCard(
+                      title: 'Education & Academic Major',
+                      icon: Icons.school_rounded,
+                      iconColor: const Color(0xFF2B59FF),
+                      subtitle:
+                          'Your major helps us recommend high-match internships.',
+                      children: [
+                        SoftTextField(
+                          label: 'University / Institute',
+                          controller: _universityController,
+                          validator: (v) =>
+                              validateRequired(v, 'your university'),
+                        ),
+                        const SizedBox(height: 16),
+                        SoftTextField(
+                          label: 'Major / Field of Study',
+                          controller: _majorController,
+                          validator: (v) => validateRequired(v, 'your major'),
+                        ),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: SoftTextField(
+                                label: 'Degree & Year',
+                                controller: _degreeLevelController,
+                                validator: (v) =>
+                                    validateRequired(v, 'degree level'),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              flex: 2,
+                              child: SoftTextField(
+                                label: 'GPA',
+                                controller: _gpaController,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        SoftTextField(
+                          label: 'Expected Graduation',
+                          controller: _gradYearController,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    SoftTextField(
-                      label: 'Date of birth',
-                      controller: _birthDateController,
-                      readOnly: true,
-                      onTap: _pickBirthDate,
-                      suffix: const Icon(
-                        Icons.calendar_month_outlined,
-                        color: AppColors.heading,
-                      ),
+
+                    const SizedBox(height: 18),
+
+                    // Section 2: Resume / CV Document
+                    _buildSectionCard(
+                      title: 'Resume / CV Document',
+                      icon: Icons.description_rounded,
+                      iconColor: const Color(0xFFE11D48),
+                      subtitle:
+                          'Submitted with 1-tap when applying for internships.',
+                      children: [
+                        _buildResumeCard(),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    _buildGenderRow(),
-                    const SizedBox(height: 20),
-                    SoftTextField(
-                      label: 'Email address',
-                      controller: _emailController,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: validateEmail,
+
+                    const SizedBox(height: 18),
+
+                    // Section 3: Target Internship Preferences
+                    _buildSectionCard(
+                      title: 'Internship Preferences',
+                      icon: Icons.track_changes_rounded,
+                      iconColor: const Color(0xFF0D9488),
+                      subtitle:
+                          'Select categories to power Home feed recommendations.',
+                      children: [
+                        Text(
+                          'Target Roles',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _targetRoles.map((role) {
+                            return Chip(
+                              label: Text(
+                                role,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primaryBlue,
+                                ),
+                              ),
+                              backgroundColor: const Color(0xFFEFF4FF),
+                              side: const BorderSide(color: Color(0xFFDBEAFE)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Preferred Industry Category',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildCategorySelector(),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Internship Work Mode',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        _buildWorkTypeSelector(),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                    _buildPhoneRow(),
-                    const SizedBox(height: 20),
-                    SoftTextField(
-                      label: 'Location',
-                      controller: _locationController,
-                      validator: (String? value) =>
-                          validateRequired(value, 'your location'),
+
+                    const SizedBox(height: 18),
+
+                    // Section 4: Skills & Tech Stack
+                    _buildSectionCard(
+                      title: 'Skills & Tech Stack',
+                      icon: Icons.bolt_rounded,
+                      iconColor: const Color(0xFFF59E0B),
+                      subtitle:
+                          'Matched against employer internship requirements.',
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            ..._skills.map((skill) {
+                              return Chip(
+                                label: Text(
+                                  skill,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF1E293B),
+                                  ),
+                                ),
+                                backgroundColor: const Color(0xFFF1F5F9),
+                                deleteIcon: const Icon(Icons.close, size: 14),
+                                onDeleted: () {
+                                  setState(() => _skills.remove(skill));
+                                },
+                                side: BorderSide.none,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              );
+                            }),
+                            ActionChip(
+                              avatar: const Icon(
+                                Icons.add_circle_outline_rounded,
+                                size: 16,
+                                color: AppColors.primaryBlue,
+                              ),
+                              label: Text(
+                                'Add Skill',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primaryBlue,
+                                ),
+                              ),
+                              backgroundColor: Colors.white,
+                              side: const BorderSide(
+                                color: AppColors.primaryBlue,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              onPressed: _showAddSkillDialog,
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 40),
-                    WideButton(text: 'SAVE', onPressed: _handleSave),
+
+                    const SizedBox(height: 18),
+
+                    // Section 5: Personal Information
+                    _buildSectionCard(
+                      title: 'Personal & Contact Info',
+                      icon: Icons.person_rounded,
+                      iconColor: const Color(0xFF6366F1),
+                      subtitle: 'Basic details visible to verified recruiters.',
+                      children: [
+                        SoftTextField(
+                          label: 'Fullname',
+                          controller: _fullNameController,
+                          validator: validateFullName,
+                        ),
+                        const SizedBox(height: 16),
+                        SoftTextField(
+                          label: 'Date of birth',
+                          controller: _birthDateController,
+                          readOnly: true,
+                          onTap: _pickBirthDate,
+                          suffix: const Icon(
+                            Icons.calendar_month_outlined,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ProfileGenderSelector(
+                          selectedGender: _gender,
+                          onChanged: (String value) =>
+                              setState(() => _gender = value),
+                        ),
+                        const SizedBox(height: 16),
+                        SoftTextField(
+                          label: 'Email address',
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          validator: validateEmail,
+                        ),
+                        const SizedBox(height: 16),
+                        ProfilePhoneField(
+                          countryCode: _countryCode,
+                          controller: _phoneController,
+                          onCountryCodeChanged: (String? newCode) {
+                            if (newCode != null) {
+                              setState(() => _countryCode = newCode);
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        SoftTextField(
+                          label: 'Location',
+                          controller: _locationController,
+                          validator: (String? value) =>
+                              validateRequired(value, 'your location'),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 18),
+
+                    // Section 6: App Appearance & Theme
+                    _buildSectionCard(
+                      title: 'App Appearance',
+                      icon: Icons.palette_outlined,
+                      iconColor: const Color(0xFF3B82F6),
+                      subtitle:
+                          'Switch between light, dark, or system default mode.',
+                      children: [
+                        _buildThemeSelector(),
+                      ],
+                    ),
+
+                    const SizedBox(height: 28),
+
+                    // Save Profile Button
+                    WideButton(
+                      text: 'SAVE PROFILE',
+                      onPressed: _handleSave,
+                    ),
                   ],
                 ),
               ),
@@ -108,265 +393,345 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ],
         ),
       ),
+      bottomNavigationBar: AppBottomNav(
+        currentIndex: 4,
+        onTap: (int index) => navigateToAppTab(context, 4, index),
+      ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required Color iconColor,
+    required String subtitle,
+    required List<Widget> children,
+  }) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.headerBlueLight, AppColors.headerBlueDark],
-        ),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (Navigator.canPop(context))
-                    IconButton(
-                      onPressed: () => Navigator.pop(context),
-                      icon: const Icon(
-                        Icons.arrow_back,
-                        color: Colors.white,
-                        size: 26,
-                      ),
-                    )
-                  else
-                    const SizedBox(width: 48),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () =>
-                            _showMessage('Share is not built yet.'),
-                        icon: const Icon(
-                          Icons.reply_outlined,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: _openSettingsMenu,
-                        icon: const Icon(
-                          Icons.settings_outlined,
-                          color: Colors.white,
-                          size: 26,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const InitialsAvatar(name: 'Max Verstappen', size: 60),
-              const SizedBox(height: 10),
-              Text(
-                'Max Verstappen',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: iconColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
                 ),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
-              Text(
-                'Phnom Penh, Cambodia',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () =>
-                    _showMessage('Choosing an image is not built yet.'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 10,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.20),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Text(
-                    'Change image',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGenderRow() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Gender',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.heading,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(child: _genderOption('Male')),
-            const SizedBox(width: 16),
-            Expanded(child: _genderOption('Female')),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _genderOption(String value) {
-    final bool isSelected = _gender == value;
-
-    return GestureDetector(
-      onTap: () => setState(() => _gender = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: softShadow,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 22,
-              height: 22,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? AppColors.primaryBlue : AppColors.heading,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: 12,
-                        height: 12,
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              value,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 15,
-                color: AppColors.heading,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhoneRow() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Phone number',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.heading,
-          ),
-        ),
-        const SizedBox(height: 10),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: softShadow,
-          ),
-          child: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 14),
-                child: DropdownButton<String>(
-                  value: _countryCode,
-                  underline: const SizedBox.shrink(),
-                  items: const ['+855', '+66', '+84', '+1']
-                      .map(
-                        (code) => DropdownMenuItem<String>(
-                          value: code,
-                          child: Text(code),
-                        ),
-                      )
-                      .toList(),
-                  onChanged: (String? newCode) {
-                    if (newCode == null) return;
-                    setState(() => _countryCode = newCode);
-                  },
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: AppColors.heading,
-                  ),
-                ),
-              ),
-              Container(width: 1, height: 26, color: AppColors.border),
+              const SizedBox(width: 12),
               Expanded(
-                child: TextField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: AppColors.hintText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+          const SizedBox(height: 16),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildResumeCard() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF1F2),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFECDD3)),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE11D48),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.picture_as_pdf_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currentDemoProfile.cvFileName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF881337),
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${currentDemoProfile.cvFileSize} • Updated ${currentDemoProfile.cvLastUpdated}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        color: const Color(0xFF9F1239),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF10B981),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  'ATS Ready',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 15,
-                    color: AppColors.heading,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
                   ),
-                  decoration: const InputDecoration(
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    _showMessage(
+                      'Opening ${currentDemoProfile.cvFileName} preview...',
+                    );
+                  },
+                  icon: const Icon(Icons.visibility_outlined, size: 16),
+                  label: Text(
+                    'Preview CV',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFE11D48),
+                    side: const BorderSide(color: Color(0xFFFDA4AF)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    _showMessage('Select a new PDF from device storage.');
+                  },
+                  icon: const Icon(Icons.upload_file_rounded, size: 16),
+                  label: Text(
+                    'Replace CV',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFE11D48),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
+  }
+
+  Widget _buildCategorySelector() {
+    final categories = ['IT', 'Design', 'Business', 'Finance'];
+
+    return Row(
+      children: categories.map((cat) {
+        final isSelected = _preferredCategory == cat;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () => setState(() => _preferredCategory = cat),
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected ? AppColors.primaryBlue : Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.primaryBlue
+                      : const Color(0xFFCBD5E1),
+                ),
+              ),
+              child: Center(
+                child: Text(
+                  cat,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12.5,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                    color: isSelected ? Colors.white : AppColors.heading,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildWorkTypeSelector() {
+    final types = ['Full-time', 'Hybrid', 'Remote', 'Part-time'];
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: types.map((type) {
+        final isSelected = _workType.toLowerCase().contains(type.toLowerCase());
+        return FilterChip(
+          selected: isSelected,
+          label: Text(
+            type,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppColors.primaryBlue : AppColors.bodyText,
+            ),
+          ),
+          selectedColor: const Color(0xFFEFF4FF),
+          backgroundColor: Colors.white,
+          checkmarkColor: AppColors.primaryBlue,
+          side: BorderSide(
+            color: isSelected ? AppColors.primaryBlue : const Color(0xFFCBD5E1),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          onSelected: (selected) {
+            setState(() {
+              _workType = selected ? '$type Internship' : 'Full-time Internship';
+            });
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  void _showAddSkillDialog() {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: Text(
+            'Add Skill',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: AppColors.heading,
+            ),
+          ),
+          content: TextField(
+            controller: controller,
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: 'e.g. Kotlin, Node.js, SQL, Docker',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isNotEmpty) {
+                  setState(() => _skills.add(text));
+                }
+                Navigator.pop(ctx);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _handleAvatarChange() {
+    _showMessage('Photo updated with Chhouen Ratanaksombo avatar.');
   }
 
   Future<void> _pickBirthDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(1992, 8, 6),
-      firstDate: DateTime(1950),
+      initialDate: DateTime(2003, 10, 15),
+      firstDate: DateTime(1970),
       lastDate: DateTime.now(),
     );
 
-    if (picked == null) return;
-    if (!mounted) return;
+    if (picked == null || !mounted) return;
 
     setState(() {
       _birthDateController.text = _formatDate(picked);
@@ -392,47 +757,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return '$day ${months[date.month - 1]} ${date.year}';
   }
 
-  void _openSettingsMenu() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext sheetContext) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(Icons.lock_outline),
-                title: const Text('Update password'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const UpdatePasswordScreen(),
-                    ),
-                  );
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.logout, color: AppColors.danger),
-                title: const Text('Log out'),
-                onTap: () {
-                  Navigator.pop(sheetContext);
-                  showLogoutSheet(context);
-                },
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _handleSave() {
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
@@ -444,18 +768,138 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       return;
     }
 
-    debugPrint('SAVE pressed');
-    debugPrint('name: ${_fullNameController.text}');
-    debugPrint('birth: ${_birthDateController.text}');
-    debugPrint('gender: $_gender');
-    debugPrint('phone: $_countryCode ${_phoneController.text}');
-    _showMessage('Saving is not connected yet.');
+    // Save to global user profile model
+    currentDemoProfile.fullName = _fullNameController.text.trim();
+    currentDemoProfile.university = _universityController.text.trim();
+    currentDemoProfile.major = _majorController.text.trim();
+    currentDemoProfile.degreeLevel = _degreeLevelController.text.trim();
+    currentDemoProfile.gpa = _gpaController.text.trim();
+    currentDemoProfile.graduationYear = _gradYearController.text.trim();
+    currentDemoProfile.preferredCategory = _preferredCategory;
+    currentDemoProfile.skills = _skills;
+    currentDemoProfile.email = _emailController.text.trim();
+    currentDemoProfile.phone = _phoneController.text.trim();
+    currentDemoProfile.gender = _gender;
+    currentDemoProfile.location = _locationController.text.trim();
+
+    _showMessage(
+      'Profile saved! Home recommendations tailored for ${_majorController.text}.',
+    );
+  }
+
+  Widget _buildThemeSelector() {
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, child) {
+        return Row(
+          children: [
+            Expanded(
+              child: _buildThemeOption(
+                label: 'Light',
+                icon: Icons.light_mode_outlined,
+                mode: ThemeMode.light,
+                isSelected: currentMode == ThemeMode.light,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildThemeOption(
+                label: 'Dark',
+                icon: Icons.dark_mode_outlined,
+                mode: ThemeMode.dark,
+                isSelected: currentMode == ThemeMode.dark,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _buildThemeOption(
+                label: 'System',
+                icon: Icons.settings_brightness_outlined,
+                mode: ThemeMode.system,
+                isSelected: currentMode == ThemeMode.system,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildThemeOption({
+    required String label,
+    required IconData icon,
+    required ThemeMode mode,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        AppThemeController.instance.setThemeMode(mode);
+        ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Theme set to $label Mode',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 1),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primaryBlue.withValues(alpha: 0.1)
+              : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? AppColors.primaryBlue
+                : const Color(0xFFE2E8F0),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: isSelected ? AppColors.primaryBlue : AppColors.hintText,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                color: isSelected ? AppColors.primaryBlue : AppColors.bodyText,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+        ),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: const Color(0xFF1E293B),
+      ),
+    );
   }
 }

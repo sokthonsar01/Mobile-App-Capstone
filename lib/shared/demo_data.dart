@@ -17,11 +17,15 @@ class ChatPreview {
   /// How many messages the user has not read. 0 means no blue badge.
   final int unreadCount;
 
+  /// Optional logo or avatar asset path.
+  final String? avatarAsset;
+
   const ChatPreview({
     required this.name,
     required this.lastMessage,
     required this.timeAgo,
     this.unreadCount = 0,
+    this.avatarAsset,
   });
 }
 
@@ -88,70 +92,86 @@ class AppNotification {
 
 const List<ChatPreview> demoChats = [
   ChatPreview(
-    name: 'Taylor Swift',
+    name: 'Chip Mong Careers',
     lastMessage: 'Oh yes, please send your CV/Resume here',
     timeAgo: '5m ago',
     unreadCount: 2,
+    avatarAsset: 'assets/images/logos/Chigmong logo.png',
   ),
   ChatPreview(
-    name: 'Michael C. Hall',
-    lastMessage: 'I recently applied for the UI/UX Designer internship',
-    timeAgo: '5m ago',
+    name: 'Smart Axiata HR',
+    lastMessage: 'We reviewed your application for the Flutter Developer internship',
+    timeAgo: '15m ago',
+    unreadCount: 1,
+    avatarAsset: 'assets/images/logos/smart logo.png',
   ),
   ChatPreview(
-    name: 'Laufey',
-    lastMessage: 'I recently applied for the Data Analyst internship',
-    timeAgo: '5m ago',
+    name: 'Canadia Bank Recruitment',
+    lastMessage: 'Your interview is scheduled for this Thursday at 2:00 PM',
+    timeAgo: '1h ago',
+    avatarAsset: 'assets/images/logos/Canada bank logo.png',
   ),
   ChatPreview(
-    name: 'Sabrina Carpenter',
-    lastMessage: 'I recently applied for the Marketing internship',
-    timeAgo: '5m ago',
+    name: 'Cellcard Talent Team',
+    lastMessage: 'Thank you for applying for the AI Specialist internship',
+    timeAgo: '3h ago',
+    avatarAsset: 'assets/images/logos/Cellcard logo.png',
   ),
   ChatPreview(
-    name: 'Jenna Ortega',
-    lastMessage: 'I recently applied for the Finance internship',
-    timeAgo: '5m ago',
+    name: 'ABA Bank Careers',
+    lastMessage: 'We received your application and will contact shortlisted candidates soon',
+    timeAgo: '1d ago',
+    avatarAsset: 'assets/images/logos/ABA Logo.png',
   ),
   ChatPreview(
-    name: 'Andrew Garfield',
-    lastMessage: 'I recently applied for the AI Specialist internship',
-    timeAgo: '5m ago',
+    name: 'Hanuman Beverages',
+    lastMessage: 'Congratulations! You have been shortlisted for the Data Analyst role',
+    timeAgo: '2d ago',
+    avatarAsset: 'assets/images/logos/Hanuman beer logo.png',
   ),
   ChatPreview(
-    name: 'Laufey',
-    lastMessage: 'I recently applied for the Data Science internship',
-    timeAgo: '5m ago',
+    name: 'MoEYS Digital Tech',
+    lastMessage: 'Please check your email for the technical project guidelines',
+    timeAgo: '3d ago',
+    avatarAsset: 'assets/images/logos/Moeys Logo.png',
+  ),
+  ChatPreview(
+    name: 'Sokha Chan (Chip Mong)',
+    lastMessage: 'Looking forward to welcoming you at our Phnom Penh head office',
+    timeAgo: '4d ago',
+  ),
+  ChatPreview(
+    name: 'Bopha Heng (Canadia Bank)',
+    lastMessage: 'Your portfolio has been forwarded to the software team lead',
+    timeAgo: '5d ago',
   ),
 ];
 
 const List<ChatMessage> demoConversation = [
   ChatMessage(
-    text: "Hello M'am, Good Morning",
+    text: "Hello! Good morning from CADT.",
     time: '09:30 am',
     isMine: true,
   ),
   ChatMessage(
-    text: 'Morning, Can I help you ?',
+    text: 'Hello Chhouen Ratanaksombo! How can our recruitment team help you today?',
     time: '09:31 am',
     isMine: false,
   ),
   ChatMessage(
-    text: 'I recently applied for the UI/UX Designer internship through '
-        'your internship portal and wanted to ask if the application '
-        'review has started.',
+    text: 'I recently applied for the Mobile App Developer internship through '
+        'the Interna portal and wanted to confirm if my submission was received.',
     time: '09:33 am',
     isMine: true,
   ),
   ChatMessage(
-    text: 'Yes, our team has started reviewing the applications and will '
-        'contact shortlisted candidates soon.',
+    text: 'Yes! We have received your application and Chhouen_Ratanaksombo_CV.pdf. '
+        'Our tech leads are impressed with your Flutter projects and will contact you for the interview round soon.',
     time: '09:35 am',
     isMine: false,
   ),
   ChatMessage(
-    text: 'Thank you for the update. I look forward to hearing from '
-        'your team.',
+    text: 'Thank you so much! I look forward to hearing from your team.',
     time: '09:40 am',
     isMine: true,
   ),
