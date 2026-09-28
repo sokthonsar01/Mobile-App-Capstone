@@ -137,9 +137,72 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
           ),
-          IconButton(
-            onPressed: () {},
+          PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: AppColors.heading, size: 22),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: AppColors.surface,
+            onSelected: (value) {
+              if (value == 'clear') {
+                setState(() => _messages.clear());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Chat cleared.',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } else if (value == 'mute') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Notifications muted for ${widget.contactName}',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'mute',
+                child: Row(
+                  children: [
+                    Icon(Icons.notifications_off_outlined, size: 18, color: AppColors.hintText),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Mute notifications',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'clear',
+                child: Row(
+                  children: [
+                    const Icon(Icons.delete_sweep_outlined, size: 18, color: AppColors.danger),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Clear chat history',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.danger,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -223,7 +286,8 @@ class _ChatScreenState extends State<ChatScreen> {
         child: Row(
           children: [
             IconButton(
-              onPressed: () {},
+              tooltip: 'Attach Document',
+              onPressed: _showAttachmentSheet,
               icon: Icon(Icons.attach_file,
                   color: AppColors.bodyText, size: 22),
             ),
@@ -260,6 +324,139 @@ class _ChatScreenState extends State<ChatScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showAttachmentSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Attach Files',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.heading,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEFF6FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.description_rounded, color: AppColors.primaryBlue),
+                  ),
+                  title: Text(
+                    'Attach Resume / CV (PDF)',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    'CADT_Internship_Resume.pdf',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.hintText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _messages.add(
+                        ChatMessage(
+                          text: '📄 Attached: CADT_Internship_Resume.pdf',
+                          time: 'now',
+                          isMine: true,
+                        ),
+                      );
+                    });
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF0FDF4),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.link_rounded, color: Color(0xFF16A34A)),
+                  ),
+                  title: Text(
+                    'Share Portfolio Link',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    'https://github.com/sombo-dev',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.hintText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _messages.add(
+                        ChatMessage(
+                          text: '🔗 Portfolio: https://github.com/sombo-dev',
+                          time: 'now',
+                          isMine: true,
+                        ),
+                      );
+                    });
+                  },
+                ),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFAF5FF),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(Icons.photo_library_rounded, color: Color(0xFF9333EA)),
+                  ),
+                  title: Text(
+                    'Send Photo / Screenshot',
+                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    'Certificate or document image',
+                    style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.hintText),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    setState(() {
+                      _messages.add(
+                        ChatMessage(
+                          text: '📷 [Attached Image: Certificate.png]',
+                          time: 'now',
+                          isMine: true,
+                        ),
+                      );
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

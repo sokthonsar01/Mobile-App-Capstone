@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/application_tracker_store.dart';
-import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import '../widgets/internship_details_sheet.dart';
 import 'home_screen.dart';
@@ -706,31 +706,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           ),
           bottomNavigationBar: AppBottomNav(
             currentIndex: 2,
-            onTap: (int index) {
-              if (index == 0 || index == 1) {
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()),
-                  (route) => false,
-                );
-              } else if (index == 2) {
-                return;
-              } else if (index == 3) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                );
-              } else if (index == 4) {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const HomeScreen(),
-                  ),
-                );
-              }
-            },
+            onTap: (int index) => navigateToAppTab(context, 2, index),
           ),
         );
       },

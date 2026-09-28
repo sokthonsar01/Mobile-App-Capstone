@@ -102,16 +102,74 @@ class _MessagesScreenState extends State<MessagesScreen> {
             ),
           ),
           IconButton(
-            onPressed: () {},
+            tooltip: 'New Message',
+            onPressed: _showNewChatDialog,
             icon: const Icon(
               Icons.edit_square,
               color: AppColors.primaryBlue,
               size: 24,
             ),
           ),
-          IconButton(
-            onPressed: () {},
+          PopupMenuButton<String>(
             icon: Icon(Icons.more_vert, color: AppColors.heading, size: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: AppColors.surface,
+            onSelected: (value) {
+              if (value == 'mark_read') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'All messages marked as read.',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } else if (value == 'clear_search') {
+                setState(() {
+                  _searchController.clear();
+                  _searchText = '';
+                });
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'mark_read',
+                child: Row(
+                  children: [
+                    const Icon(Icons.done_all_rounded, size: 18, color: AppColors.primaryBlue),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Mark all as read',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'clear_search',
+                child: Row(
+                  children: [
+                    Icon(Icons.clear_all_rounded, size: 18, color: AppColors.hintText),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Clear search',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -237,6 +295,99 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showNewChatDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Start New Message',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.heading,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Select a recruiter or company to chat with',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: AppColors.hintText,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ...demoChats.take(4).map((chat) {
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                    leading: InitialsAvatar(
+                      name: chat.name,
+                      size: 40,
+                      imageAsset: chat.avatarAsset,
+                    ),
+                    title: Text(
+                      chat.name,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Verified Recruiter',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: AppColors.hintText,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chat_outlined,
+                      color: AppColors.primaryBlue,
+                      size: 20,
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            contactName: chat.name,
+                            avatarAsset: chat.avatarAsset,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
