@@ -14,9 +14,6 @@ import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
-import '../widgets/internship_details_sheet.dart';
-import 'application_details_screen.dart';
-import 'application_tracker_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 class HomeScreen extends StatefulWidget {

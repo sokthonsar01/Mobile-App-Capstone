@@ -4,7 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/application_tracker_store.dart';
-import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
 import '../widgets/internship_details_sheet.dart';
 import 'home_screen.dart';
