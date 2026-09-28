@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../features/home/presentation/application_details_screen.dart';
+import '../features/home/presentation/application_tracker_screen.dart';
 import '../features/messages/presentation/messages_screen.dart';
 import '../features/profile/presentation/edit_profile_screen.dart';
 import '../features/saved/presentation/saved_internships_screen.dart';
@@ -26,7 +26,7 @@ void navigateToAppTab(BuildContext context, int currentIndex, int targetIndex) {
       targetScreen = const SavedInternshipsScreen();
       break;
     case 2:
-      targetScreen = const ApplicationDetailsScreen();
+      targetScreen = const ApplicationTrackerScreen();
       break;
     case 3:
       targetScreen = const MessagesScreen();

@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/theme/app_theme_controller.dart';
+import '../data/application_tracker_store.dart';
 import '../../messages/presentation/chat_screen.dart';
 import '../../profile/data/user_profile_model.dart';
 import '../../saved/data/saved_internships_store.dart';
@@ -1093,6 +1094,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
+                  ApplicationTrackerStore.instance.applyForInternship(item);
                   Navigator.push(
                     context,
                     MaterialPageRoute(
