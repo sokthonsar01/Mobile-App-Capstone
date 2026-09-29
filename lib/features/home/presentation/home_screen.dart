@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:interna/features/profile/data/student_profile.model.dart';
+import 'package:interna/features/profile/data/student_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
@@ -11,11 +14,9 @@ import '../../profile/data/user_profile_model.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
 import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
+import '../data/internship_repository.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
-import '../widgets/internship_details_sheet.dart';
-import 'application_details_screen.dart';
-import 'application_tracker_screen.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 class HomeScreen extends StatefulWidget {
@@ -34,6 +35,9 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedLocation;
   bool _paymentOnly = false;
 
+  // REFACTOR: HomeScreen retains local state & filtering logic. Move to a dedicated state controller in future cleanup.
+  List<InternshipOpportunity> _internships = demoInternships;
+
   final List<String> _categories = [
     'All',
     'IT',
@@ -51,6 +55,35 @@ class _HomeScreenState extends State<HomeScreen> {
     _bannerPageController = PageController(initialPage: initialPage);
     SavedInternshipsStore.instance.savedIdsNotifier.addListener(_onSavedChanged);
     _startAutoSlide();
+    _loadInternships();
+    _loadStudentProfile();
+  }
+
+  Future<void> _loadInternships() async {
+    try {
+      final liveItems = await InternshipRepository.getInternships();
+      if (mounted && liveItems.isNotEmpty) {
+        setState(() {
+          _internships = liveItems;
+        });
+      }
+    } catch (_) {
+      // Fallback silently to demoInternships to ensure uninterrupted UX
+    }
+  }
+  StudentProfile? _userProfile;
+
+  Future<void> _loadStudentProfile() async{
+
+    try{
+      final studentProfile = await StudentRepository.getMyProfile();
+      if(mounted && studentProfile !=null){
+        setState(() =>_userProfile = studentProfile);
+      }
+    }catch(_){
+      debugPrint("Error loading student profile");
+    }
+    
   }
 
   void _onSavedChanged() {
@@ -85,7 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<InternshipOpportunity> get _filteredInternships {
     final query = _searchController.text.trim().toLowerCase();
 
-    return demoInternships.where((item) {
+    return _internships.where((item) {
       // Category filter
       if (_selectedCategory != 'All') {
         if (_selectedCategory == 'IT' &&
@@ -156,8 +189,18 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await Future.wait([
+              _loadInternships(),
+              _loadStudentProfile(),
+            ]);
+          },
+          color: AppColors.primaryBlue,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
             // 1. Top Header: Profile Icon (left) + Notification Bell (right)
@@ -240,6 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
+    ),
       bottomNavigationBar: AppBottomNav(
         currentIndex: 0,
         onTap: _handleBottomNavTap,
@@ -247,9 +291,27 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  User? get _currentAuthUser {
+    try {
+      return Supabase.instance.client.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Top Bar: Profile avatar with Hello & Name on left + Notification bell on right.
   Widget _buildTopHeader() {
-    final profile = currentDemoProfile;
+    final authUser = _currentAuthUser;
+    final metadata = authUser?.userMetadata ?? {};
+
+    final displayName = (_userProfile?.getFullName.isNotEmpty ?? false)
+        ? _userProfile!.getFullName
+        : (metadata['full_name'] ?? metadata['name'] ?? currentDemoProfile.fullName);
+
+    final avatarPath = _userProfile?.avatarUrl ??
+        metadata['avatar_url'] ??
+        metadata['picture'] ??
+        currentDemoProfile.avatarAsset;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -263,7 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 builder: (context) => const EditProfileScreen(),
               ),
             );
-            setState(() {});
+            _loadStudentProfile();
           },
           child: Row(
             children: [
@@ -286,15 +348,25 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(22),
-                  child: Image.asset(
-                    profile.avatarAsset,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.person_rounded,
-                      color: AppColors.heading,
-                      size: 24,
-                    ),
-                  ),
+                  child: avatarPath.startsWith('http')
+                      ? Image.network(
+                          avatarPath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.person_rounded,
+                            color: AppColors.heading,
+                            size: 24,
+                          ),
+                        )
+                      : Image.asset(
+                          avatarPath,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.person_rounded,
+                            color: AppColors.heading,
+                            size: 24,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -311,7 +383,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ),
                   Text(
-                    profile.fullName,
+                    displayName,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14.5,
                       fontWeight: FontWeight.w800,
@@ -473,7 +545,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Display-only wide poster banner carousel (auto-changes every 5 seconds, responsive 1280:480 aspect ratio).
   Widget _buildPromoBanner() {
-    if (demoInternships.isEmpty) return const SizedBox.shrink();
+    final bannerItems = _internships.isNotEmpty ? _internships : demoInternships;
+    if (bannerItems.isEmpty) return const SizedBox.shrink();
 
     return AspectRatio(
       aspectRatio: 1280 / 480,
@@ -494,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
             controller: _bannerPageController,
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (BuildContext context, int index) {
-              final item = demoInternships[index % demoInternships.length];
+              final item = bannerItems[index % bannerItems.length];
 
               return Image.asset(
                 item.bannerPosterAssetPath,
