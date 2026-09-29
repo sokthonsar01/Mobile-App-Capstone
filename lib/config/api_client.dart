@@ -11,6 +11,7 @@ class ApiClient {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Bypass-Tunnel-Reminder': 'true',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
