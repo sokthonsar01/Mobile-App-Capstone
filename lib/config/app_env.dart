@@ -8,7 +8,7 @@ class AppEnv {
   // Use http://10.0.2.2:3000 for Android Emulator, http://localhost:3000 for iOS simulator
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000',
+    defaultValue: 'https://interna-backend-b6hy.onrender.com',
   );
 
   // Supabase Configuration

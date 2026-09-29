@@ -268,45 +268,28 @@ class _HomeScreenState extends State<HomeScreen> {
                   )
                 else
                   Column(
-                    children: items.map((internship) {
-                      final isSaved =
-                          SavedInternshipsStore.instance.isSaved(internship.id);
+                      children: items.map((internship) {
+                        final isSaved =
+                            SavedInternshipsStore.instance.isSaved(internship.id);
 
-                      return InternshipCard(
-                        internship: internship,
-                        isSaved: isSaved,
-                        onToggleSave: () {
-                          SavedInternshipsStore.instance.toggleSave(internship.id);
-                        },
-                      );
-                    }).toList(),
-                  ),
-                ),
-              )
-            else
-              Column(
-                children: items.map((internship) {
-                  final isSaved =
-                      SavedInternshipsStore.instance.isSaved(internship.id);
-
-                  return InternshipCard(
-                    internship: internship,
-                    isSaved: isSaved,
-                    onToggleSave: () {
-                      SavedInternshipsStore.instance.toggleSave(internship.id);
-                    },
-                  );
-                }).toList(),
+                        return InternshipCard(
+                          internship: internship,
+                          isSaved: isSaved,
+                          onToggleSave: () {
+                            SavedInternshipsStore.instance.toggleSave(internship.id);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                ],
               ),
-          ],
-        ),
-      ),
-    ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 0,
-        onTap: _handleBottomNavTap,
-      ),
-    );
+            ),
+          ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 0,
+            onTap: _handleBottomNavTap,
+          ),
+        );
   }
 
   User? get _currentAuthUser {
@@ -370,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ? Image.network(
                           avatarPath,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.person_rounded,
                             color: AppColors.heading,
                             size: 24,
@@ -379,7 +362,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       : Image.asset(
                           avatarPath,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Icon(
+                          errorBuilder: (context, error, stackTrace) => Icon(
                             Icons.person_rounded,
                             color: AppColors.heading,
                             size: 24,

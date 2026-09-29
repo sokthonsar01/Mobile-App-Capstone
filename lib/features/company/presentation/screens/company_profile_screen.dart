@@ -82,7 +82,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.arrow_back_ios_new_rounded,
             color: AppColors.heading,
             size: 20,

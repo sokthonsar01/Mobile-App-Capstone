@@ -36,25 +36,15 @@ class InternshipOpportunity {
     this.stipend = '\$200 - \$350 / month',
     this.isSaved = false,
   });
-
-  /// Factory constructor to parse NestJS API response payload.
   factory InternshipOpportunity.fromJson(Map<String, dynamic> json) {
-    final companyObj =
-        json['company'] is Map ? json['company'] as Map<String, dynamic> : null;
-    final companyName = companyObj?['name'] as String? ??
-        (json['company'] as String? ?? 'Company');
+    final companyObj = json['company'] is Map ? json['company'] as Map<String, dynamic> : null;
+    final companyName = companyObj?['name'] as String? ?? (json['company'] as String? ?? 'Company');
 
     List<String> requirementsList = [];
     if (json['requiredSkills'] is List) {
       requirementsList = (json['requiredSkills'] as List)
           .map((s) => s['skill']?['name']?.toString() ?? '')
           .where((name) => name.isNotEmpty)
-          .toList();
-    }
-    if (requirementsList.isEmpty && json['requirements'] is List) {
-      requirementsList = (json['requirements'] as List)
-          .map((e) => e.toString().trim())
-          .where((e) => e.isNotEmpty)
           .toList();
     }
     if (requirementsList.isEmpty && json['requirements'] is String) {
@@ -67,21 +57,14 @@ class InternshipOpportunity {
 
     return InternshipOpportunity(
       id: json['id']?.toString() ?? '',
-      companyId: json['companyId']?.toString() ?? companyObj?['id']?.toString(),
       role: json['title']?.toString() ?? json['role']?.toString() ?? '',
       company: companyName,
+      companyId: json['companyId']?.toString() ?? companyObj?['id']?.toString(),
       category: json['category']?.toString() ?? 'Tech',
       location: json['location']?.toString() ?? '',
-      schedule: json['type'] != null
-          ? '${json['type']} Internship'
-          : (json['schedule']?.toString() ?? 'Full-Time'),
-      paymentStatus: (json['stipend'] != null &&
-              json['stipend'].toString().isNotEmpty)
-          ? 'Payment Included'
-          : 'Unpaid',
-      deadline: json['deadline'] != null
-          ? json['deadline'].toString().split('T').first
-          : 'Open',
+      schedule: json['type'] != null ? '${json['type']} Internship' : (json['schedule']?.toString() ?? 'Full-Time'),
+      paymentStatus: (json['stipend'] != null && json['stipend'].toString().isNotEmpty) ? 'Payment Included' : 'Unpaid',
+      deadline: json['deadline'] != null ? json['deadline'].toString().split('T').first : 'Open',
       brandColor: _resolveBrandColor(companyName),
       logoKey: _resolveLogoKey(companyName),
       description: json['description']?.toString() ?? '',
@@ -114,6 +97,7 @@ class InternshipOpportunity {
     if (lower.contains('meoys')) return 'meoys';
     return 'default';
   }
+
 
   /// Full display title like "Marketing Intern at Chip Mong"
   String get displayTitle => '$role at $company';
