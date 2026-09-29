@@ -12,7 +12,7 @@ import '../../auth/auth_navigation.dart';
 void showLogoutSheet(BuildContext context) {
   showModalBottomSheet<void>(
     context: context,
-    backgroundColor: Colors.white,
+    backgroundColor: AppColors.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -24,12 +24,12 @@ void showLogoutSheet(BuildContext context) {
             // min means: only be as tall as the content inside.
             mainAxisSize: MainAxisSize.min,
             children: [
-              // The small dark bar at the top that you can drag.
+              // The small bar at the top that you can drag.
               Container(
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.heading,
+                  color: AppColors.cardBorder,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -39,7 +39,7 @@ void showLogoutSheet(BuildContext context) {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: Colors.black,
+                  color: AppColors.heading,
                 ),
               ),
               const SizedBox(height: 8),

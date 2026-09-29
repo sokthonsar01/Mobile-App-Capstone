@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/demo_data.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import 'chat_screen.dart';
 
@@ -38,41 +39,46 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildTopBar(),
-            _buildSearchBox(),
-            const SizedBox(height: 8),
-            Expanded(
-              child: _visibleChats.isEmpty
-                  ? Center(
-                      child: Text(
-                        'No message found.',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: AppColors.hintText,
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              children: [
+                _buildTopBar(),
+                _buildSearchBox(),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: _visibleChats.isEmpty
+                      ? Center(
+                          child: Text(
+                            'No message found.',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppColors.hintText,
+                            ),
+                          ),
+                        )
+                      // ListView.builder only builds the rows you can see.
+                      // That keeps a long list fast.
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          itemCount: _visibleChats.length,
+                          itemBuilder: (BuildContext context, int index) {
+                            return _buildChatRow(_visibleChats[index]);
+                          },
                         ),
-                      ),
-                    )
-                  // ListView.builder only builds the rows you can see.
-                  // That keeps a long list fast.
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      itemCount: _visibleChats.length,
-                      itemBuilder: (BuildContext context, int index) {
-                        return _buildChatRow(_visibleChats[index]);
-                      },
-                    ),
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 3,
-        onTap: (int index) => navigateToAppTab(context, 3, index),
-      ),
+          ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 3,
+            onTap: (int index) => navigateToAppTab(context, 3, index),
+          ),
+        );
+      },
     );
   }
 
@@ -91,21 +97,79 @@ class _MessagesScreenState extends State<MessagesScreen> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
-                color: Colors.black,
+                color: AppColors.heading,
               ),
             ),
           ),
           IconButton(
-            onPressed: () {},
+            tooltip: 'New Message',
+            onPressed: _showNewChatDialog,
             icon: const Icon(
               Icons.edit_square,
               color: AppColors.primaryBlue,
               size: 24,
             ),
           ),
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.more_vert, color: Colors.black, size: 24),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_vert, color: AppColors.heading, size: 24),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            color: AppColors.surface,
+            onSelected: (value) {
+              if (value == 'mark_read') {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'All messages marked as read.',
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+                    ),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              } else if (value == 'clear_search') {
+                setState(() {
+                  _searchController.clear();
+                  _searchText = '';
+                });
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'mark_read',
+                child: Row(
+                  children: [
+                    const Icon(Icons.done_all_rounded, size: 18, color: AppColors.primaryBlue),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Mark all as read',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              PopupMenuItem(
+                value: 'clear_search',
+                child: Row(
+                  children: [
+                    Icon(Icons.clear_all_rounded, size: 18, color: AppColors.hintText),
+                    const SizedBox(width: 10),
+                    Text(
+                      'Clear search',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -115,26 +179,26 @@ class _MessagesScreenState extends State<MessagesScreen> {
   Widget _buildSearchBox() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      // Same rule as the profile header: no fixed height.
-      // We control the size with contentPadding instead, so a bigger
-      // system font can never make it overflow.
       child: Container(
         decoration: BoxDecoration(
-          color: const Color(0xFFF7F8FA),
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.cardBorder),
         ),
         child: TextField(
           controller: _searchController,
-          // onChanged runs on every letter the user types.
           onChanged: (String value) {
             setState(() => _searchText = value.toLowerCase());
           },
-          style: GoogleFonts.plusJakartaSans(fontSize: 14),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 14,
+            color: AppColors.heading,
+          ),
           decoration: InputDecoration(
             border: InputBorder.none,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(vertical: 15),
-            prefixIcon: const Icon(Icons.search, color: AppColors.hintText),
+            prefixIcon: Icon(Icons.search, color: AppColors.hintText),
             hintText: 'Search message',
             hintStyle: GoogleFonts.plusJakartaSans(
               fontSize: 14,
@@ -162,7 +226,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
-          // start = line the avatar up with the top of the text.
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             InitialsAvatar(
@@ -171,9 +234,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
               imageAsset: chat.avatarAsset,
             ),
             const SizedBox(width: 14),
-            // Expanded gives the name and message all the space that is
-            // left, so long text gets cut with "..." instead of
-            // overflowing the screen.
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -183,7 +243,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black,
+                      color: AppColors.heading,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -235,6 +295,99 @@ class _MessagesScreenState extends State<MessagesScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showNewChatDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Start New Message',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.heading,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Select a recruiter or company to chat with',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: AppColors.hintText,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                ...demoChats.take(4).map((chat) {
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                    leading: InitialsAvatar(
+                      name: chat.name,
+                      size: 40,
+                      imageAsset: chat.avatarAsset,
+                    ),
+                    title: Text(
+                      chat.name,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                    subtitle: Text(
+                      'Verified Recruiter',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: AppColors.hintText,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chat_outlined,
+                      color: AppColors.primaryBlue,
+                      size: 20,
+                    ),
+                    onTap: () {
+                      Navigator.pop(ctx);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChatScreen(
+                            contactName: chat.name,
+                            avatarAsset: chat.avatarAsset,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 
+import 'theme/app_theme_controller.dart';
+
 /// Every color the app uses, in one place.
-///
-/// Change a color here and it changes on every screen.
+/// Dynamically adapts to Light Mode and Dark Mode in real time.
 class AppColors {
   AppColors._();
+
+  static bool get isDark => AppThemeController.instance.isDark;
 
   // --- Brand ---------------------------------------------------------------
 
@@ -17,30 +20,50 @@ class AppColors {
   /// Darker blue used at the bottom of the profile header gradient.
   static const Color headerBlueDark = Color(0xFF1E5CFB);
 
-  // --- Text ----------------------------------------------------------------
+  // --- Text (Dynamic for Dark/Light Mode) -----------------------------------
 
   /// Page titles and field labels.
-  static const Color heading = Color(0xFF0D0141);
+  static Color get heading =>
+      isDark ? const Color(0xFFF8FAFC) : const Color(0xFF0D0141);
 
   /// Normal paragraph text.
-  static const Color bodyText = Color(0xFF524B6C);
+  static Color get bodyText =>
+      isDark ? const Color(0xFF94A3B8) : const Color(0xFF524B6C);
 
   /// Placeholder text inside an empty field, and small gray times.
-  static const Color hintText = Color(0xFF6D678B);
+  static Color get hintText =>
+      isDark ? const Color(0xFF64748B) : const Color(0xFF6D678B);
 
-  // --- Surfaces ------------------------------------------------------------
+  // --- Surfaces (Dynamic for Dark/Light Mode) --------------------------------
 
-  /// Thin gray line around the auth text fields.
-  static const Color border = Color(0xFFC6C6C6);
+  /// Page background color.
+  static Color get background =>
+      isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
 
-  /// Light gray fill: search bar, chips.
-  static const Color lightFill = Color(0xFFF4F4F4);
+  /// Card, sheet, and modal surface color.
+  static Color get surface =>
+      isDark ? const Color(0xFF1E293B) : Colors.white;
+
+  /// Card border outline color.
+  static Color get cardBorder =>
+      isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+
+  /// Thin line around text fields.
+  static Color get border =>
+      isDark ? const Color(0xFF475569) : const Color(0xFFC6C6C6);
+
+  /// Gray fill: search bar, chips.
+  static Color get lightFill =>
+      isDark ? const Color(0xFF1E293B) : const Color(0xFFF4F4F4);
 
   /// Pale blue background of an unread notification row.
-  static const Color unreadBlue = Color(0xFFEBF0FF);
+  static Color get unreadBlue => isDark
+      ? const Color(0xFF1E3A8A).withValues(alpha: 0.3)
+      : const Color(0xFFEBF0FF);
 
-  /// Light blue bubble for the other person's chat message.
-  static const Color otherBubble = Color(0xFFE7ECFF);
+  /// Bubble for the other person's chat message.
+  static Color get otherBubble =>
+      isDark ? const Color(0xFF1E293B) : const Color(0xFFE7ECFF);
 
   // --- Status --------------------------------------------------------------
 

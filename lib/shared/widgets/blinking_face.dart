@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../app_colors.dart';
-
 /// The Interna logo face, drawn in code so the eyes can blink.
 ///
 /// It replaces `assets/images/main_logo.png` on the splash screen. The numbers
@@ -21,7 +19,7 @@ class BlinkingFace extends StatefulWidget {
   const BlinkingFace({
     super.key,
     required this.size,
-    this.color = AppColors.heading,
+    this.color = const Color(0xFF0D0140),
   });
 
   @override

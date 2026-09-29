@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../../home/data/internship_model.dart';
 import '../../home/presentation/internship_details_screen.dart';
@@ -40,72 +41,77 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
   Widget build(BuildContext context) {
     final savedList = SavedInternshipsStore.instance.getSavedOpportunities();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Saved Internships',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.heading,
-              ),
-            ),
-            if (savedList.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${savedList.length}',
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          appBar: AppBar(
+            backgroundColor: AppColors.surface,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            title: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Saved Internships',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
+                    fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: AppColors.primaryBlue,
+                    color: AppColors.heading,
                   ),
                 ),
-              ),
+                if (savedList.isNotEmpty) ...[
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${savedList.length}',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryBlue,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+            centerTitle: true,
+            actions: [
+              if (savedList.isNotEmpty)
+                IconButton(
+                  icon: const Icon(
+                    Icons.delete_sweep_outlined,
+                    color: AppColors.danger,
+                    size: 22,
+                  ),
+                  tooltip: 'Clear All Bookmarks',
+                  onPressed: _confirmClearAll,
+                ),
+              const SizedBox(width: 4),
             ],
-          ],
-        ),
-        centerTitle: true,
-        actions: [
-          if (savedList.isNotEmpty)
-            IconButton(
-              icon: const Icon(
-                Icons.delete_sweep_outlined,
-                color: AppColors.danger,
-                size: 22,
-              ),
-              tooltip: 'Clear All Bookmarks',
-              onPressed: _confirmClearAll,
-            ),
-          const SizedBox(width: 4),
-        ],
-      ),
-      body: savedList.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-              physics: const BouncingScrollPhysics(),
-              itemCount: savedList.length,
-              itemBuilder: (BuildContext context, int index) {
-                return _buildSavedCard(savedList[index]);
-              },
-            ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 1,
-        onTap: (int index) => navigateToAppTab(context, 1, index),
-      ),
+          ),
+          body: savedList.isEmpty
+              ? _buildEmptyState()
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: savedList.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return _buildSavedCard(savedList[index]);
+                  },
+                ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 1,
+            onTap: (int index) => navigateToAppTab(context, 1, index),
+          ),
+        );
+      },
     );
   }
 
@@ -188,10 +194,10 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: AppColors.cardBorder,
           width: 1.2,
         ),
         boxShadow: [
@@ -320,7 +326,7 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
                 // Bottom details row
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.location_on_outlined,
                       size: 14,
                       color: AppColors.hintText,

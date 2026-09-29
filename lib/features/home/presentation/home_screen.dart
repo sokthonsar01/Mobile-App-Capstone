@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/data/user_profile_model.dart';
@@ -206,62 +207,79 @@ class _HomeScreenState extends State<HomeScreen> {
             // 1. Top Header: Profile Icon (left) + Notification Bell (right)
             _buildTopHeader(),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // 2. Featured Promotional Hero Banner Carousel (Visually matching listing cards)
-            _buildPromoBanner(),
+                // 2. Featured Promotional Hero Banner Carousel (Visually matching listing cards)
+                _buildPromoBanner(),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // 3. Search Bar with magnifying glass on the right
-            _buildSearchBar(),
+                // 3. Search Bar with magnifying glass on the right
+                _buildSearchBar(),
 
-            const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-            // 4. Horizontal Category Chips Row with Filter Icon Button
-            _buildCategoryChips(),
+                // 4. Horizontal Category Chips Row with Filter Icon Button
+                _buildCategoryChips(),
 
-            const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-            // Personalized Recommendation Banner
-            _buildPersonalizedMatchBanner(),
+                // Personalized Recommendation Banner
+                _buildPersonalizedMatchBanner(),
 
-            const SizedBox(height: 14),
+                const SizedBox(height: 14),
 
-            // 5. Suggestions Feed List or Empty State
-            if (items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 48,
-                ),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.search_off_rounded,
-                        size: 56,
-                        color: AppColors.hintText.withValues(alpha: 0.5),
+                // 5. Suggestions Feed List or Empty State
+                if (items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 48,
+                    ),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 56,
+                            color: AppColors.hintText.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No internships found',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.heading,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Try searching with different keywords or clearing your filters.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: AppColors.hintText,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'No internships found',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.heading,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Try searching with different keywords or clearing your filters.',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          color: AppColors.hintText,
-                        ),
-                      ),
-                    ],
+                    ),
+                  )
+                else
+                  Column(
+                    children: items.map((internship) {
+                      final isSaved =
+                          SavedInternshipsStore.instance.isSaved(internship.id);
+
+                      return InternshipCard(
+                        internship: internship,
+                        isSaved: isSaved,
+                        onToggleSave: () {
+                          SavedInternshipsStore.instance.toggleSave(internship.id);
+                        },
+                      );
+                    }).toList(),
                   ),
                 ),
               )
@@ -396,27 +414,22 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
 
-        // Notification Bell with unread dot
-        Stack(
-          clipBehavior: Clip.none,
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Quick Theme Mode Switcher Button (Sun/Moon)
             GestureDetector(
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsScreen(),
-                  ),
-                );
+                AppThemeController.instance.toggleTheme();
               },
               child: Container(
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: Colors.white,
+                  color: AppColors.surface,
                   border: Border.all(
-                    color: const Color(0xFFE2E8F0),
+                    color: AppColors.cardBorder,
                     width: 1.2,
                   ),
                   boxShadow: [
@@ -426,25 +439,73 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.notifications_rounded,
-                  color: AppColors.heading,
-                  size: 22,
+                child: Icon(
+                  AppColors.isDark
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  color: AppColors.isDark
+                      ? const Color(0xFFFBBF24)
+                      : AppColors.heading,
+                  size: 20,
                 ),
               ),
             ),
-            Positioned(
-              right: 2,
-              top: 2,
-              child: Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: AppColors.danger,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+            const SizedBox(width: 8),
+
+            // Notification Bell with unread dot
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.surface,
+                      border: Border.all(
+                        color: AppColors.cardBorder,
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.notifications_rounded,
+                      color: AppColors.heading,
+                      size: 22,
+                    ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  right: 2,
+                  top: 2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.surface,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -459,9 +520,15 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
-        color: const Color(0xFFEFF6FF),
+        color: AppColors.isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
+            : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: const Color(0xFFBFDBFE)),
+        border: Border.all(
+          color: AppColors.isDark
+              ? const Color(0xFF1E40AF)
+              : const Color(0xFFBFDBFE),
+        ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2563EB).withValues(alpha: 0.04),
@@ -497,7 +564,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w800,
-                          color: const Color(0xFF1E40AF),
+                          color: AppColors.isDark
+                              ? const Color(0xFF93C5FD)
+                              : const Color(0xFF1E40AF),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -598,10 +667,10 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: AppColors.cardBorder,
           width: 1.2,
         ),
         boxShadow: [
@@ -630,7 +699,7 @@ class _HomeScreenState extends State<HomeScreen> {
             horizontal: 16,
             vertical: 14,
           ),
-          suffixIcon: const Icon(
+          suffixIcon: Icon(
             Icons.search_rounded,
             color: AppColors.heading,
             size: 20,
@@ -668,12 +737,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         color: isSelected
                             ? AppColors.primaryBlue
-                            : Colors.white,
+                            : AppColors.surface,
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: isSelected
                               ? AppColors.primaryBlue
-                              : const Color(0xFFE2E8F0),
+                              : AppColors.cardBorder,
                           width: 1,
                         ),
                       ),

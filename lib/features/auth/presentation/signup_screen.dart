@@ -112,7 +112,7 @@ class _SignupScreenState extends State<SignupScreen> {
               setState(() => _rememberMe = newValue ?? false);
             },
             activeColor: AppColors.primaryBlue,
-            side: const BorderSide(color: AppColors.border, width: 1.5),
+            side: BorderSide(color: AppColors.border, width: 1.5),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(5),
             ),
