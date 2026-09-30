@@ -138,7 +138,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     return ElevatedButton(
       onPressed: () {
         ApplicationTrackerStore.instance
-            .applyForInternship(widget.internship!);
+            .applyToInternship(item: widget.internship!);
         Navigator.push(
           context,
           MaterialPageRoute(

@@ -277,7 +277,7 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
                 child: WideButton(
                   text: 'APPLY NOW',
                   onPressed: () {
-                    ApplicationTrackerStore.instance.applyForInternship(item);
+                    ApplicationTrackerStore.instance.applyToInternship(item: item);
                     Navigator.pop(context);
                     Navigator.push(
                       context,

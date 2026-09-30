@@ -6,6 +6,7 @@ import '../../../shared/app_navigation.dart';
 import '../../../shared/demo_data.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../data/chat_repository.dart';
 import 'chat_screen.dart';
 
 /// The Messages list screen.
@@ -18,9 +19,32 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final ChatRepository _chatRepository = ChatRepository();
 
-  /// What the user typed in the search box, in small letters.
   String _searchText = '';
+  List<Map<String, dynamic>> _remoteConversations = [];
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadConversations();
+  }
+
+  Future<void> _loadConversations() async {
+    setState(() => _isLoading = true);
+    try {
+      final list = await _chatRepository.getConversations();
+      if (mounted) {
+        setState(() {
+          _remoteConversations = list;
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -29,7 +53,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   /// Only the chats whose name contains the search text.
-  /// If the box is empty, this returns everything.
   List<ChatPreview> get _visibleChats {
     if (_searchText.isEmpty) return demoChats;
     return demoChats
@@ -51,24 +74,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 _buildSearchBox(),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: _visibleChats.isEmpty
-                      ? Center(
-                          child: Text(
-                            'No message found.',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: AppColors.hintText,
-                            ),
-                          ),
-                        )
-                      // ListView.builder only builds the rows you can see.
-                      // That keeps a long list fast.
-                      : ListView.builder(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          itemCount: _visibleChats.length,
-                          itemBuilder: (BuildContext context, int index) {
-                            return _buildChatRow(_visibleChats[index]);
-                          },
-                        ),
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : _remoteConversations.isNotEmpty
+                          ? _buildRemoteList()
+                          : _buildDemoList(),
                 ),
               ],
             ),
@@ -87,8 +97,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
       padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
       child: Row(
         children: [
-          // Empty box on the left with the same width as the two icons,
-          // so the title stays exactly in the middle.
           const SizedBox(width: 88),
           Expanded(
             child: Text(
@@ -210,6 +218,66 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
+  Widget _buildRemoteList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: _remoteConversations.length,
+      itemBuilder: (BuildContext context, int index) {
+        final conv = _remoteConversations[index];
+        final company = conv['company'] as Map<String, dynamic>?;
+        final name = (company?['name'] as String?) ?? 'Recruiter';
+        final convId = conv['id'] as String;
+
+        return ListTile(
+          leading: InitialsAvatar(name: name, size: 46),
+          title: Text(
+            name,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.heading,
+            ),
+          ),
+          subtitle: Text(
+            'Tap to open chat',
+            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.hintText),
+          ),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  contactName: name,
+                  conversationId: convId,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildDemoList() {
+    if (_visibleChats.isEmpty) {
+      return Center(
+        child: Text(
+          'No message found.',
+          style: GoogleFonts.plusJakartaSans(
+            color: AppColors.hintText,
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      itemCount: _visibleChats.length,
+      itemBuilder: (BuildContext context, int index) {
+        return _buildChatRow(_visibleChats[index]);
+      },
+    );
+  }
+
   Widget _buildChatRow(ChatPreview chat) {
     return InkWell(
       onTap: () {
@@ -271,7 +339,6 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                // Show the blue badge only when there are unread messages.
                 if (chat.unreadCount > 0)
                   Container(
                     width: 18,
