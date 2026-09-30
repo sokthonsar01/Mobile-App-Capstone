@@ -15,6 +15,8 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onSettings;
   final VoidCallback onChangeImage;
+  final VoidCallback? onEdit;
+  final bool isEditing;
 
   const ProfileHeader({
     super.key,
@@ -26,6 +28,8 @@ class ProfileHeader extends StatelessWidget {
     required this.onShare,
     required this.onSettings,
     required this.onChangeImage,
+    this.onEdit,
+    this.isEditing = false,
   });
 
   @override
@@ -215,6 +219,58 @@ class ProfileHeader extends StatelessWidget {
                   ],
                 ),
               ),
+
+              // Facebook-style Profile Actions
+              if (!isEditing && onEdit != null) ...[
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: onEdit,
+                        icon: const Icon(
+                          Icons.edit_rounded,
+                          size: 16,
+                          color: AppColors.headerBlueDark,
+                        ),
+                        label: Text(
+                          'Edit Profile',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.headerBlueDark,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          foregroundColor: AppColors.headerBlueDark,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        onPressed: onSettings,
+                        icon: const Icon(
+                          Icons.more_horiz_rounded,
+                          color: Colors.white,
+                          size: 22,
+                        ),
+                        tooltip: 'Profile Options',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),

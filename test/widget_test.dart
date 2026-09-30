@@ -123,7 +123,7 @@ void main() {
         home: EditProfileScreen(),
       ),
     );
-    expect(find.text('SAVE PROFILE'), findsOneWidget);
-    expect(find.text('Fullname'), findsOneWidget);
+    expect(find.text('Edit Profile'), findsWidgets);
+    expect(find.text('Full Legal Name'), findsOneWidget);
   });
 }

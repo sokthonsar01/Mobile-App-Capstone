@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
@@ -53,10 +54,14 @@ void showLogoutSheet(BuildContext context) {
               const SizedBox(height: 24),
               WideButton(
                 text: 'YES',
-                onPressed: () {
-                  // Close the panel first, then go back to login.
+                onPressed: () async {
                   Navigator.pop(sheetContext);
-                  backToLogin(context);
+                  try {
+                    await Supabase.instance.client.auth.signOut();
+                  } catch (_) {}
+                  if (context.mounted) {
+                    backToLogin(context);
+                  }
                 },
               ),
               const SizedBox(height: 12),

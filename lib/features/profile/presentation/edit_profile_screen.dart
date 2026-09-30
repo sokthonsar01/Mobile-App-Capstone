@@ -12,6 +12,7 @@ import '../../../shared/widgets/shared_widgets.dart';
 import '../data/student_profile.model.dart';
 import '../data/student_repository.dart';
 import '../data/user_profile_model.dart';
+import '../widgets/logout_sheet.dart';
 import '../widgets/profile_gender_selector.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_phone_field.dart';
@@ -53,13 +54,152 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _gender = 'Male';
   String _countryCode = '+855';
 
+  final ScrollController _scrollController = ScrollController();
+
   bool _isSaving = false;
+  bool _isEditing = false;
   StudentProfile? _backendProfile;
   DateTime? _selectedDob;
 
   String? _cvFileName;
   String? _cvFileSize;
   String? _cvLastUpdated;
+
+  void _startEditing({bool scrollToTop = false}) {
+    if (scrollToTop && _scrollController.hasClients) {
+      _scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeOutCubic,
+      );
+    }
+    setState(() => _isEditing = true);
+  }
+
+  void _cancelEditing() {
+    setState(() => _isEditing = false);
+    _loadBackendProfile();
+  }
+
+  void _showEditConfirmationDialog() {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.edit_note_rounded,
+                        color: AppColors.primaryBlue,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Edit Profile Information?',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.heading,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'You can modify your academic details, contact information, target preferences, skills, and CV document.\n\nNote: Your verified login email remains locked to your account.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: AppColors.bodyText,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          side: BorderSide(color: AppColors.cardBorder),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Keep Viewing',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.heading,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _startEditing(scrollToTop: true);
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryBlue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: Text(
+                          'Start Editing',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   sb.User? get _currentAuthUser {
     try {
@@ -152,6 +292,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _degreeLevelController.dispose();
     _gpaController.dispose();
     _gradYearController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -178,6 +319,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         return Scaffold(
           backgroundColor: AppColors.background,
           body: SingleChildScrollView(
+            controller: _scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -190,13 +332,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onShare: _handleShareProfile,
                   onSettings: () => showProfileSettingsSheet(context),
                   onChangeImage: _handleAvatarChange,
+                  onEdit: _showEditConfirmationDialog,
+                  isEditing: _isEditing,
                 ),
 
+                if (_isEditing) _buildEditingModeBanner(),
+
             Padding(
-              padding: const EdgeInsets.fromLTRB(18, 20, 18, 36),
+              padding: const EdgeInsets.fromLTRB(18, 16, 18, 36),
               child: Form(
                 key: _formKey,
-                autovalidateMode: AutovalidateMode.onUserInteraction,
+                autovalidateMode: AutovalidateMode.disabled,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -205,49 +351,93 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       title: 'Education & Academic Major',
                       icon: Icons.school_rounded,
                       iconColor: const Color(0xFF2B59FF),
-                      subtitle:
-                          'Your major helps us recommend high-match internships.',
-                      children: [
-                        SoftTextField(
-                          label: 'University / Institute',
-                          controller: _universityController,
-                          validator: (v) =>
-                              validateRequired(v, 'your university'),
-                        ),
-                        const SizedBox(height: 16),
-                        SoftTextField(
-                          label: 'Major / Field of Study',
-                          controller: _majorController,
-                          validator: (v) => validateRequired(v, 'your major'),
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 3,
-                              child: SoftTextField(
-                                label: 'Degree & Year',
-                                controller: _degreeLevelController,
+                      subtitle: _isEditing
+                          ? 'Update academic information for matching.'
+                          : 'Official university and credential records.',
+                      children: _isEditing
+                          ? [
+                              SoftTextField(
+                                label: 'University / Institute',
+                                controller: _universityController,
+                                enabled: true,
+                                hintText: 'e.g. CamTech',
                                 validator: (v) =>
-                                    validateRequired(v, 'degree level'),
+                                    validateRequired(v, 'your university'),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              flex: 2,
-                              child: SoftTextField(
+                              const SizedBox(height: 16),
+                              SoftTextField(
+                                label: 'Major / Field of Study',
+                                controller: _majorController,
+                                enabled: true,
+                                hintText: 'e.g. Computer Science',
+                                validator: (v) =>
+                                    validateRequired(v, 'your major'),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    flex: 3,
+                                    child: SoftTextField(
+                                      label: 'Degree & Year',
+                                      controller: _degreeLevelController,
+                                      enabled: true,
+                                      hintText: "e.g. Bachelor's Degree",
+                                      validator: (v) =>
+                                          validateRequired(v, 'degree level'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    flex: 2,
+                                    child: SoftTextField(
+                                      label: 'GPA',
+                                      controller: _gpaController,
+                                      enabled: true,
+                                      hintText: 'e.g. 3.75',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              SoftTextField(
+                                label: 'Expected Graduation',
+                                controller: _gradYearController,
+                                enabled: true,
+                                hintText: 'e.g. 2026',
+                              ),
+                            ]
+                          : [
+                              _buildInfoRow(
+                                icon: Icons.account_balance_rounded,
+                                label: 'University / Institute',
+                                value: _universityController.text,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.school_rounded,
+                                label: 'Major / Field of Study',
+                                value: _majorController.text,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.workspace_premium_rounded,
+                                label: 'Degree & Level',
+                                value: _degreeLevelController.text,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.grade_rounded,
                                 label: 'GPA',
-                                controller: _gpaController,
+                                value: _gpaController.text,
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        SoftTextField(
-                          label: 'Expected Graduation',
-                          controller: _gradYearController,
-                        ),
-                      ],
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.event_available_rounded,
+                                label: 'Expected Graduation',
+                                value: _gradYearController.text,
+                              ),
+                            ],
                     ),
 
                     const SizedBox(height: 18),
@@ -360,39 +550,42 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   ),
                                 ),
                                 backgroundColor: AppColors.lightFill,
-                                deleteIcon: Icon(Icons.close, size: 14, color: AppColors.hintText),
-                                onDeleted: () {
-                                  setState(() => _skills.remove(skill));
-                                },
+                                deleteIcon: _isEditing
+                                    ? Icon(Icons.close, size: 14, color: AppColors.hintText)
+                                    : null,
+                                onDeleted: _isEditing
+                                    ? () => setState(() => _skills.remove(skill))
+                                    : null,
                                 side: BorderSide(color: AppColors.cardBorder),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                               );
                             }),
-                            ActionChip(
-                              avatar: const Icon(
-                                Icons.add_circle_outline_rounded,
-                                size: 16,
-                                color: AppColors.primaryBlue,
-                              ),
-                              label: Text(
-                                'Add Skill',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
+                            if (_isEditing)
+                              ActionChip(
+                                avatar: const Icon(
+                                  Icons.add_circle_outline_rounded,
+                                  size: 16,
                                   color: AppColors.primaryBlue,
                                 ),
+                                label: Text(
+                                  'Add Skill',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.primaryBlue,
+                                  ),
+                                ),
+                                backgroundColor: AppColors.surface,
+                                side: const BorderSide(
+                                  color: AppColors.primaryBlue,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                onPressed: _showAddSkillDialog,
                               ),
-                              backgroundColor: AppColors.surface,
-                              side: const BorderSide(
-                                color: AppColors.primaryBlue,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              onPressed: _showAddSkillDialog,
-                            ),
                           ],
                         ),
                       ],
@@ -405,64 +598,206 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       title: 'Personal & Contact Info',
                       icon: Icons.person_rounded,
                       iconColor: const Color(0xFF6366F1),
-                      subtitle: 'Basic details visible to verified recruiters.',
-                      children: [
-                        SoftTextField(
-                          label: 'Fullname',
-                          controller: _fullNameController,
-                          validator: validateFullName,
-                        ),
-                        const SizedBox(height: 16),
-                        SoftTextField(
-                          label: 'Date of birth',
-                          controller: _birthDateController,
-                          readOnly: true,
-                          onTap: _pickBirthDate,
-                          suffix: Icon(
-                            Icons.calendar_month_outlined,
-                            color: AppColors.heading,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ProfileGenderSelector(
-                          selectedGender: _gender,
-                          onChanged: (String value) =>
-                              setState(() => _gender = value),
-                        ),
-                        const SizedBox(height: 16),
-                        SoftTextField(
-                          label: 'Email address',
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          validator: validateEmail,
-                        ),
-                        const SizedBox(height: 16),
-                        ProfilePhoneField(
-                          countryCode: _countryCode,
-                          controller: _phoneController,
-                          onCountryCodeChanged: (String? newCode) {
-                            if (newCode != null) {
-                              setState(() => _countryCode = newCode);
-                            }
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        SoftTextField(
-                          label: 'Location',
-                          controller: _locationController,
-                          validator: (String? value) =>
-                              validateRequired(value, 'your location'),
-                        ),
-                      ],
+                      subtitle: _isEditing
+                          ? 'Recruiter contact details.'
+                          : 'Verified contact credentials.',
+                      children: _isEditing
+                          ? [
+                              SoftTextField(
+                                label: 'Fullname',
+                                controller: _fullNameController,
+                                enabled: true,
+                                validator: validateFullName,
+                              ),
+                              const SizedBox(height: 16),
+                              SoftTextField(
+                                label: 'Date of birth',
+                                controller: _birthDateController,
+                                enabled: true,
+                                readOnly: true,
+                                onTap: _pickBirthDate,
+                                suffix: Icon(
+                                  Icons.calendar_month_outlined,
+                                  color: AppColors.heading,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ProfileGenderSelector(
+                                selectedGender: _gender,
+                                enabled: true,
+                                onChanged: (String value) =>
+                                    setState(() => _gender = value),
+                              ),
+                              const SizedBox(height: 16),
+                              SoftTextField(
+                                label: 'Email address',
+                                controller: _emailController,
+                                enabled: false,
+                                hintText: 'student@example.com',
+                                helperText:
+                                    'Bound to your verified login account (cannot be changed)',
+                                keyboardType: TextInputType.emailAddress,
+                                validator: validateEmail,
+                              ),
+                              const SizedBox(height: 16),
+                              ProfilePhoneField(
+                                countryCode: _countryCode,
+                                controller: _phoneController,
+                                enabled: true,
+                                onCountryCodeChanged: (String? newCode) {
+                                  if (newCode != null) {
+                                    setState(() => _countryCode = newCode);
+                                  }
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              SoftTextField(
+                                label: 'Location',
+                                controller: _locationController,
+                                enabled: true,
+                                hintText: 'e.g. Phnom Penh, Cambodia',
+                                validator: (String? value) =>
+                                    validateRequired(value, 'your location'),
+                              ),
+                            ]
+                          : [
+                              _buildInfoRow(
+                                icon: Icons.badge_outlined,
+                                label: 'Full Legal Name',
+                                value: _fullNameController.text,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.cake_outlined,
+                                label: 'Date of Birth',
+                                value: _birthDateController.text,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.wc_rounded,
+                                label: 'Gender',
+                                value: _gender,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.email_outlined,
+                                label: 'Email Address',
+                                value: _emailController.text,
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.phone_outlined,
+                                label: 'Phone Number',
+                                value: _phoneController.text.trim().isNotEmpty
+                                    ? '$_countryCode ${_phoneController.text.trim()}'
+                                    : '',
+                              ),
+                              const Divider(height: 1),
+                              _buildInfoRow(
+                                icon: Icons.location_on_outlined,
+                                label: 'Location',
+                                value: _locationController.text,
+                              ),
+                            ],
                     ),
 
                     const SizedBox(height: 28),
 
-                    // Save Profile Button
-                    WideButton(
-                      text: _isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE',
-                      onPressed: _isSaving ? () {} : _handleSave,
-                    ),
+                    // Save / Edit / Logout Actions
+                    if (!_isEditing)
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => showLogoutSheet(context),
+                              icon: const Icon(
+                                Icons.logout_rounded,
+                                size: 16,
+                                color: AppColors.danger,
+                              ),
+                              label: Text(
+                                'Log Out',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.danger,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                side: BorderSide(
+                                  color: AppColors.danger.withValues(alpha: 0.4),
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _startEditing(scrollToTop: true),
+                              icon: const Icon(
+                                Icons.edit_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                              label: Text(
+                                'Edit Profile',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryBlue,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _cancelEditing,
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                side: BorderSide(color: AppColors.cardBorder),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                              ),
+                              child: Text(
+                                'CANCEL',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.heading,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            flex: 2,
+                            child: WideButton(
+                              text: _isSaving ? 'SAVING PROFILE...' : 'SAVE CHANGES',
+                              onPressed: _isSaving ? () {} : _handleSave,
+                            ),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
               ),
@@ -478,6 +813,128 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     },
   );
 }
+
+  Widget _buildEditingModeBanner() {
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 16, 18, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: const Color(0xFFF59E0B),
+          width: 1.5,
+        ),
+        boxShadow: softShadow,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.edit_note_rounded,
+              color: Color(0xFFF59E0B),
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Editing Mode Active',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.heading,
+                  ),
+                ),
+                Text(
+                  'Verified account email cannot be changed',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: AppColors.hintText,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: _cancelEditing,
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.danger,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    Color? iconColor,
+  }) {
+    final bool hasValue = value.trim().isNotEmpty;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: (iconColor ?? AppColors.primaryBlue).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: iconColor ?? AppColors.primaryBlue,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.hintText,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  hasValue ? value.trim() : 'Not provided',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: hasValue
+                        ? AppColors.heading
+                        : AppColors.hintText.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildSectionCard({
     required String title,
@@ -899,7 +1356,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       _showMessage('Profile updated locally.');
     } finally {
       if (mounted) {
-        setState(() => _isSaving = false);
+        setState(() {
+          _isSaving = false;
+          _isEditing = false;
+        });
       }
     }
   }
