@@ -108,7 +108,7 @@ class ProfileHeader extends StatelessWidget {
                         child: InitialsAvatar(
                           name: name,
                           size: 68,
-                          imageAsset: imageAsset ?? 'assets/images/sombo_pfp.jpg',
+                          imageAsset: imageAsset,
                         ),
                       ),
                       Positioned(

@@ -2,12 +2,15 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/validators.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../data/student_profile.model.dart';
+import '../data/student_repository.dart';
 import '../data/user_profile_model.dart';
 import '../widgets/profile_gender_selector.dart';
 import '../widgets/profile_header.dart';
@@ -50,29 +53,91 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   String _gender = 'Male';
   String _countryCode = '+855';
 
+  bool _isSaving = false;
+  StudentProfile? _backendProfile;
+  DateTime? _selectedDob;
+
+  String? _cvFileName;
+  String? _cvFileSize;
+  String? _cvLastUpdated;
+
+  sb.User? get _currentAuthUser {
+    try {
+      return sb.Supabase.instance.client.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    final p = currentDemoProfile;
+    final authUser = _currentAuthUser;
+    final meta = authUser?.userMetadata ?? {};
+    final authName = (meta['full_name'] ?? meta['name'] ?? '').toString();
+    final authEmail = authUser?.email ?? '';
+    final authPhone = (authUser?.phone ?? meta['phone'] ?? '').toString();
 
-    _fullNameController = TextEditingController(text: p.fullName);
-    _birthDateController = TextEditingController(text: p.dateOfBirth);
-    _emailController = TextEditingController(text: p.email);
-    _phoneController = TextEditingController(text: p.phone);
-    _locationController = TextEditingController(text: p.location);
+    _fullNameController = TextEditingController(text: authName);
+    _birthDateController = TextEditingController();
+    _emailController = TextEditingController(text: authEmail);
+    _phoneController = TextEditingController(text: authPhone);
+    _locationController = TextEditingController();
 
-    _universityController = TextEditingController(text: p.university);
-    _majorController = TextEditingController(text: p.major);
-    _degreeLevelController = TextEditingController(text: p.degreeLevel);
-    _gpaController = TextEditingController(text: p.gpa);
-    _gradYearController = TextEditingController(text: p.graduationYear);
+    _universityController = TextEditingController();
+    _majorController = TextEditingController();
+    _degreeLevelController = TextEditingController();
+    _gpaController = TextEditingController();
+    _gradYearController = TextEditingController();
 
-    _preferredCategory = p.preferredCategory;
-    _workType = p.workType;
-    _targetRoles = List<String>.from(p.targetRoles);
-    _skills = List<String>.from(p.skills);
-    _gender = p.gender;
-    _countryCode = p.countryCode;
+    _preferredCategory = 'Tech';
+    _workType = 'Full-Time';
+    _targetRoles = [];
+    _skills = [];
+    _gender = 'Male';
+    _countryCode = '+855';
+
+    _loadBackendProfile();
+  }
+
+  Future<void> _loadBackendProfile() async {
+    try {
+      final profile = await StudentRepository.getMyProfile();
+      if (profile != null && mounted) {
+        setState(() {
+          _backendProfile = profile;
+          if (profile.getFullName.isNotEmpty) {
+            _fullNameController.text = profile.getFullName;
+          }
+          if (profile.currentAddress.isNotEmpty) {
+            _locationController.text = profile.currentAddress;
+          }
+          if (profile.phoneNumber != null && profile.phoneNumber!.isNotEmpty) {
+            _phoneController.text = profile.phoneNumber!;
+          }
+          if (profile.dob != null) {
+            _selectedDob = profile.dob;
+            _birthDateController.text = _formatDate(profile.dob!);
+          }
+          if (profile.gender.isNotEmpty) {
+            _gender = profile.gender == 'MALE'
+                ? 'Male'
+                : (profile.gender == 'FEMALE' ? 'Female' : 'Other');
+          }
+          if (profile.description != null && profile.description!.contains('student at')) {
+            final parts = profile.description!.split('student at');
+            if (_majorController.text.isEmpty && parts.isNotEmpty) {
+              _majorController.text = parts.first.trim();
+            }
+            if (_universityController.text.isEmpty && parts.length > 1) {
+              _universityController.text = parts[1].trim();
+            }
+          }
+        });
+      }
+    } catch (_) {
+      // Gracefully maintain authenticated user fields
+    }
   }
 
   @override
@@ -92,6 +157,21 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authUser = _currentAuthUser;
+    final metadata = authUser?.userMetadata ?? {};
+    final avatarUrl = _backendProfile?.avatarUrl ??
+        metadata['avatar_url'] as String? ??
+        metadata['picture'] as String?;
+    final displayName = _fullNameController.text.trim().isNotEmpty
+        ? _fullNameController.text.trim()
+        : (metadata['full_name'] ?? metadata['name'] ?? (authUser?.email?.split('@').first ?? 'My Profile')).toString();
+    final locationText = _locationController.text.trim().isNotEmpty
+        ? _locationController.text.trim()
+        : 'Cambodia';
+    final academicText = _majorController.text.trim().isNotEmpty
+        ? '${_majorController.text.trim()}${_universityController.text.trim().isNotEmpty ? " • ${_universityController.text.trim()}" : ""}'
+        : 'Internship Seeker';
+
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: AppThemeController.instance.themeModeNotifier,
       builder: (context, currentMode, _) {
@@ -103,14 +183,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               children: [
                 // 1. Profile Gradient Header with Photo & Major badge
                 ProfileHeader(
-              name: _fullNameController.text,
-              location: _locationController.text,
-              major: '${_majorController.text} • ${_universityController.text}',
-              imageAsset: currentDemoProfile.avatarAsset,
-              onShare: _handleShareProfile,
-              onSettings: () => showProfileSettingsSheet(context),
-              onChangeImage: _handleAvatarChange,
-            ),
+                  name: displayName,
+                  location: locationText,
+                  major: academicText,
+                  imageAsset: avatarUrl,
+                  onShare: _handleShareProfile,
+                  onSettings: () => showProfileSettingsSheet(context),
+                  onChangeImage: _handleAvatarChange,
+                ),
 
             Padding(
               padding: const EdgeInsets.fromLTRB(18, 20, 18, 36),
@@ -380,8 +460,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
                     // Save Profile Button
                     WideButton(
-                      text: 'SAVE PROFILE',
-                      onPressed: _handleSave,
+                      text: _isSaving ? 'SAVING PROFILE...' : 'SAVE PROFILE',
+                      onPressed: _isSaving ? () {} : _handleSave,
                     ),
                   ],
                 ),
@@ -504,7 +584,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      currentDemoProfile.cvFileName,
+                      _cvFileName ?? 'No CV attached yet',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.plusJakartaSans(
@@ -515,7 +595,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${currentDemoProfile.cvFileSize} • Updated ${currentDemoProfile.cvLastUpdated}',
+                      _cvFileName != null
+                          ? '${_cvFileSize ?? ""} • Updated ${_cvLastUpdated ?? ""}'
+                          : 'Tap Replace CV to upload your PDF resume',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         color: AppColors.isDark ? const Color(0xFFF43F5E) : const Color(0xFF9F1239),
@@ -733,7 +815,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Future<void> _pickBirthDate() async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2003, 10, 15),
+      initialDate: _selectedDob ?? DateTime(2003, 10, 15),
       firstDate: DateTime(1970),
       lastDate: DateTime.now(),
     );
@@ -741,6 +823,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (picked == null || !mounted) return;
 
     setState(() {
+      _selectedDob = picked;
       _birthDateController.text = _formatDate(picked);
     });
   }
@@ -764,7 +847,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return '$day ${months[date.month - 1]} ${date.year}';
   }
 
-  void _handleSave() {
+  Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
       return;
@@ -789,9 +872,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     currentDemoProfile.gender = _gender;
     currentDemoProfile.location = _locationController.text.trim();
 
-    _showMessage(
-      'Profile saved! Home recommendations tailored for ${_majorController.text}.',
-    );
+    setState(() => _isSaving = true);
+
+    final nameParts = _fullNameController.text.trim().split(' ');
+    final firstName = nameParts.first;
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : firstName;
+
+    final Map<String, dynamic> body = {
+      'firstName': firstName,
+      'lastName': lastName,
+      'dob': (_selectedDob ?? DateTime(2003, 10, 15)).toIso8601String(),
+      'gender': _gender.toUpperCase(),
+      'currentAddress': _locationController.text.trim(),
+      'description': '${_majorController.text.trim()} student at ${_universityController.text.trim()}',
+      'phoneNumber': _phoneController.text.trim(),
+    };
+
+    try {
+      if (_backendProfile != null) {
+        _backendProfile = await StudentRepository.updateProfile(body);
+      } else {
+        _backendProfile = await StudentRepository.createProfile(body);
+      }
+      _showMessage('Profile saved to database successfully!');
+    } catch (_) {
+      _showMessage('Profile updated locally.');
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
+    }
   }
 
   /// Copies a short profile summary so it can be pasted into a chat or email.
@@ -830,9 +940,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final bytes = await file.xFile.length();
     if (!mounted) return;
     setState(() {
-      currentDemoProfile.cvFileName = pickedName;
-      currentDemoProfile.cvFileSize = _formatFileSize(bytes);
-      currentDemoProfile.cvLastUpdated = _formatShortDate(DateTime.now());
+      _cvFileName = pickedName;
+      _cvFileSize = _formatFileSize(bytes);
+      _cvLastUpdated = _formatShortDate(DateTime.now());
     });
     _showMessage('CV replaced with $pickedName.');
   }
@@ -855,6 +965,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   /// Shows the details of the CV that is attached to applications.
   void _showCvPreview() {
+    if (_cvFileName == null) {
+      _showMessage('No CV attached yet. Please tap Replace CV to select a PDF.');
+      return;
+    }
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: AppColors.surface,
@@ -928,9 +1043,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                row('File name', currentDemoProfile.cvFileName),
-                row('Size', currentDemoProfile.cvFileSize),
-                row('Last updated', currentDemoProfile.cvLastUpdated),
+                row('File name', _cvFileName ?? 'None'),
+                row('Size', _cvFileSize ?? '0 KB'),
+                row('Last updated', _cvLastUpdated ?? 'Never'),
                 row('Used for', 'Every application you submit'),
                 const SizedBox(height: 16),
                 SizedBox(

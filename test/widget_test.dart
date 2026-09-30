@@ -28,7 +28,7 @@ void main() {
 
     // 2. Verify HomeScreen UI elements load correctly
     expect(find.text('Welcome back,'), findsOneWidget);
-    expect(find.text('Chhouen Ratanaksombo'), findsOneWidget);
+    expect(find.byType(InitialsAvatar), findsWidgets);
     expect(find.text('Search internships...'), findsOneWidget);
     expect(find.text('All'), findsOneWidget);
 
@@ -123,7 +123,7 @@ void main() {
         home: EditProfileScreen(),
       ),
     );
-    expect(find.text('Chhouen Ratanaksombo'), findsWidgets);
+    expect(find.text('SAVE PROFILE'), findsOneWidget);
     expect(find.text('Fullname'), findsOneWidget);
   });
 }

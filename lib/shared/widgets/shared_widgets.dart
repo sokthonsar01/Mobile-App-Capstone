@@ -177,6 +177,7 @@ class InitialsAvatar extends StatelessWidget {
     final borderRadius = isSquare ? BorderRadius.circular(10) : BorderRadius.circular(size / 2);
 
     if (imageAsset != null && imageAsset!.isNotEmpty) {
+      final isNetwork = imageAsset!.startsWith('http://') || imageAsset!.startsWith('https://');
       return Container(
         width: size,
         height: size,
@@ -193,13 +194,21 @@ class InitialsAvatar extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: borderRadius,
-          child: Image.asset(
-            imageAsset!,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _buildInitials(),
-          ),
+          child: isNetwork
+              ? Image.network(
+                  imageAsset!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _buildInitials(),
+                )
+              : Image.asset(
+                  imageAsset!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _buildInitials(),
+                ),
         ),
       );
     }

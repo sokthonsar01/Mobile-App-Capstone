@@ -307,12 +307,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final displayName = (_userProfile?.getFullName.isNotEmpty ?? false)
         ? _userProfile!.getFullName
-        : (metadata['full_name'] ?? metadata['name'] ?? currentDemoProfile.fullName);
+        : (metadata['full_name'] ?? metadata['name'] ?? (authUser?.email?.split('@').first ?? 'Student'));
 
     final avatarPath = _userProfile?.avatarUrl ??
-        metadata['avatar_url'] ??
-        metadata['picture'] ??
-        currentDemoProfile.avatarAsset;
+        metadata['avatar_url'] as String? ??
+        metadata['picture'] as String?;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -330,45 +329,10 @@ class _HomeScreenState extends State<HomeScreen> {
           },
           child: Row(
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primaryBlue.withValues(alpha: 0.3),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(22),
-                  child: avatarPath.startsWith('http')
-                      ? Image.network(
-                          avatarPath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            Icons.person_rounded,
-                            color: AppColors.heading,
-                            size: 24,
-                          ),
-                        )
-                      : Image.asset(
-                          avatarPath,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => Icon(
-                            Icons.person_rounded,
-                            color: AppColors.heading,
-                            size: 24,
-                          ),
-                        ),
-                ),
+              InitialsAvatar(
+                name: displayName,
+                size: 44,
+                imageAsset: avatarPath,
               ),
               const SizedBox(width: 10),
               Column(
