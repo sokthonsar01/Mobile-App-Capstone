@@ -6,9 +6,10 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../data/internship_model.dart';
-import '../widgets/company_logo_widget.dart';
-import 'home_screen.dart';
+import '../data/application_tracker_store.dart';
+import '../../home/data/internship_model.dart';
+import '../../home/widgets/company_logo_widget.dart';
+import '../../home/presentation/home_screen.dart';
 
 /// Screen displaying submitted application status, review stepper, and submission attachments.
 class ApplicationDetailsScreen extends StatefulWidget {
@@ -66,6 +67,16 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
               onPressed: () {
                 Navigator.pop(ctx);
                 setState(() => _isWithdrawn = true);
+                final item = widget.internship;
+                if (item != null) {
+                  final tracked = ApplicationTrackerStore.instance.value
+                      .where((a) => a.internship.id == item.id)
+                      .firstOrNull;
+                  if (tracked != null) {
+                    ApplicationTrackerStore.instance
+                        .updateStatus(tracked.id, 'Withdrawn');
+                  }
+                }
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -106,6 +117,13 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
       (e) => e.id == 'hanuman-06',
       orElse: () => demoInternships.first,
     );
+    final tracked = ApplicationTrackerStore.instance.value
+        .where((a) => a.internship.id == item.id)
+        .firstOrNull;
+    final appliedDate = tracked?.appliedDate ??
+        ApplicationTrackerStore.formatDateTime(DateTime.now());
+    final currentStatus =
+        _isWithdrawn ? 'Withdrawn' : (tracked?.status ?? 'Applied');
 
     return ValueListenableBuilder<ThemeMode>(
       valueListenable: AppThemeController.instance.themeModeNotifier,
@@ -169,8 +187,8 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   await Clipboard.setData(
                     ClipboardData(
                       text: 'My application: ${item.role} at ${item.company}\n'
-                          'Applied on: Feb 6, 2026\n'
-                          'Status: ${_isWithdrawn ? 'Withdrawn' : 'Under Review'}',
+                          'Applied on: $appliedDate\n'
+                          'Status: $currentStatus',
                     ),
                   );
                   if (!context.mounted) return;
@@ -239,17 +257,9 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                           color: AppColors.bodyText,
                         ),
                       ),
-                      Text(
-                        '• Business Analyst Intern',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12.5,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.bodyText,
-                        ),
-                      ),
                       const SizedBox(height: 4),
                       Text(
-                        '• Applied on: Feb 6, 2026',
+                        '• Applied on: $appliedDate',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
@@ -290,9 +300,7 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
 
                 // Current Stage Info
                 Text(
-                  _isWithdrawn
-                      ? 'Current Stage: Withdrawn'
-                      : 'Current Stage: Under Review',
+                  'Current Stage: $currentStatus',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13.5,
                     fontWeight: FontWeight.w800,

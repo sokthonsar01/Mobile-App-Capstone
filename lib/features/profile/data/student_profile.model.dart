@@ -1,4 +1,4 @@
-class StudentProfile{
+class StudentProfile {
   final String id;
   final String userId;
   final String firstName;
@@ -11,6 +11,7 @@ class StudentProfile{
   final String? avatarUrl;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final List<dynamic>? rawApplications;
 
   // constructor
   const StudentProfile({
@@ -25,7 +26,8 @@ class StudentProfile{
     this.description,
     this.avatarUrl,
     this.createdAt,
-    this.updatedAt
+    this.updatedAt,
+    this.rawApplications,
   });
 
   String get getFullName => '$firstName $lastName'.trim();
@@ -46,19 +48,20 @@ class StudentProfile{
       avatarUrl: json['avatarUrl']?.toString(),
       createdAt: parseDate(json['createdAt']),
       updatedAt: parseDate(json['updatedAt']),
+      rawApplications: json['applications'] as List<dynamic>?,
     );
   }
 
-  Map<String, dynamic> toJson(){
-    return{
+  Map<String, dynamic> toJson() {
+    return {
       'firstName': firstName,
-      'lastName':lastName,
-      if(dob !=null) 'dob' : dob!.toIso8601String(),
-      'gender' : gender.toUpperCase(),
-      'currentAddress':currentAddress,
-      if(phoneNumber != null) 'phoneNumber': phoneNumber,
-      if(description!=null) 'description': description,
-      if(avatarUrl!=null) 'avatarUrl' : avatarUrl
-    }; 
-  }// end func
-} // end class 
+      'lastName': lastName,
+      if (dob != null) 'dob': dob!.toIso8601String(),
+      'gender': gender.toUpperCase(),
+      'currentAddress': currentAddress,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
+      if (description != null) 'description': description,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+    };
+  }
+}

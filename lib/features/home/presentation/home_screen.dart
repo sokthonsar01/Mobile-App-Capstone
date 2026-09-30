@@ -14,6 +14,7 @@ import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/data/user_profile_model.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
 import '../../saved/data/saved_internships_store.dart';
+import '../../applications/data/application_tracker_store.dart';
 import '../data/internship_model.dart';
 import '../data/internship_repository.dart';
 import '../widgets/filter_bottom_sheet.dart';
@@ -76,15 +77,19 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadStudentProfile() async{
 
-    try{
+    try {
       final studentProfile = await StudentRepository.getMyProfile();
-      if(mounted && studentProfile !=null){
-        setState(() =>_userProfile = studentProfile);
+      if (mounted && studentProfile != null) {
+        setState(() => _userProfile = studentProfile);
+        if (studentProfile.rawApplications != null &&
+            studentProfile.rawApplications!.isNotEmpty) {
+          ApplicationTrackerStore.instance
+              .syncFromBackend(studentProfile.rawApplications!);
+        }
       }
-    }catch(_){
+    } catch (_) {
       debugPrint("Error loading student profile");
     }
-    
   }
 
   void _onSavedChanged() {
