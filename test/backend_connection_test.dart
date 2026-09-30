@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:interna/config/app_env.dart';
 import 'package:interna/features/home/data/internship_model.dart';
 
 void main() {
@@ -50,7 +51,7 @@ void main() {
     });
 
     test('Live Backend /internships endpoint connectivity and contract', () async {
-      final url = Uri.parse('http://localhost:3000/internships');
+      final url = Uri.parse('${AppEnv.apiBaseUrl}/internships');
       final response = await http.get(
         url,
         headers: {

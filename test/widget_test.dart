@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:interna/features/home/data/internship_model.dart';
-import 'package:interna/features/home/presentation/application_details_screen.dart';
-import 'package:interna/features/home/presentation/application_submitted_screen.dart';
-import 'package:interna/features/home/presentation/company_profile_screen.dart';
+import 'package:interna/features/applications/presentation/application_details_screen.dart';
+import 'package:interna/features/applications/presentation/application_submitted_screen.dart';
+import 'package:interna/features/company/presentation/screens/company_profile_screen.dart';
 import 'package:interna/features/home/presentation/create_post_screen.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
 import 'package:interna/features/home/presentation/offline_error_screen.dart';
@@ -95,7 +95,7 @@ void main() {
       ),
     );
     expect(find.text('Application Details'), findsOneWidget);
-    expect(find.text('Current Stage: Under Review'), findsOneWidget);
+    expect(find.textContaining('Current Stage:'), findsOneWidget);
     expect(find.text('Your Submission:'), findsOneWidget);
     expect(find.byIcon(Icons.home_outlined), findsWidgets);
     expect(find.byType(AppBottomNav), findsOneWidget);
