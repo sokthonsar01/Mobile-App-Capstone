@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
+import 'package:interna/config/app_env.dart';
 import 'package:interna/features/company/data/company_model.dart';
 
 void main() {
@@ -35,7 +36,7 @@ void main() {
     });
 
     test('Live Backend /company returns HTTP 200 with database records', () async {
-      final url = Uri.parse('http://localhost:3000/company');
+      final url = Uri.parse('${AppEnv.apiBaseUrl}/company');
       final response = await http.get(
         url,
         headers: {

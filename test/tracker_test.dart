@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:interna/features/home/data/application_tracker_store.dart';
+import 'package:interna/features/applications/data/application_tracker_store.dart';
 import 'package:interna/features/home/data/internship_model.dart';
-import 'package:interna/features/home/presentation/application_tracker_screen.dart';
+import 'package:interna/features/applications/presentation/application_tracker_screen.dart';
 
 void main() {
   testWidgets('Persistent tracker data flow: apply -> appears in Tracker -> withdraw -> status stays saved -> withdrawn card removed', (WidgetTester tester) async {

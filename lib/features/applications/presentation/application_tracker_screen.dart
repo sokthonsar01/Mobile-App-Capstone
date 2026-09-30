@@ -5,9 +5,10 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/application_tracker_store.dart';
-import '../widgets/company_logo_widget.dart';
-import '../widgets/internship_details_sheet.dart';
-import 'home_screen.dart';
+import '../viewmodel/application_tracker_viewmodel.dart';
+import '../../home/widgets/company_logo_widget.dart';
+import '../../home/widgets/internship_details_sheet.dart';
+import '../../home/presentation/home_screen.dart';
 
 /// The main Application Tracker Page for students to track every internship applied for.
 class ApplicationTrackerScreen extends StatefulWidget {
@@ -19,28 +20,13 @@ class ApplicationTrackerScreen extends StatefulWidget {
 }
 
 class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
-  String _selectedFilter = 'All';
+  final ApplicationTrackerViewModel _viewModel =
+      ApplicationTrackerViewModel.instance;
 
-  final List<String> _filters = [
-    'All',
-    'Applied',
-    'Under Review',
-    'Interview',
-    'Offer',
-    'Rejected',
-    'Withdrawn',
-  ];
-
-  // Count helper functions for summary cards
-  int _countByStatus(List<TrackedApplication> apps, String status) {
-    return apps.where((app) => app.status == status).length;
-  }
-
-  List<TrackedApplication> _filterApplications(List<TrackedApplication> apps) {
-    if (_selectedFilter == 'All') {
-      return apps;
-    }
-    return apps.where((app) => app.status == _selectedFilter).toList();
+  @override
+  void initState() {
+    super.initState();
+    _viewModel.loadApplications();
   }
 
   Color _getStatusColor(String status) {
@@ -106,8 +92,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                ApplicationTrackerStore.instance
-                    .updateStatus(app.id, 'Withdrawn');
+                _viewModel.withdraw(app.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -184,8 +169,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(ctx);
-                final removed =
-                    ApplicationTrackerStore.instance.removeFromTracker(app.id);
+                final removed = _viewModel.removeFromTracker(app.id);
                 if (removed) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -598,10 +582,11 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<List<TrackedApplication>>(
-      valueListenable: ApplicationTrackerStore.instance,
-      builder: (context, allApps, child) {
-        final filteredApps = _filterApplications(allApps);
+    return ListenableBuilder(
+      listenable: _viewModel,
+      builder: (context, _) {
+        final allApps = _viewModel.applications;
+        final filteredApps = _viewModel.filteredApplications;
 
         return Scaffold(
           backgroundColor: AppColors.background,
@@ -636,9 +621,14 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             centerTitle: true,
           ),
           body: SafeArea(
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+            child: RefreshIndicator(
+              onRefresh: _viewModel.loadApplications,
+              color: AppColors.primaryBlue,
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
               children: [
                 // Subtitle Header
                 Text(
@@ -662,7 +652,76 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                 const SizedBox(height: 16),
 
                 // Application Cards List or Empty State
-                if (filteredApps.isEmpty)
+                if (allApps.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 48),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryBlue.withValues(alpha: 0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.assignment_outlined,
+                              size: 40,
+                              color: AppColors.primaryBlue,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No applications yet',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.heading,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              'Browse available internships and apply to track your status here.',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13,
+                                color: AppColors.hintText,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              navigateToAppTab(context, 2, 0);
+                            },
+                            icon: const Icon(Icons.search_rounded, size: 18),
+                            label: Text(
+                              'Explore Internships',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w700,
+                                fontSize: 13,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primaryBlue,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else if (filteredApps.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 48),
                     child: Center(
@@ -684,7 +743,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'No applications under status "$_selectedFilter".',
+                            'No applications under status "${_viewModel.selectedFilter}".',
                             textAlign: TextAlign.center,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
@@ -704,6 +763,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
               ],
             ),
           ),
+        ),
           bottomNavigationBar: AppBottomNav(
             currentIndex: 2,
             onTap: (int index) => navigateToAppTab(context, 2, index),
@@ -725,28 +785,28 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
           children: [
             _summaryCard(
               title: 'Applied',
-              count: _countByStatus(apps, 'Applied'),
+              count: _viewModel.countByStatus('Applied'),
               color: const Color(0xFF2563EB),
               icon: Icons.send_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Under Review',
-              count: _countByStatus(apps, 'Under Review'),
+              count: _viewModel.countByStatus('Under Review'),
               color: const Color(0xFF7C3AED),
               icon: Icons.access_time_filled_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Interview',
-              count: _countByStatus(apps, 'Interview'),
+              count: _viewModel.countByStatus('Interview'),
               color: const Color(0xFFEA580C),
               icon: Icons.video_camera_front_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Offer',
-              count: _countByStatus(apps, 'Offer'),
+              count: _viewModel.countByStatus('Offer'),
               color: const Color(0xFF16A34A),
               icon: Icons.workspace_premium_rounded,
               width: cardWidth,
@@ -835,15 +895,15 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       child: Row(
-        children: _filters.map((filter) {
-          final isSelected = _selectedFilter == filter;
+        children: _viewModel.filters.map((filter) {
+          final isSelected = _viewModel.selectedFilter == filter;
 
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: GestureDetector(
               key: Key('filter_$filter'),
               onTap: () {
-                setState(() => _selectedFilter = filter);
+                _viewModel.setFilter(filter);
               },
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 200),

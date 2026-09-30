@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:interna/features/home/presentation/application_tracker_screen.dart';
+import 'package:interna/features/applications/presentation/application_tracker_screen.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
 import 'package:interna/features/profile/presentation/edit_profile_screen.dart';
 import 'package:interna/features/saved/presentation/saved_internships_screen.dart';

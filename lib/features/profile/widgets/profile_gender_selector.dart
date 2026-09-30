@@ -8,11 +8,13 @@ import '../../../shared/widgets/shared_widgets.dart';
 class ProfileGenderSelector extends StatelessWidget {
   final String selectedGender;
   final ValueChanged<String> onChanged;
+  final bool enabled;
 
   const ProfileGenderSelector({
     super.key,
     required this.selectedGender,
     required this.onChanged,
+    this.enabled = true,
   });
 
   @override
@@ -44,17 +46,21 @@ class ProfileGenderSelector extends StatelessWidget {
     final bool isSelected = selectedGender == value;
 
     return GestureDetector(
-      onTap: () => onChanged(value),
+      onTap: enabled ? () => onChanged(value) : null,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: !enabled
+              ? (AppColors.isDark
+                  ? Colors.white.withValues(alpha: 0.04)
+                  : const Color(0xFFF1F5F9))
+              : AppColors.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: isSelected ? AppColors.primaryBlue : AppColors.cardBorder,
             width: isSelected ? 1.5 : 1,
           ),
-          boxShadow: AppColors.isDark ? [] : softShadow,
+          boxShadow: enabled && !AppColors.isDark ? softShadow : null,
         ),
         child: Row(
           children: [

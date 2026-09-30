@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../shared/app_colors.dart';
-import '../../../home/data/application_tracker_store.dart';
+import '../../../applications/data/application_tracker_store.dart';
+import '../../../applications/presentation/application_submitted_screen.dart';
 import '../../../home/data/internship_model.dart';
-import '../../../home/presentation/application_submitted_screen.dart';
 import '../../data/company_model.dart';
 import '../../data/company_repository.dart';
 import '../widgets/company_contact_card.dart';
@@ -138,7 +138,7 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     return ElevatedButton(
       onPressed: () {
         ApplicationTrackerStore.instance
-            .applyForInternship(widget.internship!);
+            .applyToInternship(item: widget.internship!);
         Navigator.push(
           context,
           MaterialPageRoute(

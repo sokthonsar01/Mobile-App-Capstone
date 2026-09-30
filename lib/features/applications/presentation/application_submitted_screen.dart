@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../data/internship_model.dart';
+import '../../home/data/internship_model.dart';
 import 'application_details_screen.dart';
-import 'home_screen.dart';
+import '../../home/presentation/home_screen.dart';
 
 /// Full-screen Success view displayed after submitting an internship application.
 class ApplicationSubmittedScreen extends StatelessWidget {

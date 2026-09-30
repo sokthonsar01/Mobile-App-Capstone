@@ -1,4 +1,4 @@
-class StudentProfile{
+class StudentProfile {
   final String id;
   final String userId;
   final String firstName;
@@ -6,10 +6,12 @@ class StudentProfile{
   final DateTime? dob; // date of birth
   final String gender;
   final String currentAddress;
+  final String? phoneNumber;
   final String? description;
   final String? avatarUrl;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final List<dynamic>? rawApplications;
 
   // constructor
   const StudentProfile({
@@ -20,10 +22,12 @@ class StudentProfile{
     this.dob,
     this.gender = "OTHER",
     required this.currentAddress,
+    this.phoneNumber,
     this.description,
     this.avatarUrl,
     this.createdAt,
-    this.updatedAt
+    this.updatedAt,
+    this.rawApplications,
   });
 
   String get getFullName => '$firstName $lastName'.trim();
@@ -39,22 +43,25 @@ class StudentProfile{
       dob: parseDate(json['dob']),
       gender: json['gender']?.toString() ?? 'OTHER',
       currentAddress: json['currentAddress']?.toString() ?? '',
+      phoneNumber: json['phoneNumber']?.toString(),
       description: json['description']?.toString(),
       avatarUrl: json['avatarUrl']?.toString(),
       createdAt: parseDate(json['createdAt']),
       updatedAt: parseDate(json['updatedAt']),
+      rawApplications: json['applications'] as List<dynamic>?,
     );
   }
 
-  Map<String, dynamic> toJson(){
-    return{
+  Map<String, dynamic> toJson() {
+    return {
       'firstName': firstName,
-      'lastName':lastName,
-      if(dob !=null) 'dob' : dob!.toIso8601String(),
-      'gender' : gender.toUpperCase(),
-      'currentAddress':currentAddress,
-      if(description!=null) 'description': description,
-      if(avatarUrl!=null) 'avatarUrl' : avatarUrl
-    }; 
-  }// end func
-} // end class 
+      'lastName': lastName,
+      if (dob != null) 'dob': dob!.toIso8601String(),
+      'gender': gender.toUpperCase(),
+      'currentAddress': currentAddress,
+      if (phoneNumber != null) 'phoneNumber': phoneNumber,
+      if (description != null) 'description': description,
+      if (avatarUrl != null) 'avatarUrl': avatarUrl,
+    };
+  }
+}

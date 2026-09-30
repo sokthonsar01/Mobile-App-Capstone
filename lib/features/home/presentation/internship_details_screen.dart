@@ -4,14 +4,14 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/theme/app_theme_controller.dart';
-import '../data/application_tracker_store.dart';
-import '../../messages/presentation/chat_screen.dart';
+import '../../applications/data/application_tracker_store.dart';
+import '../../chat/presentation/chat_screen.dart';
 import '../../profile/data/user_profile_model.dart';
 import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
-import 'application_submitted_screen.dart';
-import 'company_profile_screen.dart';
+import '../../applications/presentation/application_submitted_screen.dart';
+import '../../company/presentation/screens/company_profile_screen.dart';
 
 /// Modern, sleek, and high-impact Internship Details screen.
 /// Designed for high visual appeal, responsive layout with zero pixel overflows,
@@ -1081,6 +1081,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                       builder: (context) => ChatScreen(
                         contactName: '${item.company} Careers',
                         avatarAsset: item.logoAssetPath,
+                        companyId: item.companyId,
                       ),
                     ),
                   );
@@ -1113,7 +1114,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    ApplicationTrackerStore.instance.applyForInternship(item);
+                    ApplicationTrackerStore.instance.applyToInternship(item: item);
                     Navigator.push(
                       context,
                       MaterialPageRoute(

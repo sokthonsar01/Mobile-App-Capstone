@@ -19,6 +19,9 @@ class SoftTextField extends StatefulWidget {
   final TextEditingController controller;
   final bool isPassword;
   final bool readOnly;
+  final bool enabled;
+  final String? helperText;
+  final String? hintText;
   final TextInputType keyboardType;
 
   /// Optional icon on the right, for example the calendar icon.
@@ -37,6 +40,9 @@ class SoftTextField extends StatefulWidget {
     required this.controller,
     this.isPassword = false,
     this.readOnly = false,
+    this.enabled = true,
+    this.helperText,
+    this.hintText,
     this.keyboardType = TextInputType.text,
     this.suffix,
     this.onTap,
@@ -66,13 +72,22 @@ class _SoftTextFieldState extends State<SoftTextField> {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: !widget.enabled
+                ? (AppColors.isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : const Color(0xFFF1F5F9))
+                : AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.cardBorder),
-            boxShadow: softShadow,
+            border: Border.all(
+              color: !widget.enabled
+                  ? AppColors.cardBorder.withValues(alpha: 0.6)
+                  : AppColors.cardBorder,
+            ),
+            boxShadow: widget.enabled ? softShadow : null,
           ),
           child: TextFormField(
             controller: widget.controller,
+            enabled: widget.enabled,
             readOnly: widget.readOnly,
             onTap: widget.onTap,
             keyboardType: widget.keyboardType,
@@ -80,10 +95,17 @@ class _SoftTextFieldState extends State<SoftTextField> {
             obscureText: widget.isPassword && _isHidden,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
-              color: AppColors.heading,
+              color: !widget.enabled ? AppColors.hintText : AppColors.heading,
+              fontWeight: !widget.enabled ? FontWeight.w500 : FontWeight.w600,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
+              hintText: widget.hintText,
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: AppColors.hintText.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w400,
+              ),
               errorStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 color: AppColors.danger,
@@ -109,6 +131,31 @@ class _SoftTextFieldState extends State<SoftTextField> {
             ),
           ),
         ),
+        if (widget.helperText != null) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Row(
+              children: [
+                if (!widget.enabled) ...[
+                  Icon(Icons.lock_outline_rounded,
+                      size: 13, color: AppColors.hintText),
+                  const SizedBox(width: 4),
+                ],
+                Expanded(
+                  child: Text(
+                    widget.helperText!,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: AppColors.hintText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -177,6 +224,7 @@ class InitialsAvatar extends StatelessWidget {
     final borderRadius = isSquare ? BorderRadius.circular(10) : BorderRadius.circular(size / 2);
 
     if (imageAsset != null && imageAsset!.isNotEmpty) {
+      final isNetwork = imageAsset!.startsWith('http://') || imageAsset!.startsWith('https://');
       return Container(
         width: size,
         height: size,
@@ -193,13 +241,21 @@ class InitialsAvatar extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: borderRadius,
-          child: Image.asset(
-            imageAsset!,
-            width: size,
-            height: size,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => _buildInitials(),
-          ),
+          child: isNetwork
+              ? Image.network(
+                  imageAsset!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _buildInitials(),
+                )
+              : Image.asset(
+                  imageAsset!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _buildInitials(),
+                ),
         ),
       );
     }

@@ -9,12 +9,14 @@ class ProfilePhoneField extends StatelessWidget {
   final String countryCode;
   final TextEditingController controller;
   final ValueChanged<String?> onCountryCodeChanged;
+  final bool enabled;
 
   const ProfilePhoneField({
     super.key,
     required this.countryCode,
     required this.controller,
     required this.onCountryCodeChanged,
+    this.enabled = true,
   });
 
   @override
@@ -33,10 +35,18 @@ class ProfilePhoneField extends StatelessWidget {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: !enabled
+                ? (AppColors.isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : const Color(0xFFF1F5F9))
+                : AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.cardBorder),
-            boxShadow: AppColors.isDark ? [] : softShadow,
+            border: Border.all(
+              color: !enabled
+                  ? AppColors.cardBorder.withValues(alpha: 0.6)
+                  : AppColors.cardBorder,
+            ),
+            boxShadow: enabled && !AppColors.isDark ? softShadow : null,
           ),
           child: Row(
             children: [
@@ -54,16 +64,16 @@ class ProfilePhoneField extends StatelessWidget {
                             code,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 15,
-                              color: AppColors.heading,
+                              color: !enabled ? AppColors.hintText : AppColors.heading,
                             ),
                           ),
                         ),
                       )
                       .toList(),
-                  onChanged: onCountryCodeChanged,
+                  onChanged: enabled ? onCountryCodeChanged : null,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
-                    color: AppColors.heading,
+                    color: !enabled ? AppColors.hintText : AppColors.heading,
                   ),
                 ),
               ),
@@ -71,10 +81,12 @@ class ProfilePhoneField extends StatelessWidget {
               Expanded(
                 child: TextField(
                   controller: controller,
+                  enabled: enabled,
                   keyboardType: TextInputType.phone,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
-                    color: AppColors.heading,
+                    color: !enabled ? AppColors.hintText : AppColors.heading,
+                    fontWeight: !enabled ? FontWeight.w500 : FontWeight.w600,
                   ),
                   decoration: const InputDecoration(
                     border: InputBorder.none,
