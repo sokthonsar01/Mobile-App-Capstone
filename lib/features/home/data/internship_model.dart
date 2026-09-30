@@ -15,6 +15,7 @@ class InternshipOpportunity {
   final String deadline;
   final Color brandColor;
   final String logoKey;
+  final String? logoUrl;
   final String description;
   final List<String> requirements;
   final String stipend;
@@ -32,6 +33,7 @@ class InternshipOpportunity {
     required this.deadline,
     required this.brandColor,
     required this.logoKey,
+    this.logoUrl,
     required this.description,
     required this.requirements,
     this.stipend = '\$200 - \$350 / month',
@@ -69,6 +71,7 @@ class InternshipOpportunity {
       deadline: json['deadline'] != null ? json['deadline'].toString().split('T').first : 'Open',
       brandColor: _resolveBrandColor(companyName),
       logoKey: _resolveLogoKey(companyName),
+      logoUrl: companyObj?['logoUrl']?.toString() ?? json['logoUrl']?.toString(),
       description: json['description']?.toString() ?? '',
       requirements: requirementsList,
       stipend: json['stipend']?.toString() ?? 'Undisclosed',
@@ -105,6 +108,9 @@ class InternshipOpportunity {
 
   /// Path to the company logo PNG image asset.
   String get logoAssetPath {
+    if (logoUrl != null && logoUrl!.isNotEmpty) {
+      return logoUrl!;
+    }
     switch (logoKey) {
       case 'chip_mong':
         return 'assets/images/logos/Chigmong logo.png';
@@ -181,6 +187,7 @@ class InternshipOpportunity {
     String? deadline,
     Color? brandColor,
     String? logoKey,
+    String? logoUrl,
     String? description,
     List<String>? requirements,
     String? stipend,
@@ -198,6 +205,7 @@ class InternshipOpportunity {
       deadline: deadline ?? this.deadline,
       brandColor: brandColor ?? this.brandColor,
       logoKey: logoKey ?? this.logoKey,
+      logoUrl: logoUrl ?? this.logoUrl,
       description: description ?? this.description,
       requirements: requirements ?? this.requirements,
       stipend: stipend ?? this.stipend,

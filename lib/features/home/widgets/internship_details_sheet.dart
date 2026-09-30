@@ -91,6 +91,7 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
                       logoKey: item.logoKey,
                       companyName: item.company,
                       brandColor: item.brandColor,
+                      logoUrl: item.logoUrl,
                       size: 64,
                     ),
                     const SizedBox(width: 14),

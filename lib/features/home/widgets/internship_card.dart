@@ -68,6 +68,7 @@ class InternshipCard extends StatelessWidget {
                       logoKey: internship.logoKey,
                       companyName: internship.company,
                       brandColor: internship.brandColor,
+                      logoUrl: internship.logoUrl,
                       size: 44,
                     ),
                     const SizedBox(width: 12),

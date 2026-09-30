@@ -61,26 +61,11 @@ class CompanyProfileHeader extends StatelessWidget {
   }
 
   Widget _buildLogo() {
-    if (company.logoUrl != null && company.logoUrl!.isNotEmpty) {
-      return ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Image.network(
-          company.logoUrl!,
-          width: 88,
-          height: 88,
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _fallbackLogo(),
-        ),
-      );
-    }
-    return _fallbackLogo();
-  }
-
-  Widget _fallbackLogo() {
     return CompanyLogoWidget(
       logoKey: logoKey,
       companyName: company.name,
       brandColor: brandColor,
+      logoUrl: company.logoUrl,
       size: 88,
     );
   }

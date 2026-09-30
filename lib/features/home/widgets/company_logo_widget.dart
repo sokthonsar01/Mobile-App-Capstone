@@ -7,6 +7,7 @@ class CompanyLogoWidget extends StatelessWidget {
   final String companyName;
   final Color brandColor;
   final double size;
+  final String? logoUrl;
 
   const CompanyLogoWidget({
     super.key,
@@ -14,9 +15,13 @@ class CompanyLogoWidget extends StatelessWidget {
     required this.companyName,
     required this.brandColor,
     this.size = 64,
+    this.logoUrl,
   });
 
   String get _logoAssetPath {
+    if (logoUrl != null && logoUrl!.isNotEmpty && logoUrl!.startsWith('assets/')) {
+      return logoUrl!;
+    }
     switch (logoKey) {
       case 'chip_mong':
         return 'assets/images/logos/Chigmong logo.png';
@@ -39,7 +44,45 @@ class CompanyLogoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isNetworkUrl = logoUrl != null &&
+        (logoUrl!.startsWith('http://') || logoUrl!.startsWith('https://'));
     final assetPath = _logoAssetPath;
+
+    Widget content;
+    if (isNetworkUrl) {
+      content = ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          logoUrl!,
+          width: size - 8,
+          height: size - 8,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => FittedBox(
+            fit: BoxFit.scaleDown,
+            child: _buildLogoContent(),
+          ),
+        ),
+      );
+    } else if (assetPath.isNotEmpty) {
+      content = ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.asset(
+          assetPath,
+          width: size - 8,
+          height: size - 8,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) => FittedBox(
+            fit: BoxFit.scaleDown,
+            child: _buildLogoContent(),
+          ),
+        ),
+      );
+    } else {
+      content = FittedBox(
+        fit: BoxFit.scaleDown,
+        child: _buildLogoContent(),
+      );
+    }
 
     return Container(
       width: size,
@@ -53,26 +96,7 @@ class CompanyLogoWidget extends StatelessWidget {
           width: 1,
         ),
       ),
-      child: Center(
-        child: assetPath.isNotEmpty
-            ? ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Image.asset(
-                  assetPath,
-                  width: size - 8,
-                  height: size - 8,
-                  fit: BoxFit.contain,
-                  errorBuilder: (context, error, stackTrace) => FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: _buildLogoContent(),
-                  ),
-                ),
-              )
-            : FittedBox(
-                fit: BoxFit.scaleDown,
-                child: _buildLogoContent(),
-              ),
-      ),
+      child: Center(child: content),
     );
   }
 
