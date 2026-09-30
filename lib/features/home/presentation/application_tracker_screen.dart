@@ -241,9 +241,9 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
           child: SafeArea(
@@ -331,10 +331,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   Container(
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
+                      color: AppColors.background,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: const Color(0xFFE2E8F0),
+                        color: AppColors.cardBorder,
                         width: 1,
                       ),
                     ),
@@ -604,9 +604,9 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
         final filteredApps = _filterApplications(allApps);
 
         return Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
+          backgroundColor: AppColors.background,
           appBar: AppBar(
-            backgroundColor: Colors.white,
+            backgroundColor: AppColors.surface,
             elevation: 0,
             leading: IconButton(
               icon: Icon(
@@ -768,10 +768,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       width: width,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: AppColors.cardBorder,
           width: 1.2,
         ),
         boxShadow: [
@@ -852,12 +852,12 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primaryBlue : Colors.white,
+                  color: isSelected ? AppColors.primaryBlue : AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: isSelected
                         ? AppColors.primaryBlue
-                        : const Color(0xFFE2E8F0),
+                        : AppColors.cardBorder,
                     width: 1,
                   ),
                 ),
@@ -886,10 +886,10 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: const Color(0xFFE2E8F0),
+          color: AppColors.cardBorder,
           width: 1.2,
         ),
         boxShadow: [
@@ -1115,7 +1115,9 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: AppColors.isDark
+            ? AppColors.background
+            : const Color(0xFFF1F5F9),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
@@ -1157,7 +1159,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                       decoration: BoxDecoration(
                         color: isCompleted || isRejected || isWithdrawn
                             ? nodeColor
-                            : Colors.white,
+                            : AppColors.surface,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: nodeColor,

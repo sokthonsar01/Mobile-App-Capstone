@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
@@ -163,11 +164,20 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
                   color: AppColors.heading,
                   size: 24,
                 ),
-                onPressed: () {
+                tooltip: 'Copy application details',
+                onPressed: () async {
+                  await Clipboard.setData(
+                    ClipboardData(
+                      text: 'My application: ${item.role} at ${item.company}\n'
+                          'Applied on: Feb 6, 2026\n'
+                          'Status: ${_isWithdrawn ? 'Withdrawn' : 'Under Review'}',
+                    ),
+                  );
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Application link copied to clipboard',
+                        'Application details copied to clipboard',
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w600,
                         ),

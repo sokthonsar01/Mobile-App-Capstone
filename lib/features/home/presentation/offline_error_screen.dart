@@ -70,7 +70,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: ListView(

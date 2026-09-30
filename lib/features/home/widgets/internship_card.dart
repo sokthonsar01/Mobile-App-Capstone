@@ -106,7 +106,15 @@ class InternshipCard extends StatelessWidget {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 9.5,
                                     fontWeight: FontWeight.w700,
-                                    color: internship.brandColor,
+                                    // Dark brand colors (e.g. ABA navy) vanish
+                                    // on the dark card, so lighten them there.
+                                    color: AppColors.isDark
+                                        ? Color.lerp(
+                                            internship.brandColor,
+                                            Colors.white,
+                                            0.55,
+                                          )
+                                        : internship.brandColor,
                                   ),
                                 ),
                               ),

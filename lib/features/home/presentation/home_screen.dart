@@ -187,7 +187,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final items = _filteredInternships;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: RefreshIndicator(

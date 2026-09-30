@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
@@ -118,11 +119,19 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                   size: 22,
                 ),
                 tooltip: 'Share Opportunity',
-                onPressed: () {
+                onPressed: () async {
+                  await Clipboard.setData(
+                    ClipboardData(
+                      text: '${item.role} at ${item.company}\n'
+                          '${item.location} • ${item.schedule} • ${item.stipend}\n'
+                          'Apply before ${item.deadline} on Interna.',
+                    ),
+                  );
+                  if (!context.mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
-                        'Link copied for ${item.role} at ${item.company}',
+                        'Copied ${item.role} at ${item.company} to clipboard',
                         style: GoogleFonts.plusJakartaSans(fontSize: 13),
                       ),
                       behavior: SnackBarBehavior.floating,
@@ -557,7 +566,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1E40AF),
+                                color: AppColors.isDark
+                                    ? const Color(0xFF93C5FD)
+                                    : const Color(0xFF1E40AF),
                               ),
                             ),
                           ],
@@ -566,7 +577,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                           'Aligned with ${profile.fullName} (CADT)',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            color: const Color(0xFF3B82F6),
+                            color: AppColors.isDark
+                                ? const Color(0xFF60A5FA)
+                                : const Color(0xFF3B82F6),
                           ),
                         ),
                       ],
@@ -576,7 +589,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                     _isMatchExpanded
                         ? Icons.keyboard_arrow_up_rounded
                         : Icons.keyboard_arrow_down_rounded,
-                    color: const Color(0xFF1E40AF),
+                    color: AppColors.isDark
+                        ? const Color(0xFF93C5FD)
+                        : const Color(0xFF1E40AF),
                     size: 20,
                   ),
                 ],
@@ -634,7 +649,9 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF1E3A8A),
+                  color: AppColors.isDark
+                      ? const Color(0xFF93C5FD)
+                      : const Color(0xFF1E3A8A),
                 ),
               ),
               Flexible(
@@ -642,7 +659,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                   subtitle,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
-                    color: const Color(0xFF475569),
+                    color: AppColors.bodyText,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),

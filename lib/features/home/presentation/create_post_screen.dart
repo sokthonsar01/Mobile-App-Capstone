@@ -1,5 +1,8 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/theme/app_theme_controller.dart';
@@ -16,12 +19,105 @@ class CreatePostScreen extends StatefulWidget {
 class _CreatePostScreenState extends State<CreatePostScreen> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descController = TextEditingController();
+  final ImagePicker _imagePicker = ImagePicker();
+
+  /// Photos attached to the post, kept as bytes so they preview on every platform.
+  final List<Uint8List> _attachedImages = [];
+  static const int _maxImages = 4;
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage(ImageSource source) async {
+    if (_attachedImages.length >= _maxImages) {
+      _showSnack('You can attach up to $_maxImages photos.');
+      return;
+    }
+
+    final XFile? picked;
+    try {
+      picked = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1600,
+        imageQuality: 85,
+      );
+    } catch (_) {
+      _showSnack(
+        source == ImageSource.camera
+            ? 'Could not open the camera. Check camera permission.'
+            : 'Could not open your photos. Check photo permission.',
+      );
+      return;
+    }
+    if (picked == null) return; // User cancelled.
+
+    final bytes = await picked.readAsBytes();
+    if (!mounted) return;
+    setState(() => _attachedImages.add(bytes));
+  }
+
+  void _showSnack(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          message,
+          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600),
+        ),
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Widget _buildAttachedImages() {
+    return SizedBox(
+      height: 88,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: _attachedImages.length,
+        separatorBuilder: (_, _) => const SizedBox(width: 10),
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.memory(
+                  _attachedImages[index],
+                  width: 88,
+                  height: 88,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              Positioned(
+                top: 4,
+                right: 4,
+                child: GestureDetector(
+                  onTap: () => setState(() => _attachedImages.removeAt(index)),
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      color: Colors.black54,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 14,
+                      semanticLabel: 'Remove photo',
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   void _submitPost() {
@@ -213,6 +309,11 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                   ),
                 ),
+
+                if (_attachedImages.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildAttachedImages(),
+                ],
               ],
             ),
           ),
@@ -220,23 +321,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.surface,
-              border: Border(
-                top: BorderSide(color: AppColors.cardBorder),
-              ),
+              border: Border(top: BorderSide(color: AppColors.cardBorder)),
             ),
             child: SafeArea(
               child: Row(
                 children: [
                   IconButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Camera attachment opened'),
-                          behavior: SnackBarBehavior.floating,
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
+                    tooltip: 'Take a photo',
+                    onPressed: () => _pickImage(ImageSource.camera),
                     icon: const Icon(
                       Icons.camera_alt_outlined,
                       color: AppColors.primaryBlue,
@@ -244,15 +336,8 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Photo gallery opened'),
-                          behavior: SnackBarBehavior.floating,
-                          duration: Duration(seconds: 1),
-                        ),
-                      );
-                    },
+                    tooltip: 'Add a photo',
+                    onPressed: () => _pickImage(ImageSource.gallery),
                     icon: const Icon(
                       Icons.image_outlined,
                       color: AppColors.primaryBlue,

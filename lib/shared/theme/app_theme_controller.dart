@@ -27,7 +27,23 @@ class AppThemeController {
   }
 
   void setThemeMode(ThemeMode mode) {
+    if (themeModeNotifier.value == mode) return;
     themeModeNotifier.value = mode;
+    _rebuildAllWidgets();
+  }
+
+  /// Most screens read colors from the static [AppColors] getters, which do
+  /// not tell Flutter when they change. Without this, screens that are not
+  /// listening to [themeModeNotifier] keep their old text colors after a
+  /// toggle (e.g. dark text left on the new dark background).
+  /// Marking every element dirty makes all screens redraw with the new palette.
+  void _rebuildAllWidgets() {
+    void rebuild(Element element) {
+      element.markNeedsBuild();
+      element.visitChildren(rebuild);
+    }
+
+    WidgetsBinding.instance.rootElement?.visitChildren(rebuild);
   }
 
   void setLightMode() => setThemeMode(ThemeMode.light);
