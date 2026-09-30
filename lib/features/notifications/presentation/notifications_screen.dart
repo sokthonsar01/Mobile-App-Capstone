@@ -5,6 +5,7 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/demo_data.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../../home/widgets/company_logo_widget.dart';
 
 /// The Notifications screen.
 class NotificationsScreen extends StatefulWidget {
@@ -118,13 +119,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           borderRadius: BorderRadius.circular(14),
           onTap: () {
             setState(() {
-              _notifications[index] = AppNotification(
-                companyName: notification.companyName,
-                title: notification.title,
-                body: notification.body,
-                timeAgo: notification.timeAgo,
-                isUnread: false,
-              );
+              _notifications[index] = notification.copyWith(isUnread: false);
             });
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -142,10 +137,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                InitialsAvatar(
-                  name: notification.companyName,
-                  size: 40,
-                  isSquare: true,
+                CompanyLogoWidget(
+                  logoKey: notification.effectiveLogoKey,
+                  companyName: notification.companyName,
+                  brandColor: notification.effectiveBrandColor,
+                  size: 44,
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -189,13 +185,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   onSelected: (value) {
                     if (value == 'read') {
                       setState(() {
-                        _notifications[index] = AppNotification(
-                          companyName: notification.companyName,
-                          title: notification.title,
-                          body: notification.body,
-                          timeAgo: notification.timeAgo,
-                          isUnread: false,
-                        );
+                        _notifications[index] = notification.copyWith(isUnread: false);
                       });
                     } else if (value == 'delete') {
                       setState(() {
@@ -250,13 +240,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _markAllAsRead() {
     setState(() {
       _notifications = _notifications
-          .map((n) => AppNotification(
-                companyName: n.companyName,
-                title: n.title,
-                body: n.body,
-                timeAgo: n.timeAgo,
-                isUnread: false,
-              ))
+          .map((n) => n.copyWith(isUnread: false))
           .toList();
     });
     ScaffoldMessenger.of(context).showSnackBar(

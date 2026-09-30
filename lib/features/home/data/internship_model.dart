@@ -288,3 +288,38 @@ const List<InternshipOpportunity> demoInternships = [
     stipend: '\$220 - \$320 / month',
   ),
 ];
+
+/// Helper to automatically find an internship opportunity by company name or keyword.
+InternshipOpportunity? findInternshipByCompany(String companyName) {
+  if (companyName.trim().isEmpty) return null;
+  final clean = companyName.toLowerCase().trim();
+
+  // 1. Exact company match
+  for (final item in demoInternships) {
+    if (item.company.toLowerCase().trim() == clean) {
+      return item;
+    }
+  }
+
+  // 2. Substring / contains match (e.g. 'Smart Axiata' -> 'Smart', 'Hanuman Estate' -> 'Hanuman', 'ABA Bank' -> 'ABA')
+  for (final item in demoInternships) {
+    final comp = item.company.toLowerCase().trim();
+    if (clean.contains(comp) || comp.contains(clean)) {
+      return item;
+    }
+  }
+
+  // 3. Match against logoKey or aliases (including 'meoys' / 'moeys')
+  for (final item in demoInternships) {
+    final key = item.logoKey.replaceAll('_', '').toLowerCase();
+    final simplified = clean.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
+    if (simplified.contains(key) || key.contains(simplified)) {
+      return item;
+    }
+    if ((clean.contains('moeys') || clean.contains('meoys')) && item.logoKey == 'meoys') {
+      return item;
+    }
+  }
+
+  return null;
+}

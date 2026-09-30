@@ -4,6 +4,9 @@
 /// Nothing here talks to a server. It is just lists we typed by hand.
 library;
 
+import 'package:flutter/material.dart';
+import '../features/home/data/internship_model.dart';
+
 // ---------------------------------------------------------------------------
 // Models
 // ---------------------------------------------------------------------------
@@ -77,13 +80,89 @@ class AppNotification {
   /// true = show the pale blue background.
   final bool isUnread;
 
+  /// Optional internship ID linking this notification to an internship opportunity.
+  final String? internshipId;
+
+  /// Optional explicit logo key. If null, automatically resolved from the company posting.
+  final String? logoKey;
+
+  /// Optional explicit brand accent color. If null, automatically resolved from the company posting.
+  final Color? brandColor;
+
   const AppNotification({
     required this.companyName,
     required this.title,
     required this.body,
     required this.timeAgo,
     this.isUnread = false,
+    this.internshipId,
+    this.logoKey,
+    this.brandColor,
   });
+
+  /// Factory constructor to automatically create a notification from an internship posting.
+  factory AppNotification.fromInternship({
+    required InternshipOpportunity internship,
+    required String title,
+    required String body,
+    required String timeAgo,
+    bool isUnread = false,
+  }) {
+    return AppNotification(
+      companyName: internship.company,
+      title: title,
+      body: body,
+      timeAgo: timeAgo,
+      isUnread: isUnread,
+      internshipId: internship.id,
+      logoKey: internship.logoKey,
+      brandColor: internship.brandColor,
+    );
+  }
+
+  /// Resolves the matching internship opportunity automatically from the company that posted it.
+  InternshipOpportunity? get resolvedInternship {
+    if (internshipId != null && internshipId!.isNotEmpty) {
+      try {
+        return demoInternships.firstWhere((i) => i.id == internshipId);
+      } catch (_) {}
+    }
+    return findInternshipByCompany(companyName);
+  }
+
+  /// Automatically retrieves the correct company logo key from the internship poster.
+  String get effectiveLogoKey {
+    if (logoKey != null && logoKey!.isNotEmpty) return logoKey!;
+    return resolvedInternship?.logoKey ?? '';
+  }
+
+  /// Automatically retrieves the correct company brand color from the internship poster.
+  Color get effectiveBrandColor {
+    if (brandColor != null) return brandColor!;
+    return resolvedInternship?.brandColor ?? const Color(0xFF1E3A8A);
+  }
+
+  AppNotification copyWith({
+    String? companyName,
+    String? title,
+    String? body,
+    String? timeAgo,
+    bool? isUnread,
+    String? internshipId,
+    String? logoKey,
+    Color? brandColor,
+  }) {
+    return AppNotification(
+      companyName: companyName ?? this.companyName,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      timeAgo: timeAgo ?? this.timeAgo,
+      isUnread: isUnread ?? this.isUnread,
+      internshipId: internshipId ?? this.internshipId,
+      logoKey: logoKey ?? this.logoKey,
+      brandColor: brandColor ?? this.brandColor,
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -212,6 +291,9 @@ const List<AppNotification> demoNotifications = [
         'Hanuman Estate is currently being reviewed by the employer.',
     timeAgo: '25 minutes ago',
     isUnread: true,
+    internshipId: 'hanuman-06',
+    logoKey: 'hanuman',
+    brandColor: Color(0xFF1565C0),
   ),
   AppNotification(
     companyName: 'Smart Axiata',
@@ -219,6 +301,9 @@ const List<AppNotification> demoNotifications = [
     body: 'Your application for the UX/UI Intern position at Smart Axiata '
         'has been successfully submitted.',
     timeAgo: '2 hours ago',
+    internshipId: 'smart-05',
+    logoKey: 'smart',
+    brandColor: Color(0xFF2E7D32),
   ),
   AppNotification(
     companyName: 'ABA Bank',
@@ -226,6 +311,9 @@ const List<AppNotification> demoNotifications = [
     body: 'You have been shortlisted for the Finance Intern position at '
         'ABA Bank. Check your application details for the next steps.',
     timeAgo: '3 hours ago',
+    internshipId: 'aba-04',
+    logoKey: 'aba',
+    brandColor: Color(0xFF003D6B),
   ),
   AppNotification(
     companyName: 'Cellcard',
@@ -234,6 +322,9 @@ const List<AppNotification> demoNotifications = [
         'Intern position. View your application details for more '
         'information.',
     timeAgo: '5 hours ago',
+    internshipId: 'cellcard-03',
+    logoKey: 'cellcard',
+    brandColor: Color(0xFFFF9800),
   ),
   AppNotification(
     companyName: 'Chip Mong',
@@ -241,6 +332,9 @@ const List<AppNotification> demoNotifications = [
     body: 'Your application for the Marketing Intern position at Chip Mong '
         'is currently being reviewed by the employer.',
     timeAgo: '1 day ago',
+    internshipId: 'cm-01',
+    logoKey: 'chip_mong',
+    brandColor: Color(0xFFE91E63),
   ),
   AppNotification(
     companyName: 'Hanuman Estate',
@@ -248,5 +342,8 @@ const List<AppNotification> demoNotifications = [
     body: 'A decision has been made on your application. Open the '
         'application to see the result.',
     timeAgo: '2 days ago',
+    internshipId: 'hanuman-06',
+    logoKey: 'hanuman',
+    brandColor: Color(0xFF1565C0),
   ),
 ];

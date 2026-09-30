@@ -14,6 +14,7 @@ void showInternshipDetailsSheet(
   InternshipOpportunity internship, {
   VoidCallback? onToggleSave,
   bool isSaved = false,
+  bool showApplyButton = true,
 }) {
   showModalBottomSheet(
     context: context,
@@ -24,6 +25,7 @@ void showInternshipDetailsSheet(
         internship: internship,
         initialSaved: isSaved,
         onToggleSave: onToggleSave,
+        showApplyButton: showApplyButton,
       );
     },
   );
@@ -33,11 +35,13 @@ class _InternshipDetailsContent extends StatefulWidget {
   final InternshipOpportunity internship;
   final bool initialSaved;
   final VoidCallback? onToggleSave;
+  final bool showApplyButton;
 
   const _InternshipDetailsContent({
     required this.internship,
     required this.initialSaved,
     this.onToggleSave,
+    this.showApplyButton = true,
   });
 
   @override
@@ -253,38 +257,44 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
             ),
           ),
 
-          // Bottom Action Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, -3),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              top: false,
-              child: WideButton(
-                text: 'APPLY NOW',
-                onPressed: () {
-                  ApplicationTrackerStore.instance.applyForInternship(item);
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ApplicationSubmittedScreen(
-                        internship: item,
-                      ),
-                    ),
-                  );
-                },
+          // Bottom Action Bar (hidden when opened from Applications page)
+          if (widget.showApplyButton)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -3),
+                  ),
+                ],
               ),
+              child: SafeArea(
+                top: false,
+                child: WideButton(
+                  text: 'APPLY NOW',
+                  onPressed: () {
+                    ApplicationTrackerStore.instance.applyForInternship(item);
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ApplicationSubmittedScreen(
+                          internship: item,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            )
+          else
+            const SafeArea(
+              top: false,
+              child: SizedBox(height: 12),
             ),
-          ),
         ],
       ),
     );

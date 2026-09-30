@@ -19,12 +19,14 @@ class InternshipDetailsScreen extends StatefulWidget {
   final InternshipOpportunity internship;
   final bool initialSaved;
   final VoidCallback? onToggleSave;
+  final bool showApplyButton;
 
   const InternshipDetailsScreen({
     super.key,
     required this.internship,
     this.initialSaved = false,
     this.onToggleSave,
+    this.showApplyButton = true,
   });
 
   @override
@@ -1088,47 +1090,48 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                 onPressed: _toggleSave,
               ),
             ),
-            const SizedBox(width: 10),
-
             // Large vibrant Apply CTA button
-            Expanded(
-              child: ElevatedButton(
-                onPressed: () {
-                  ApplicationTrackerStore.instance.applyForInternship(item);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ApplicationSubmittedScreen(
-                        internship: item,
+            if (widget.showApplyButton) ...[
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    ApplicationTrackerStore.instance.applyForInternship(item);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ApplicationSubmittedScreen(
+                          internship: item,
+                        ),
                       ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryBlue,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryBlue,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size.fromHeight(48),
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Apply Now',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, size: 16),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Apply Now',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Icon(Icons.arrow_forward_rounded, size: 16),
-                  ],
-                ),
               ),
-            ),
+            ],
           ],
         ),
       ),

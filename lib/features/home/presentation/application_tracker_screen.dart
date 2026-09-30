@@ -1023,6 +1023,7 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
                     showInternshipDetailsSheet(
                       context,
                       app.internship,
+                      showApplyButton: false,
                     );
                   },
                   style: OutlinedButton.styleFrom(
