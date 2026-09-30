@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../home/data/internship_model.dart';
+import '../../profile/data/resume_repository.dart';
 import '../data/application_model.dart';
 import '../data/application_repository.dart';
 
@@ -100,6 +101,29 @@ class ApplicationTrackerViewModel extends ChangeNotifier {
       _applications = [newApp, ..._applications];
       notifyListeners();
       return true;
+    }
+  }
+
+  /// Optimistically records application locally, then asynchronously syncs
+  /// with live backend using the user's default/uploaded resume.
+  Future<bool> applyToInternship({
+    required InternshipOpportunity item,
+    String? coverLetter,
+    String? portfolioLink,
+  }) async {
+    applyForInternship(item);
+
+    try {
+      final resume = await ResumeRepository.getOrCreateDefaultResume();
+      await applyViaApi(
+        internshipId: item.id,
+        resumeId: resume.id,
+        coverLetter: coverLetter,
+        portfolioLink: portfolioLink,
+      );
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 

@@ -31,6 +31,17 @@ class ApplicationTrackerStore extends ValueNotifier<List<TrackedApplication>> {
   bool applyForInternship(InternshipOpportunity item) =>
       ApplicationTrackerViewModel.instance.applyForInternship(item);
 
+  Future<bool> applyToInternship({
+    required InternshipOpportunity item,
+    String? coverLetter,
+    String? portfolioLink,
+  }) =>
+      ApplicationTrackerViewModel.instance.applyToInternship(
+        item: item,
+        coverLetter: coverLetter,
+        portfolioLink: portfolioLink,
+      );
+
   void updateStatus(String appId, String newStatus) =>
       ApplicationTrackerViewModel.instance.updateStatus(appId, newStatus);
 
