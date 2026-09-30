@@ -887,6 +887,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     Color? iconColor,
   }) {
     final bool hasValue = value.trim().isNotEmpty;
+    final Color effectiveColor = iconColor ?? AppColors.primaryBlue;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -895,13 +896,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (iconColor ?? AppColors.primaryBlue).withValues(alpha: 0.1),
+              color: effectiveColor,
               borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: effectiveColor.withValues(alpha: AppColors.isDark ? 0.35 : 0.22),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              size: 18,
-              color: iconColor ?? AppColors.primaryBlue,
+              size: 16,
+              color: Colors.white,
             ),
           ),
           const SizedBox(width: 14),
@@ -966,10 +974,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.12),
+                  color: iconColor,
                   borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: iconColor.withValues(alpha: AppColors.isDark ? 0.35 : 0.22),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
                 ),
-                child: Icon(icon, color: iconColor, size: 20),
+                child: Icon(icon, color: Colors.white, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
