@@ -155,10 +155,17 @@ void showProfileSettingsSheet(BuildContext context) {
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                                color: AppColors.primaryBlue,
                                 borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryBlue.withValues(alpha: isDark ? 0.35 : 0.22),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              child: const Icon(Icons.lock_outline_rounded, color: AppColors.primaryBlue, size: 20),
+                              child: const Icon(Icons.lock_outline_rounded, color: Colors.white, size: 18),
                             ),
                             title: Text(
                               'Update Password',
@@ -194,10 +201,17 @@ void showProfileSettingsSheet(BuildContext context) {
                             leading: Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppColors.danger.withValues(alpha: 0.12),
+                                color: AppColors.danger,
                                 borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.danger.withValues(alpha: isDark ? 0.35 : 0.22),
+                                    blurRadius: 6,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                              child: const Icon(Icons.logout_rounded, color: AppColors.danger, size: 20),
+                              child: const Icon(Icons.logout_rounded, color: Colors.white, size: 18),
                             ),
                             title: Text(
                               'Log Out',

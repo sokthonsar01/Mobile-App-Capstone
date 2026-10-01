@@ -786,28 +786,36 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
             _summaryCard(
               title: 'Applied',
               count: _viewModel.countByStatus('Applied'),
-              color: const Color(0xFF2563EB),
+              color: AppColors.isDark
+                  ? const Color(0xFF3B82F6)
+                  : const Color(0xFF2563EB),
               icon: Icons.send_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Under Review',
               count: _viewModel.countByStatus('Under Review'),
-              color: const Color(0xFF7C3AED),
+              color: AppColors.isDark
+                  ? const Color(0xFFF472B6)
+                  : const Color(0xFFEC4899),
               icon: Icons.access_time_filled_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Interview',
               count: _viewModel.countByStatus('Interview'),
-              color: const Color(0xFFEA580C),
+              color: AppColors.isDark
+                  ? const Color(0xFFFBBF24)
+                  : const Color(0xFFEAB308),
               icon: Icons.video_camera_front_rounded,
               width: cardWidth,
             ),
             _summaryCard(
               title: 'Offer',
               count: _viewModel.countByStatus('Offer'),
-              color: const Color(0xFF16A34A),
+              color: AppColors.isDark
+                  ? const Color(0xFF34D399)
+                  : const Color(0xFF10B981),
               icon: Icons.workspace_premium_rounded,
               width: cardWidth,
             ),
@@ -845,15 +853,22 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: color,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: color.withValues(alpha: AppColors.isDark ? 0.35 : 0.25),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
             child: Icon(
               icon,
-              color: color,
+              color: Colors.white,
               size: 20,
             ),
           ),
