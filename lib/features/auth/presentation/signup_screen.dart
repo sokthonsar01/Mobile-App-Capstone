@@ -1,14 +1,13 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/validators.dart';
 import '../../home/presentation/home_screen.dart';
+import '../viewmodel/auth_viewmodel.dart';
 import '../widgets/auth_widgets.dart';
 
-/// The "Create an Account" screen.
+/// The "Create an Account" screen implemented with MVVM pattern using [AuthViewModel].
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
 
@@ -24,8 +23,8 @@ class _SignupScreenState extends State<SignupScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  final AuthViewModel _authViewModel = AuthViewModel.instance;
   bool _rememberMe = false;
-  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -52,82 +51,89 @@ class _SignupScreenState extends State<SignupScreen> {
             child: Form(
               key: _formKey,
               autovalidateMode: AutovalidateMode.onUserInteraction,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const AuthHeader(
-                    title: 'Create an Account',
-                    subtitle:
-                        'Your journey from the classroom to the boardroom '
-                        'starts here. Join a community of ambitious students '
-                        'and get matched with top-tier internships that '
-                        'actually fit your major and your schedule.',
-                  ),
-                  const SizedBox(height: 36),
-                  Row(
+              child: ListenableBuilder(
+                listenable: _authViewModel,
+                builder: (context, _) {
+                  return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: AuthTextField(
-                          label: 'First name',
-                          hint: 'Max',
-                          controller: _firstNameController,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          validator: validateFirstName,
-                        ),
+                      const AuthHeader(
+                        title: 'Create an Account',
+                        subtitle:
+                            'Your journey from the classroom to the boardroom '
+                            'starts here. Join a community of ambitious students '
+                            'and get matched with top-tier internships that '
+                            'actually fit your major and your schedule.',
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AuthTextField(
-                          label: 'Last name',
-                          hint: 'Verstappen',
-                          controller: _lastNameController,
-                          keyboardType: TextInputType.name,
-                          textInputAction: TextInputAction.next,
-                          validator: validateLastName,
-                        ),
+                      const SizedBox(height: 36),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: AuthTextField(
+                              label: 'First name',
+                              hint: 'Max',
+                              controller: _firstNameController,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              validator: validateFirstName,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: AuthTextField(
+                              label: 'Last name',
+                              hint: 'Verstappen',
+                              controller: _lastNameController,
+                              keyboardType: TextInputType.name,
+                              textInputAction: TextInputAction.next,
+                              validator: validateLastName,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      AuthTextField(
+                        label: 'Email',
+                        hint: 'maxverstappen1@gmail.com',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        validator: validateEmail,
+                      ),
+                      const SizedBox(height: 20),
+                      AuthTextField(
+                        label: 'Password',
+                        hint: 'Enter your password',
+                        controller: _passwordController,
+                        isPassword: true,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _handleSignUp(),
+                        validator: validateNewPassword,
+                      ),
+                      const SizedBox(height: 18),
+                      _buildRememberRow(),
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        text: 'SIGN UP',
+                        isLoading: _authViewModel.isLoading,
+                        onPressed: _handleSignUp,
+                      ),
+                      const SizedBox(height: 16),
+                      GoogleButton(
+                        onPressed: _authViewModel.isLoading
+                            ? () {}
+                            : _handleGoogleSignIn,
+                      ),
+                      const SizedBox(height: 20),
+                      BottomLinkRow(
+                        question: 'Already have an account?',
+                        linkText: 'Login',
+                        onLinkTap: () => Navigator.pop(context),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  AuthTextField(
-                    label: 'Email',
-                    hint: 'maxverstappen1@gmail.com',
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    validator: validateEmail,
-                  ),
-                  const SizedBox(height: 20),
-                  AuthTextField(
-                    label: 'Password',
-                    hint: 'Enter your password',
-                    controller: _passwordController,
-                    isPassword: true,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _handleSignUp(),
-                    validator: validateNewPassword,
-                  ),
-                  const SizedBox(height: 18),
-                  _buildRememberRow(),
-                  const SizedBox(height: 24),
-                  PrimaryButton(
-                    text: 'SIGN UP',
-                    isLoading: _isLoading,
-                    onPressed: _handleSignUp,
-                  ),
-                  const SizedBox(height: 16),
-                  GoogleButton(
-                    onPressed: _isLoading ? () {} : _handleGoogleSignIn,
-                  ),
-                  const SizedBox(height: 20),
-                  BottomLinkRow(
-                    question: 'Already have an account?',
-                    linkText: 'Login',
-                    onLinkTap: () => Navigator.pop(context),
-                  ),
-                ],
+                  );
+                },
               ),
             ),
           ),
@@ -167,7 +173,7 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Future<void> _handleSignUp() async {
-    if (_isLoading) return;
+    if (_authViewModel.isLoading) return;
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
       return;
@@ -178,62 +184,60 @@ class _SignupScreenState extends State<SignupScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    setState(() => _isLoading = true);
+    final status = await _authViewModel.signUpWithEmail(
+      firstName: firstName,
+      lastName: lastName,
+      email: email,
+      password: password,
+    );
 
-    try {
-      final response = await Supabase.instance.client.auth.signUp(
-        email: email,
-        password: password,
-        data: {
-          'first_name': firstName,
-          'last_name': lastName,
-          'name': '$firstName $lastName',
-        },
-      );
+    if (!mounted) return;
 
-      if (!mounted) return;
-
-      if (response.session != null) {
-        Navigator.pushReplacement(
+    switch (status) {
+      case AuthSignUpStatus.authenticated:
+        Navigator.pushAndRemoveUntil(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          PageRouteBuilder(
+            pageBuilder: (context, animation, secondaryAnimation) =>
+                const HomeScreen(),
+            transitionsBuilder:
+                (context, animation, secondaryAnimation, child) {
+              return FadeTransition(
+                opacity: CurvedAnimation(
+                  parent: animation,
+                  curve: Curves.easeInOut,
+                ),
+                child: child,
+              );
+            },
+            transitionDuration: const Duration(milliseconds: 300),
+          ),
+          (route) => false,
         );
-      } else {
+        break;
+      case AuthSignUpStatus.needsEmailConfirmation:
         _showMessage(
           'Account created! Please check your email to verify your account.',
         );
         Navigator.pop(context);
-      }
-    } on AuthException catch (e) {
-      if (mounted) {
-        _showMessage(e.message);
-      }
-    } catch (_) {
-      if (mounted) {
-        _showMessage('Sign up failed. Please check your network connection.');
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+        break;
+      case AuthSignUpStatus.alreadyExists:
+      case AuthSignUpStatus.failed:
+        final error =
+            _authViewModel.errorMessage ?? 'Sign up failed. Please try again.';
+        _showMessage(error);
+        break;
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
-    if (_isLoading) return;
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo:
-            kIsWeb ? Uri.base.origin : 'io.supabase.interna://login-callback',
-      );
-    } on AuthException catch (e) {
-      if (mounted) {
-        _showMessage(e.message);
-      }
-    } catch (_) {
-      if (mounted) {
-        _showMessage('Google Sign-In failed. Please check your connection.');
+    if (_authViewModel.isLoading) return;
+    final success = await _authViewModel.signInWithGoogle();
+    if (!mounted) return;
+    if (!success) {
+      final error = _authViewModel.errorMessage;
+      if (error != null) {
+        _showMessage(error);
       }
     }
   }
