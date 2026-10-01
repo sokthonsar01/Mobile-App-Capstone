@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:interna/features/applications/data/application_tracker_store.dart';
-import 'package:interna/features/home/data/internship_model.dart';
 import 'package:interna/features/applications/presentation/application_tracker_screen.dart';
+import 'helpers/test_fixtures.dart';
 
 void main() {
   testWidgets('Persistent tracker data flow: apply -> appears in Tracker -> withdraw -> status stays saved -> withdrawn card removed', (WidgetTester tester) async {
@@ -10,7 +10,7 @@ void main() {
     ApplicationTrackerStore.instance.resetToDefaults();
 
     // 2. Select an internship item (Hanuman) and apply for it
-    final newInternship = demoInternships.firstWhere((e) => e.logoKey == 'hanuman');
+    final newInternship = testInternships.firstWhere((e) => e.logoKey == 'hanuman');
     final applied = ApplicationTrackerStore.instance.applyForInternship(newInternship);
     expect(applied, isTrue);
 

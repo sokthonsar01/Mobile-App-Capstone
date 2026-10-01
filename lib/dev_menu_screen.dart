@@ -7,6 +7,7 @@ import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/reset_success_screen.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/home/data/internship_model.dart';
+import 'features/home/viewmodel/internships_viewmodel.dart';
 import 'features/applications/presentation/application_details_screen.dart';
 import 'features/applications/presentation/application_submitted_screen.dart';
 import 'features/company/presentation/screens/company_profile_screen.dart';
@@ -31,10 +32,22 @@ class DevMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sampleInternship = demoInternships.firstWhere(
-      (e) => e.id == 'hanuman-06',
-      orElse: () => demoInternships.first,
-    );
+    final sampleInternship = InternshipsViewModel.instance.internships.isNotEmpty
+        ? InternshipsViewModel.instance.internships.first
+        : const InternshipOpportunity(
+            id: 'dev-sample',
+            role: 'Software Engineer Intern',
+            company: 'Interna',
+            category: 'Tech',
+            location: 'Phnom Penh, Cambodia',
+            schedule: 'Full-Time',
+            paymentStatus: 'Paid',
+            deadline: '2026-12-31',
+            brandColor: Color(0xFF2B59FF),
+            logoKey: '',
+            description: 'Sample description for development preview',
+            requirements: ['Flutter'],
+          );
 
     return Scaffold(
       appBar: AppBar(

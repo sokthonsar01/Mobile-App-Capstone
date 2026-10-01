@@ -11,14 +11,14 @@ import '../../../shared/app_navigation.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../../notifications/presentation/notifications_screen.dart';
-import '../../profile/data/user_profile_model.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
 import '../../saved/data/saved_internships_store.dart';
 import '../../applications/data/application_tracker_store.dart';
 import '../data/internship_model.dart';
-import '../data/internship_repository.dart';
+import '../viewmodel/internships_viewmodel.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
+import '../widgets/internship_card_skeleton.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
 class HomeScreen extends StatefulWidget {
@@ -37,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String? _selectedLocation;
   bool _paymentOnly = false;
 
-  // REFACTOR: HomeScreen retains local state & filtering logic. Move to a dedicated state controller in future cleanup.
-  List<InternshipOpportunity> _internships = demoInternships;
+  final InternshipsViewModel _internshipsViewModel =
+      InternshipsViewModel.instance;
 
   final List<String> _categories = [
     'All',
@@ -51,27 +51,20 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    final initialPage = demoInternships.isNotEmpty
-        ? 1000 * demoInternships.length
+    final initialPage = _internshipsViewModel.internships.isNotEmpty
+        ? 1000 * _internshipsViewModel.internships.length
         : 0;
     _bannerPageController = PageController(initialPage: initialPage);
     SavedInternshipsStore.instance.savedIdsNotifier.addListener(_onSavedChanged);
+    SavedInternshipsStore.instance.fetchSavedInternships();
+    _internshipsViewModel.addListener(_onInternshipsChanged);
     _startAutoSlide();
-    _loadInternships();
+    _internshipsViewModel.loadInternships();
     _loadStudentProfile();
   }
 
-  Future<void> _loadInternships() async {
-    try {
-      final liveItems = await InternshipRepository.getInternships();
-      if (mounted && liveItems.isNotEmpty) {
-        setState(() {
-          _internships = liveItems;
-        });
-      }
-    } catch (_) {
-      // Fallback silently to demoInternships to ensure uninterrupted UX
-    }
+  void _onInternshipsChanged() {
+    if (mounted) setState(() {});
   }
   StudentProfile? _userProfile;
 
@@ -99,7 +92,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _startAutoSlide() {
     _bannerTimer?.cancel();
     _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
-      if (!mounted || demoInternships.isEmpty) return;
+      if (!mounted || _internshipsViewModel.internships.isEmpty) return;
       if (_bannerPageController.hasClients) {
         final currentPos = _bannerPageController.page?.round() ?? 0;
         _bannerPageController.animateToPage(
@@ -114,6 +107,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     SavedInternshipsStore.instance.savedIdsNotifier.removeListener(_onSavedChanged);
+    _internshipsViewModel.removeListener(_onInternshipsChanged);
     _bannerTimer?.cancel();
     _bannerPageController.dispose();
     _searchController.dispose();
@@ -123,8 +117,9 @@ class _HomeScreenState extends State<HomeScreen> {
   /// Filters the internship list by search query, category, location, and payment.
   List<InternshipOpportunity> get _filteredInternships {
     final query = _searchController.text.trim().toLowerCase();
+    final list = _internshipsViewModel.internships;
 
-    return _internships.where((item) {
+    return list.where((item) {
       // Category filter
       if (_selectedCategory != 'All') {
         if (_selectedCategory == 'IT' &&
@@ -198,7 +193,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: RefreshIndicator(
           onRefresh: () async {
             await Future.wait([
-              _loadInternships(),
+              _internshipsViewModel.loadInternships(force: true),
               _loadStudentProfile(),
             ]);
           },
@@ -234,8 +229,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 const SizedBox(height: 14),
 
-                // 5. Suggestions Feed List or Empty State
-                if (items.isEmpty)
+                // 5. Suggestions Feed List, Skeleton Loader, or Empty State
+                if (_internshipsViewModel.isLoading)
+                  const Column(
+                    children: [
+                      InternshipCardSkeleton(),
+                      InternshipCardSkeleton(),
+                    ],
+                  )
+                else if (items.isEmpty)
                   Padding(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -281,7 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           internship: internship,
                           isSaved: isSaved,
                           onToggleSave: () {
-                            SavedInternshipsStore.instance.toggleSave(internship.id);
+                            SavedInternshipsStore.instance
+                                .toggleSave(internship.id, item: internship);
                           },
                         );
                       }).toList(),
@@ -465,10 +468,8 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Personalized Recommendation Match Banner powered by User Profile Major & Goals
+  /// Personalized Recommendation Match Banner.
   Widget _buildPersonalizedMatchBanner() {
-    final profile = currentDemoProfile;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
       decoration: BoxDecoration(
@@ -512,7 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Recommended for ${profile.major.split('&').first.trim()}',
+                        'Recommended for You',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12.5,
                           fontWeight: FontWeight.w800,
@@ -547,7 +548,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Curated for your ${profile.university.split('(').first.trim()} profile and career preferences',
+                  'Curated for your profile and career preferences',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
                     fontWeight: FontWeight.w500,
@@ -566,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   /// Display-only wide poster banner carousel (auto-changes every 5 seconds, responsive 1280:480 aspect ratio).
   Widget _buildPromoBanner() {
-    final bannerItems = _internships.isNotEmpty ? _internships : demoInternships;
+    final bannerItems = _internshipsViewModel.internships;
     if (bannerItems.isEmpty) return const SizedBox.shrink();
 
     return AspectRatio(

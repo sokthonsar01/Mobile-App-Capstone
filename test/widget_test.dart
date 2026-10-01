@@ -1,22 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:interna/features/home/data/internship_model.dart';
 import 'package:interna/features/applications/presentation/application_details_screen.dart';
 import 'package:interna/features/applications/presentation/application_submitted_screen.dart';
 import 'package:interna/features/company/presentation/screens/company_profile_screen.dart';
 import 'package:interna/features/home/presentation/create_post_screen.dart';
 import 'package:interna/features/home/presentation/home_screen.dart';
 import 'package:interna/features/home/presentation/offline_error_screen.dart';
+import 'package:interna/features/home/viewmodel/internships_viewmodel.dart';
 import 'package:interna/features/home/widgets/company_logo_widget.dart';
 import 'package:interna/features/home/widgets/internship_card.dart';
+import 'package:interna/features/home/widgets/internship_card_skeleton.dart';
 import 'package:interna/features/profile/presentation/edit_profile_screen.dart';
 import 'package:interna/shared/widgets/shared_widgets.dart';
+import 'helpers/test_fixtures.dart';
 
 void main() {
+  testWidgets('InternshipCardSkeleton renders with expected structure and shimmer', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: InternshipCardSkeleton(),
+        ),
+      ),
+    );
+    expect(find.byType(InternshipCardSkeleton), findsOneWidget);
+  });
+
   testWidgets('HomeScreen works, posters auto-rotate every 5s, and logos/posters match internships', (WidgetTester tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 1.0;
     addTearDown(tester.view.resetPhysicalSize);
+
+    InternshipsViewModel.instance.setInternships(testInternships);
 
     // 1. Pump HomeScreen widget
     await tester.pumpWidget(
@@ -37,7 +52,7 @@ void main() {
     expect(find.byType(CompanyLogoWidget), findsWidgets);
 
     // Verify asset paths on model matching logos and posters
-    for (final item in demoInternships) {
+    for (final item in testInternships) {
       expect(item.logoAssetPath, contains('assets/images/logos/'));
       expect(item.posterAssetPath, contains('assets/images/posters/'));
       expect(item.bannerPosterAssetPath, contains('assets/images/posters/'));
@@ -76,7 +91,7 @@ void main() {
   });
 
   testWidgets('Application screens smoke test', (WidgetTester tester) async {
-    final item = demoInternships.first;
+    final item = testInternships.first;
 
     // Test Success Screen
     await tester.pumpWidget(

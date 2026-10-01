@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:interna/features/applications/data/application_tracker_store.dart';
 import 'package:interna/features/applications/presentation/application_tracker_screen.dart';
 
-import 'package:interna/features/home/data/internship_model.dart';
+import 'helpers/test_fixtures.dart';
 
 void main() {
   testWidgets(
@@ -15,7 +15,7 @@ void main() {
 
       // 1. Reset tracker store and apply for an opportunity
       ApplicationTrackerStore.instance.resetToDefaults();
-      ApplicationTrackerStore.instance.applyForInternship(demoInternships.first);
+      ApplicationTrackerStore.instance.applyForInternship(testInternships.first);
 
       // 2. Pump ApplicationTrackerScreen
       await tester.pumpWidget(

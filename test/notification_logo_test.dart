@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:interna/features/home/viewmodel/internships_viewmodel.dart';
 import 'package:interna/features/home/widgets/company_logo_widget.dart';
+import 'package:interna/features/notifications/data/notification_model.dart';
 import 'package:interna/features/notifications/presentation/notifications_screen.dart';
-import 'package:interna/shared/demo_data.dart';
+import 'package:interna/features/notifications/viewmodel/notifications_viewmodel.dart';
 import 'package:interna/shared/widgets/shared_widgets.dart';
+import 'helpers/test_fixtures.dart';
 
 void main() {
   testWidgets(
@@ -12,6 +15,46 @@ void main() {
       tester.view.physicalSize = const Size(1080, 2400);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.resetPhysicalSize);
+
+      InternshipsViewModel.instance.setInternships(testInternships);
+
+      NotificationsViewModel.instance.setNotifications(const [
+        AppNotification(
+          companyName: 'Hanuman Estate',
+          title: 'Application Under Review',
+          body: 'Your application is being reviewed.',
+          timeAgo: '25m ago',
+          logoKey: 'hanuman',
+        ),
+        AppNotification(
+          companyName: 'Smart Axiata',
+          title: 'Application Submitted',
+          body: 'Application submitted.',
+          timeAgo: '2h ago',
+          logoKey: 'smart',
+        ),
+        AppNotification(
+          companyName: 'ABA Bank',
+          title: 'Shortlisted',
+          body: 'Shortlisted.',
+          timeAgo: '3h ago',
+          logoKey: 'aba',
+        ),
+        AppNotification(
+          companyName: 'Cellcard',
+          title: 'Interview',
+          body: 'Invited to interview.',
+          timeAgo: '5h ago',
+          logoKey: 'cellcard',
+        ),
+        AppNotification(
+          companyName: 'Chip Mong',
+          title: 'Review',
+          body: 'Under review.',
+          timeAgo: '1d ago',
+          logoKey: 'chip_mong',
+        ),
+      ]);
 
       // 1. Pump the NotificationsScreen
       await tester.pumpWidget(

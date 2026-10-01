@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
-import '../../../shared/demo_data.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/chat_repository.dart';
@@ -52,12 +51,15 @@ class _MessagesScreenState extends State<MessagesScreen> {
     super.dispose();
   }
 
-  /// Only the chats whose name contains the search text.
-  List<ChatPreview> get _visibleChats {
-    if (_searchText.isEmpty) return demoChats;
-    return demoChats
-        .where((chat) => chat.name.toLowerCase().contains(_searchText))
-        .toList();
+  /// Filtered remote conversations based on search text.
+  List<Map<String, dynamic>> get _visibleConversations {
+    if (_searchText.isEmpty) return _remoteConversations;
+    return _remoteConversations.where((conv) {
+      final company = conv['company'] as Map<String, dynamic>?;
+      final name = ((company?['name'] as String?) ?? '').toLowerCase();
+      final lastMsg = ((conv['lastMessage'] as String?) ?? '').toLowerCase();
+      return name.contains(_searchText) || lastMsg.contains(_searchText);
+    }).toList();
   }
 
   @override
@@ -76,9 +78,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 Expanded(
                   child: _isLoading
                       ? const Center(child: CircularProgressIndicator())
-                      : _remoteConversations.isNotEmpty
+                      : _visibleConversations.isNotEmpty
                           ? _buildRemoteList()
-                          : _buildDemoList(),
+                          : _buildEmptyState(),
                 ),
               ],
             ),
@@ -218,149 +220,109 @@ class _MessagesScreenState extends State<MessagesScreen> {
     );
   }
 
-  Widget _buildRemoteList() {
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      itemCount: _remoteConversations.length,
-      itemBuilder: (BuildContext context, int index) {
-        final conv = _remoteConversations[index];
-        final company = conv['company'] as Map<String, dynamic>?;
-        final name = (company?['name'] as String?) ?? 'Recruiter';
-        final convId = conv['id'] as String;
-
-        return ListTile(
-          leading: InitialsAvatar(name: name, size: 46),
-          title: Text(
-            name,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.heading,
-            ),
-          ),
-          subtitle: Text(
-            'Tap to open chat',
-            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: AppColors.hintText),
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => ChatScreen(
-                  contactName: name,
-                  conversationId: convId,
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildDemoList() {
-    if (_visibleChats.isEmpty) {
-      return Center(
-        child: Text(
-          'No message found.',
-          style: GoogleFonts.plusJakartaSans(
-            color: AppColors.hintText,
-          ),
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      itemCount: _visibleChats.length,
-      itemBuilder: (BuildContext context, int index) {
-        return _buildChatRow(_visibleChats[index]);
-      },
-    );
-  }
-
-  Widget _buildChatRow(ChatPreview chat) {
-    return InkWell(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ChatScreen(
-              contactName: chat.name,
-              avatarAsset: chat.avatarAsset,
-            ),
-          ),
-        );
-      },
+  Widget _buildEmptyState() {
+    final isSearching = _searchText.isNotEmpty;
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            InitialsAvatar(
-              name: chat.name,
-              size: 46,
-              imageAsset: chat.avatarAsset,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    chat.name,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.heading,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    chat.lastMessage,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      color: AppColors.bodyText,
-                    ),
-                  ),
-                ],
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: AppColors.primaryBlue.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.chat_bubble_outline_rounded,
+                size: 36,
+                color: AppColors.primaryBlue,
               ),
             ),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  chat.timeAgo,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: AppColors.hintText,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                if (chat.unreadCount > 0)
-                  Container(
-                    width: 18,
-                    height: 18,
-                    alignment: Alignment.center,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryBlue,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Text(
-                      '${chat.unreadCount}',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-              ],
+            const SizedBox(height: 16),
+            Text(
+              isSearching ? 'No conversations found' : 'No messages yet',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 17,
+                fontWeight: FontWeight.w700,
+                color: AppColors.heading,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isSearching
+                  ? 'Try searching with a different recruiter or company name.'
+                  : 'Connect with recruiters directly to discuss internship opportunities.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: AppColors.hintText,
+                height: 1.4,
+              ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildRemoteList() {
+    return RefreshIndicator(
+      onRefresh: _loadConversations,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        itemCount: _visibleConversations.length,
+        itemBuilder: (BuildContext context, int index) {
+          final conv = _visibleConversations[index];
+          final company = conv['company'] as Map<String, dynamic>?;
+          final name = (company?['name'] as String?) ?? 'Recruiter';
+          final convId = conv['id']?.toString() ?? '';
+          final lastMessage = (conv['lastMessage'] as String?) ?? 'Tap to open chat';
+          final timeAgo = conv['timeAgo']?.toString() ?? '';
+
+          return ListTile(
+            leading: InitialsAvatar(name: name, size: 46),
+            title: Text(
+              name,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: AppColors.heading,
+              ),
+            ),
+            subtitle: Text(
+              lastMessage,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                color: AppColors.hintText,
+              ),
+            ),
+            trailing: timeAgo.isNotEmpty
+                ? Text(
+                    timeAgo,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: AppColors.hintText,
+                    ),
+                  )
+                : null,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatScreen(
+                    contactName: name,
+                    conversationId: convId,
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -408,48 +370,63 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                ...demoChats.take(4).map((chat) {
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                    leading: InitialsAvatar(
-                      name: chat.name,
-                      size: 40,
-                      imageAsset: chat.avatarAsset,
-                    ),
-                    title: Text(
-                      chat.name,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 14,
-                        color: AppColors.heading,
-                      ),
-                    ),
-                    subtitle: Text(
-                      'Verified Recruiter',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        color: AppColors.hintText,
-                      ),
-                    ),
-                    trailing: const Icon(
-                      Icons.chat_outlined,
-                      color: AppColors.primaryBlue,
-                      size: 20,
-                    ),
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ChatScreen(
-                            contactName: chat.name,
-                            avatarAsset: chat.avatarAsset,
-                          ),
+                if (_remoteConversations.isNotEmpty)
+                  ..._remoteConversations.map((conv) {
+                    final company = conv['company'] as Map<String, dynamic>?;
+                    final name = (company?['name'] as String?) ?? 'Recruiter';
+                    final convId = conv['id']?.toString() ?? '';
+                    return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                      leading: InitialsAvatar(name: name, size: 40),
+                      title: Text(
+                        name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: AppColors.heading,
                         ),
-                      );
-                    },
-                  );
-                }),
+                      ),
+                      subtitle: Text(
+                        'Verified Recruiter',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          color: AppColors.hintText,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.chat_outlined,
+                        color: AppColors.primaryBlue,
+                        size: 20,
+                      ),
+                      onTap: () {
+                        Navigator.pop(ctx);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ChatScreen(
+                              contactName: name,
+                              conversationId: convId,
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  })
+                else
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 24),
+                    child: Center(
+                      child: Text(
+                        'No recruiter contacts yet.\nApply or save internships to connect with recruiters.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          color: AppColors.hintText,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

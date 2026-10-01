@@ -2,6 +2,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as sb;
 
 import '../../../shared/app_colors.dart';
@@ -58,6 +59,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   bool _isSaving = false;
   bool _isEditing = false;
+  bool _isUploadingAvatar = false;
+  String? _uploadedAvatarUrl;
+  final ImagePicker _imagePicker = ImagePicker();
   StudentProfile? _backendProfile;
   DateTime? _selectedDob;
 
@@ -259,6 +263,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _selectedDob = profile.dob;
             _birthDateController.text = _formatDate(profile.dob!);
           }
+          if (profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty) {
+            _uploadedAvatarUrl = profile.avatarUrl;
+          }
           if (profile.gender.isNotEmpty) {
             _gender = profile.gender == 'MALE'
                 ? 'Male'
@@ -300,7 +307,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     final authUser = _currentAuthUser;
     final metadata = authUser?.userMetadata ?? {};
-    final avatarUrl = _backendProfile?.avatarUrl ??
+    final avatarUrl = _uploadedAvatarUrl ??
+        _backendProfile?.avatarUrl ??
         metadata['avatar_url'] as String? ??
         metadata['picture'] as String?;
     final displayName = _fullNameController.text.trim().isNotEmpty
@@ -334,6 +342,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   onChangeImage: _handleAvatarChange,
                   onEdit: _showEditConfirmationDialog,
                   isEditing: _isEditing,
+                  isUploadingImage: _isUploadingAvatar,
                 ),
 
                 if (_isEditing) _buildEditingModeBanner(),
@@ -1280,8 +1289,259 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _handleAvatarChange() {
-    _showMessage('Photo updated with Chhouen Ratanaksombo avatar.');
+  Future<void> _handleAvatarChange() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: AppColors.cardBorder,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Change Profile Photo',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.heading,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Upload a clear professional photo for internship applications.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    color: AppColors.bodyText,
+                  ),
+                ),
+                const SizedBox(height: 18),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.photo_library_outlined,
+                      color: AppColors.primaryBlue,
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Choose from Gallery',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.heading,
+                    ),
+                  ),
+                  onTap: () => Navigator.pop(ctx, 'gallery'),
+                ),
+                const SizedBox(height: 6),
+                ListTile(
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.camera_alt_outlined,
+                      color: Color(0xFF10B981),
+                      size: 22,
+                    ),
+                  ),
+                  title: Text(
+                    'Take a Photo',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.heading,
+                    ),
+                  ),
+                  onTap: () => Navigator.pop(ctx, 'camera'),
+                ),
+                if ((_uploadedAvatarUrl != null && _uploadedAvatarUrl!.isNotEmpty) ||
+                    (_backendProfile?.avatarUrl != null && _backendProfile!.avatarUrl!.isNotEmpty)) ...[
+                  const SizedBox(height: 6),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        color: Colors.redAccent,
+                        size: 22,
+                      ),
+                    ),
+                    title: Text(
+                      'Remove Photo',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                    onTap: () => Navigator.pop(ctx, 'remove'),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (action == null || !mounted) return;
+
+    if (action == 'remove') {
+      await _removeAvatar();
+      return;
+    }
+
+    final source = action == 'camera' ? ImageSource.camera : ImageSource.gallery;
+    await _pickAndUploadAvatar(source);
+  }
+
+  Future<void> _removeAvatar() async {
+    setState(() => _isUploadingAvatar = true);
+    try {
+      if (_backendProfile != null) {
+        _backendProfile = await StudentRepository.updateProfile({'avatarUrl': null});
+      }
+      try {
+        await sb.Supabase.instance.client.auth.updateUser(
+          sb.UserAttributes(data: {'avatar_url': null, 'picture': null}),
+        );
+      } catch (_) {}
+
+      setState(() {
+        _uploadedAvatarUrl = '';
+      });
+      currentDemoProfile.avatarAsset = '';
+      _showMessage('Profile photo removed.');
+    } catch (_) {
+      _showMessage('Could not remove photo. Please try again.');
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingAvatar = false);
+      }
+    }
+  }
+
+  Future<void> _pickAndUploadAvatar(ImageSource source) async {
+    final XFile? picked;
+    try {
+      picked = await _imagePicker.pickImage(
+        source: source,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+    } catch (_) {
+      _showMessage(
+        source == ImageSource.camera
+            ? 'Camera permission denied or camera unavailable.'
+            : 'Photo library permission denied.',
+      );
+      return;
+    }
+
+    if (picked == null) return;
+
+    setState(() => _isUploadingAvatar = true);
+    _showMessage('Uploading profile photo...');
+
+    try {
+      final bytes = await picked.readAsBytes();
+      final ext = (picked.name.split('.').lastOrNull ?? 'jpg').toLowerCase();
+      final contentType = ext == 'png'
+          ? 'image/png'
+          : (ext == 'webp' ? 'image/webp' : 'image/jpeg');
+
+      final user = sb.Supabase.instance.client.auth.currentUser;
+      final userId = user?.id ?? 'user';
+      final fileName = 'avatar_${userId}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+      // 1. Upload to Supabase Storage 'avatars' bucket
+      final storage = sb.Supabase.instance.client.storage.from('avatars');
+      await storage.uploadBinary(
+        fileName,
+        bytes,
+        fileOptions: sb.FileOptions(
+          contentType: contentType,
+          upsert: true,
+        ),
+      );
+
+      final publicUrl = storage.getPublicUrl(fileName);
+
+      // 2. Persist to Backend NestJS API
+      try {
+        if (_backendProfile != null) {
+          _backendProfile = await StudentRepository.updateProfile({
+            'avatarUrl': publicUrl,
+          });
+        } else {
+          final nameParts = _fullNameController.text.trim().split(' ');
+          final firstName = nameParts.first.isNotEmpty ? nameParts.first : 'Student';
+          final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+          _backendProfile = await StudentRepository.createProfile({
+            'firstName': firstName,
+            'lastName': lastName,
+            'gender': _gender.toUpperCase(),
+            'currentAddress': _locationController.text.trim().isNotEmpty
+                ? _locationController.text.trim()
+                : 'Cambodia',
+            'avatarUrl': publicUrl,
+          });
+        }
+      } catch (_) {
+        // Backend failure fallback
+      }
+
+      // 3. Update Supabase User Metadata so session stays synchronized
+      try {
+        await sb.Supabase.instance.client.auth.updateUser(
+          sb.UserAttributes(data: {'avatar_url': publicUrl}),
+        );
+      } catch (_) {}
+
+      // 4. Update local state & demo profile
+      currentDemoProfile.avatarAsset = publicUrl;
+      setState(() {
+        _uploadedAvatarUrl = publicUrl;
+      });
+
+      _showMessage('Profile photo uploaded successfully.');
+    } catch (e) {
+      _showMessage('Failed to upload photo: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingAvatar = false);
+      }
+    }
   }
 
   Future<void> _pickBirthDate() async {
@@ -1359,6 +1619,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       'description': '${_majorController.text.trim()} student at ${_universityController.text.trim()}',
       'phoneNumber': _phoneController.text.trim(),
     };
+    if (_uploadedAvatarUrl != null && _uploadedAvatarUrl!.isNotEmpty) {
+      body['avatarUrl'] = _uploadedAvatarUrl;
+    } else if (_backendProfile?.avatarUrl != null && _backendProfile!.avatarUrl!.isNotEmpty) {
+      body['avatarUrl'] = _backendProfile!.avatarUrl;
+    }
 
     try {
       if (_backendProfile != null) {

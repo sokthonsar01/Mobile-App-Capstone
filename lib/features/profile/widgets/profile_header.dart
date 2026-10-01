@@ -17,6 +17,7 @@ class ProfileHeader extends StatelessWidget {
   final VoidCallback onChangeImage;
   final VoidCallback? onEdit;
   final bool isEditing;
+  final bool isUploadingImage;
 
   const ProfileHeader({
     super.key,
@@ -30,6 +31,7 @@ class ProfileHeader extends StatelessWidget {
     required this.onChangeImage,
     this.onEdit,
     this.isEditing = false,
+    this.isUploadingImage = false,
   });
 
   @override
@@ -109,17 +111,41 @@ class ProfileHeader extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: InitialsAvatar(
-                          name: name,
-                          size: 68,
-                          imageAsset: imageAsset,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            InitialsAvatar(
+                              name: name,
+                              size: 68,
+                              imageAsset: imageAsset,
+                            ),
+                            if (isUploadingImage)
+                              Container(
+                                width: 68,
+                                height: 68,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.55),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Center(
+                                  child: SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       Positioned(
                         right: 0,
                         bottom: 0,
                         child: GestureDetector(
-                          onTap: onChangeImage,
+                          onTap: isUploadingImage ? null : onChangeImage,
                           child: Container(
                             width: 24,
                             height: 24,
@@ -128,11 +154,19 @@ class ProfileHeader extends StatelessWidget {
                               shape: BoxShape.circle,
                               border: Border.all(color: Colors.white, width: 2),
                             ),
-                            child: const Icon(
-                              Icons.camera_alt_rounded,
-                              size: 13,
-                              color: Colors.white,
-                            ),
+                            child: isUploadingImage
+                                ? const Padding(
+                                    padding: EdgeInsets.all(4),
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 1.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.camera_alt_rounded,
+                                    size: 13,
+                                    color: Colors.white,
+                                  ),
                           ),
                         ),
                       ),
