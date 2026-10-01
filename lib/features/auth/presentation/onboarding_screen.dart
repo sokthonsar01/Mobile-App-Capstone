@@ -12,7 +12,7 @@ class OnboardingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -27,7 +27,7 @@ class OnboardingScreen extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 18,
                     fontWeight: FontWeight.w800,
-                    color: Colors.black,
+                    color: AppColors.heading,
                   ),
                 ),
               ),
@@ -53,7 +53,7 @@ class OnboardingScreen extends StatelessWidget {
                     fontSize: 34,
                     fontWeight: FontWeight.w700,
                     height: 1.25,
-                    color: Colors.black,
+                    color: AppColors.heading,
                   ),
                   children: const [
                     TextSpan(text: 'Where\nTalent Meets\n'),

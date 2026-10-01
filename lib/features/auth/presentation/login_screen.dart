@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,11 +7,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/validators.dart';
 import '../../home/presentation/home_screen.dart';
+import '../viewmodel/auth_viewmodel.dart';
 import '../widgets/auth_widgets.dart';
 import 'forgot_password_screen.dart';
 import 'signup_screen.dart';
 
-/// Login screen.
+/// Login screen implemented with MVVM pattern using [AuthViewModel].
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -25,21 +25,46 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  final AuthViewModel _authViewModel = AuthViewModel.instance;
   bool _rememberMe = false;
+  bool _isNavigating = false;
   late final StreamSubscription<AuthState> _authSubscription;
+
   @override
   void initState() {
     super.initState();
     _authSubscription =
         Supabase.instance.client.auth.onAuthStateChange.listen((data) {
       if (data.session != null && mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
+        _navigateToHome();
       }
     });
   }
+
+  void _navigateToHome() {
+    if (_isNavigating || !mounted) return;
+    _isNavigating = true;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const HomeScreen(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeInOut,
+            ),
+            child: child,
+          );
+        },
+        transitionDuration: const Duration(milliseconds: 300),
+      ),
+      (route) => false,
+    );
+  }
+
   @override
   void dispose() {
     _authSubscription.cancel();
@@ -50,107 +75,126 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(
-            horizontal: kScreenPadding,
-            vertical: 24,
-          ),
-          child: Form(
-            key: _formKey,
-            autovalidateMode: AutovalidateMode.onUserInteraction,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                Center(
-                  child: Column(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: kScreenPadding,
+              vertical: 24,
+            ),
+            child: Form(
+              key: _formKey,
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: ListenableBuilder(
+                listenable: _authViewModel,
+                builder: (context, _) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Brand App Icon
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryBlue,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color:
-                                  AppColors.primaryBlue.withValues(alpha: 0.28),
-                              blurRadius: 16,
-                              offset: const Offset(0, 6),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: Column(
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBlue,
+                                borderRadius: BorderRadius.circular(18),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primaryBlue.withValues(
+                                      alpha: 0.28,
+                                    ),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: const Center(
+                                child: Icon(
+                                  Icons.school_rounded,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 18),
+                            _buildTitle(),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Discover and apply for top internship opportunities across Cambodia',
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                color: AppColors.bodyText,
+                                height: 1.45,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
-                        child: const Center(
-                          child: Icon(
-                            Icons.school_rounded,
-                            color: Colors.white,
-                            size: 32,
-                          ),
-                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      AuthTextField(
+                        label: 'Email',
+                        hint: 'maxverstappen1@gmail.com',
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        textInputAction: TextInputAction.next,
+                        validator: validateEmail,
+                      ),
+                      const SizedBox(height: 22),
+                      AuthTextField(
+                        label: 'Password',
+                        hint: 'Enter your password',
+                        controller: _passwordController,
+                        isPassword: true,
+                        textInputAction: TextInputAction.done,
+                        onFieldSubmitted: (_) => _handleLogin(),
+                        validator: validatePassword,
                       ),
                       const SizedBox(height: 18),
-                      // Title
-                      _buildTitle(),
-                      const SizedBox(height: 8),
-                      // Subtitle
-                      Text(
-                        'Discover and apply for top internship opportunities across Cambodia',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13.5,
-                          color: AppColors.bodyText,
-                          height: 1.45,
-                          fontWeight: FontWeight.w500,
-                        ),
+                      _buildRememberRow(),
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        text: 'LOGIN',
+                        isLoading: _authViewModel.isLoading,
+                        onPressed: _handleLogin,
+                      ),
+                      const SizedBox(height: 16),
+                      GoogleButton(
+                        onPressed: _authViewModel.isLoading
+                            ? () {}
+                            : _handleGoogleSignIn,
+                      ),
+                      const SizedBox(height: 16),
+                      SecondaryButton(
+                        text: 'CONTINUE AS GUEST',
+                        onPressed:
+                            _authViewModel.isLoading ? () {} : _handleGuest,
+                      ),
+                      const SizedBox(height: 20),
+                      BottomLinkRow(
+                        question: "You don't have an account yet?",
+                        linkText: 'Sign up',
+                        onLinkTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignupScreen(),
+                            ),
+                          );
+                        },
                       ),
                     ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-                AuthTextField(
-                  label: 'Email',
-                  hint: 'maxverstappen1@gmail.com',
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: validateEmail,
-                ),
-                const SizedBox(height: 22),
-                AuthTextField(
-                  label: 'Password',
-                  hint: 'Enter your password',
-                  controller: _passwordController,
-                  isPassword: true,
-                  validator: validatePassword,
-                ),
-                const SizedBox(height: 18),
-                _buildRememberRow(),
-                const SizedBox(height: 24),
-                PrimaryButton(text: 'LOGIN', onPressed: _handleLogin),
-                const SizedBox(height: 16),
-                GoogleButton(onPressed: _handleGoogleSignIn),
-                const SizedBox(height: 16),
-                SecondaryButton(
-                  text: 'CONTINUE AS GUEST',
-                  onPressed: _handleGuest,
-                ),
-                const SizedBox(height: 20),
-                BottomLinkRow(
-                  question: "You don't have an account yet?",
-                  linkText: 'Sign up',
-                  onLinkTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignupScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ],
+                  );
+                },
+              ),
             ),
           ),
         ),
@@ -233,6 +277,7 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (_authViewModel.isLoading) return;
     if (!_formKey.currentState!.validate()) {
       _showMessage('Please fix the fields marked in red.');
       return;
@@ -241,56 +286,44 @@ class _LoginScreenState extends State<LoginScreen> {
     final email = _emailController.text.trim();
     final password = _passwordController.text;
 
-    try {
-      await Supabase.instance.client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
+    final success = await _authViewModel.signInWithEmail(
+      email: email,
+      password: password,
+    );
 
-      if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        _showMessage('Login failed: $e');
+    if (!mounted) return;
+
+    if (success) {
+      _navigateToHome();
+    } else {
+      final error = _authViewModel.errorMessage;
+      if (error != null) {
+        _showMessage(error);
       }
     }
   }
 
   Future<void> _handleGoogleSignIn() async {
-    try {
-      await Supabase.instance.client.auth.signInWithOAuth(
-        OAuthProvider.google,
-        redirectTo:
-            kIsWeb ? Uri.base.origin : 'io.supabase.interna://login-callback',
-      );
-    } catch (e) {
-      if (mounted) {
-        _showMessage('Google Sign-In failed: $e');
+    if (_authViewModel.isLoading) return;
+    final success = await _authViewModel.signInWithGoogle();
+    if (!mounted) return;
+    if (!success) {
+      final error = _authViewModel.errorMessage;
+      if (error != null) {
+        _showMessage(error);
       }
     }
   }
 
   /// Opens the app without logging in.
-  ///
-  /// Nothing is saved and nothing is sent to any server. A guest is only a
-  /// person with no Supabase session, so there is no guest account to create.
-  /// The screens themselves decide what a guest may do, using requireLogin()
-  /// from lib/features/auth/auth_guard.dart.
   void _handleGuest() {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const HomeScreen()),
-    );
+    _navigateToHome();
   }
 
   void _showMessage(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
   }
 }

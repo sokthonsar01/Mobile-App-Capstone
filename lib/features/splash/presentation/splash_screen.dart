@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../auth/presentation/login_screen.dart';
+import '../../home/presentation/home_screen.dart';
 import '../../../shared/widgets/blinking_face.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -71,12 +73,21 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateToNext() {
-    _timer = Timer(const Duration(milliseconds: 2600), () {
+    _timer = Timer(const Duration(milliseconds: 1600), () {
       if (mounted) {
+        bool hasSession = false;
+        try {
+          hasSession = Supabase.instance.client.auth.currentSession != null;
+        } catch (_) {
+          hasSession = false;
+        }
+        final Widget destination =
+            hasSession ? const HomeScreen() : const LoginScreen();
+
         Navigator.of(context).pushReplacement(
           PageRouteBuilder(
             pageBuilder: (context, animation, secondaryAnimation) =>
-                const LoginScreen(),
+                destination,
             transitionsBuilder: (context, animation, secondaryAnimation, child) {
               return FadeTransition(
                 opacity: CurvedAnimation(
@@ -86,7 +97,7 @@ class _SplashScreenState extends State<SplashScreen>
                 child: child,
               );
             },
-            transitionDuration: const Duration(milliseconds: 500),
+            transitionDuration: const Duration(milliseconds: 400),
           ),
         );
       }
