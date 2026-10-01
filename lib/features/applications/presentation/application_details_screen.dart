@@ -8,6 +8,7 @@ import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/application_tracker_store.dart';
 import '../../home/data/internship_model.dart';
+import '../../home/viewmodel/internships_viewmodel.dart';
 import '../../home/widgets/company_logo_widget.dart';
 import '../../home/presentation/home_screen.dart';
 
@@ -113,10 +114,17 @@ class _ApplicationDetailsScreenState extends State<ApplicationDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final item = widget.internship ?? demoInternships.firstWhere(
-      (e) => e.id == 'hanuman-06',
-      orElse: () => demoInternships.first,
-    );
+    final item = widget.internship ??
+        (InternshipsViewModel.instance.internships.isNotEmpty
+            ? InternshipsViewModel.instance.internships.first
+            : null);
+    if (item == null) {
+      return Scaffold(
+        backgroundColor: AppColors.background,
+        appBar: AppBar(backgroundColor: AppColors.surface, elevation: 0),
+        body: const Center(child: Text('Application not found')),
+      );
+    }
     final tracked = ApplicationTrackerStore.instance.value
         .where((a) => a.internship.id == item.id)
         .firstOrNull;

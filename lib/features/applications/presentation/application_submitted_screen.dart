@@ -16,10 +16,7 @@ class ApplicationSubmittedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final item = internship ?? demoInternships.firstWhere(
-      (e) => e.id == 'hanuman-06',
-      orElse: () => demoInternships.first,
-    );
+    final item = internship;
 
     return Scaffold(
       backgroundColor: const Color(0xFF2B59FF),
