@@ -101,3 +101,34 @@ String? validateFullName(String? value) {
 
   return null;
 }
+
+/// First name: not empty and at least 2 characters.
+String? validateFirstName(String? value) {
+  final String text = value?.trim() ?? '';
+
+  if (text.isEmpty) {
+    return 'Please enter your first name.';
+  }
+
+  if (text.length < 2) {
+    return 'First name must be at least 2 characters.';
+  }
+
+  return null;
+}
+
+/// Last name: not empty and at least 2 characters.
+String? validateLastName(String? value) {
+  final String text = value?.trim() ?? '';
+
+  if (text.isEmpty) {
+    return 'Please enter your last name.';
+  }
+
+  if (text.length < 2) {
+    return 'Last name must be at least 2 characters.';
+  }
+
+  return null;
+}
+

@@ -34,6 +34,12 @@ class AuthTextField extends StatefulWidget {
   /// Changes the phone keyboard (for example, show "@" for email).
   final TextInputType keyboardType;
 
+  /// The keyboard action button (e.g. next, done).
+  final TextInputAction? textInputAction;
+
+  /// Called when the user presses the keyboard action button.
+  final ValueChanged<String>? onFieldSubmitted;
+
   /// The check that runs when the user presses the button.
   /// It returns null when the value is OK, or the red error message.
   /// Pass one of the functions from `lib/shared/validators.dart`.
@@ -46,6 +52,8 @@ class AuthTextField extends StatefulWidget {
     required this.controller,
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
+    this.textInputAction,
+    this.onFieldSubmitted,
     this.validator,
   });
 
@@ -78,6 +86,8 @@ class _AuthTextFieldState extends State<AuthTextField> {
         TextFormField(
           controller: widget.controller,
           keyboardType: widget.keyboardType,
+          textInputAction: widget.textInputAction,
+          onFieldSubmitted: widget.onFieldSubmitted,
           validator: widget.validator,
           // Hide the letters only when this is a password AND the eye is off.
           obscureText: widget.isPassword && _isHidden,
@@ -92,7 +102,7 @@ class _AuthTextFieldState extends State<AuthTextField> {
               color: AppColors.hintText,
             ),
             filled: true,
-            fillColor: Colors.white,
+            fillColor: AppColors.surface,
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 18,
               vertical: 14,
@@ -146,11 +156,13 @@ class _AuthTextFieldState extends State<AuthTextField> {
 class PrimaryButton extends StatelessWidget {
   final String text;
   final VoidCallback onPressed;
+  final bool isLoading;
 
   const PrimaryButton({
     super.key,
     required this.text,
     required this.onPressed,
+    this.isLoading = false,
   });
 
   @override
@@ -159,23 +171,34 @@ class PrimaryButton extends StatelessWidget {
       width: double.infinity,
       height: kButtonHeight,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryBlue,
           foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primaryBlue.withValues(alpha: 0.6),
+          disabledForegroundColor: Colors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Text(
-          text,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                text,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+              ),
       ),
     );
   }
@@ -198,7 +221,7 @@ class GoogleButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.surface,
           foregroundColor: AppColors.primaryBlue,
           side: const BorderSide(color: AppColors.primaryBlue, width: 1),
           shape: RoundedRectangleBorder(
@@ -254,7 +277,7 @@ class SecondaryButton extends StatelessWidget {
       child: OutlinedButton(
         onPressed: onPressed,
         style: OutlinedButton.styleFrom(
-          backgroundColor: Colors.white,
+          backgroundColor: AppColors.surface,
           foregroundColor: AppColors.primaryBlue,
           side: const BorderSide(color: AppColors.primaryBlue, width: 1),
           shape: RoundedRectangleBorder(

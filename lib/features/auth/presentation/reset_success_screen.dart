@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/app_colors.dart';
 import '../auth_navigation.dart';
 import '../widgets/auth_widgets.dart';
 
@@ -11,7 +12,7 @@ class ResetSuccessScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
