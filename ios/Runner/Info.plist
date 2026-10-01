@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>Interna uses the camera so you can add photos to your community posts.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Interna uses your photo library so you can add photos to your community posts.</string>
 </dict>
 </plist>

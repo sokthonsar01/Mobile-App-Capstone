@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/validators.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 
@@ -31,20 +32,26 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 8, top: 8),
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios_new,
-                    color: Colors.black, size: 22),
-              ),
-            ),
+    return ValueListenableBuilder<ThemeMode>(
+      valueListenable: AppThemeController.instance.themeModeNotifier,
+      builder: (context, currentMode, _) {
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, top: 8),
+                  child: IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: Icon(
+                      Icons.arrow_back_ios_new,
+                      color: AppColors.heading,
+                      size: 22,
+                    ),
+                  ),
+                ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 34),
@@ -103,7 +110,9 @@ class _UpdatePasswordScreenState extends State<UpdatePasswordScreen> {
         ),
       ),
     );
-  }
+  },
+);
+}
 
   /// TODO(team): send the new password to the server once a backend exists.
   void _handleUpdate() {

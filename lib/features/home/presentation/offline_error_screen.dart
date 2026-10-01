@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
-import '../../saved/presentation/saved_internships_screen.dart';
-import 'create_post_screen.dart';
-import 'home_screen.dart';
+import '../widgets/filter_bottom_sheet.dart';
 
 /// Offline / No Connection Error State Screen.
 /// Displays the top "No connection" red toast banner and skeleton loading placeholders.
@@ -72,7 +70,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
         child: ListView(
@@ -108,36 +106,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
       ),
       bottomNavigationBar: AppBottomNav(
         currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          } else if (index == 1) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()),
-            );
-          } else if (index == 2) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const CreatePostScreen()),
-            );
-          } else if (index == 3) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MessagesScreen()),
-            );
-          } else if (index == 4) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const SavedInternshipsScreen(),
-              ),
-            );
-          }
-        },
+        onTap: (index) => navigateToAppTab(context, 0, index),
       ),
     );
   }
@@ -224,7 +193,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
                 ),
               );
             },
-            icon: const Icon(
+            icon: Icon(
               Icons.notifications_none_rounded,
               color: AppColors.heading,
               size: 28,
@@ -285,37 +254,48 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
               ),
 
               // Filters Pill Button
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.22),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.4),
-                    width: 1,
+              GestureDetector(
+                onTap: () {
+                  FilterBottomSheet.show(
+                    context,
+                    selectedCategory: _selectedCategory,
+                    onApply: (category, location, paymentOnly) {
+                      setState(() => _selectedCategory = category);
+                    },
+                  );
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.tune_rounded,
-                      size: 14,
-                      color: Colors.white,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.22),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      width: 1,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Filters',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.tune_rounded,
+                        size: 14,
                         color: Colors.white,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 4),
+                      Text(
+                        'Filters',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -363,7 +343,7 @@ class _OfflineErrorScreenState extends State<OfflineErrorScreen>
                   fontSize: 13,
                   color: AppColors.hintText,
                 ),
-                prefixIcon: const Icon(
+                prefixIcon: Icon(
                   Icons.search_rounded,
                   color: AppColors.hintText,
                   size: 20,

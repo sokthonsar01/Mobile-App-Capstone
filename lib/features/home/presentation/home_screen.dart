@@ -1,97 +1,145 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:interna/features/profile/data/student_profile.model.dart';
+import 'package:interna/features/profile/data/student_repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/app_colors.dart';
+import '../../../shared/app_navigation.dart';
+import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../../messages/presentation/messages_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../profile/presentation/edit_profile_screen.dart';
+import '../../saved/data/saved_internships_store.dart';
+import '../../applications/data/application_tracker_store.dart';
 import '../data/internship_model.dart';
+import '../viewmodel/internships_viewmodel.dart';
 import '../widgets/filter_bottom_sheet.dart';
 import '../widgets/internship_card.dart';
-import 'application_details_screen.dart';
-import 'create_post_screen.dart';
+import '../widgets/internship_card_skeleton.dart';
 
 /// The main Home / Internship Explorer Dashboard screen.
-/// Supports both online and offline (Error State) modes.
 class HomeScreen extends StatefulWidget {
-  final bool isOffline;
-
-  const HomeScreen({
-    super.key,
-    this.isOffline = false,
-  });
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen>
-    with SingleTickerProviderStateMixin {
+class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _searchController = TextEditingController();
-
-  late bool _isOffline;
-  late AnimationController _shimmerController;
-  late Animation<double> _shimmerAnimation;
+  late final PageController _bannerPageController;
+  Timer? _bannerTimer;
 
   String _selectedCategory = 'All';
   String? _selectedLocation;
   bool _paymentOnly = false;
 
-  final Set<String> _savedIds = {'cm-01', 'cellcard-03'};
+  final InternshipsViewModel _internshipsViewModel =
+      InternshipsViewModel.instance;
 
   final List<String> _categories = [
     'All',
-    'Tech',
-    'Marketing',
+    'IT',
     'Design',
+    'Business',
     'Finance',
   ];
 
   @override
   void initState() {
     super.initState();
-    _isOffline = widget.isOffline;
+    final initialPage = _internshipsViewModel.internships.isNotEmpty
+        ? 1000 * _internshipsViewModel.internships.length
+        : 0;
+    _bannerPageController = PageController(initialPage: initialPage);
+    SavedInternshipsStore.instance.savedIdsNotifier.addListener(_onSavedChanged);
+    SavedInternshipsStore.instance.fetchSavedInternships();
+    _internshipsViewModel.addListener(_onInternshipsChanged);
+    _startAutoSlide();
+    _internshipsViewModel.loadInternships();
+    _loadStudentProfile();
+  }
 
-    _shimmerController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1400),
-    );
+  void _onInternshipsChanged() {
+    if (mounted) setState(() {});
+  }
+  StudentProfile? _userProfile;
 
-    _shimmerAnimation = Tween<double>(begin: 0.45, end: 0.9).animate(
-      CurvedAnimation(
-        parent: _shimmerController,
-        curve: Curves.easeInOut,
-      ),
-    );
+  Future<void> _loadStudentProfile() async{
 
-    if (_isOffline) {
-      _shimmerController.repeat(reverse: true);
+    try {
+      final studentProfile = await StudentRepository.getMyProfile();
+      if (mounted && studentProfile != null) {
+        setState(() => _userProfile = studentProfile);
+        if (studentProfile.rawApplications != null &&
+            studentProfile.rawApplications!.isNotEmpty) {
+          ApplicationTrackerStore.instance
+              .syncFromBackend(studentProfile.rawApplications!);
+        }
+      }
+    } catch (_) {
+      debugPrint("Error loading student profile");
     }
+  }
+
+  void _onSavedChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _startAutoSlide() {
+    _bannerTimer?.cancel();
+    _bannerTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (!mounted || _internshipsViewModel.internships.isEmpty) return;
+      if (_bannerPageController.hasClients) {
+        final currentPos = _bannerPageController.page?.round() ?? 0;
+        _bannerPageController.animateToPage(
+          currentPos + 1,
+          duration: const Duration(milliseconds: 650),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
   }
 
   @override
   void dispose() {
+    SavedInternshipsStore.instance.savedIdsNotifier.removeListener(_onSavedChanged);
+    _internshipsViewModel.removeListener(_onInternshipsChanged);
+    _bannerTimer?.cancel();
+    _bannerPageController.dispose();
     _searchController.dispose();
-    _shimmerController.dispose();
     super.dispose();
   }
 
   /// Filters the internship list by search query, category, location, and payment.
   List<InternshipOpportunity> get _filteredInternships {
     final query = _searchController.text.trim().toLowerCase();
+    final list = _internshipsViewModel.internships;
 
-    return demoInternships.where((item) {
+    return list.where((item) {
       // Category filter
-      if (_selectedCategory != 'All' && item.category != _selectedCategory) {
-        return false;
+      if (_selectedCategory != 'All') {
+        if (_selectedCategory == 'IT' &&
+            item.category != 'Tech' &&
+            item.category != 'IT') {
+          return false;
+        } else if (_selectedCategory == 'Business' &&
+            item.category != 'Marketing' &&
+            item.category != 'Business') {
+          return false;
+        } else if (_selectedCategory != 'IT' &&
+            _selectedCategory != 'Business' &&
+            item.category != _selectedCategory) {
+          return false;
+        }
       }
 
       // Location filter
       if (_selectedLocation != null &&
-          !item.location.toLowerCase().contains(
-            _selectedLocation!.toLowerCase(),
-          )) {
+          !item.location.toLowerCase().contains(_selectedLocation!.toLowerCase())) {
         return false;
       }
 
@@ -131,28 +179,7 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _handleBottomNavTap(int index) {
-    if (index == 0) {
-      return;
-    } else if (index == 1) {
-      _openFilters();
-    } else if (index == 2) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const ApplicationDetailsScreen(),
-        ),
-      );
-    } else if (index == 3) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const MessagesScreen()),
-      );
-    } else if (index == 4) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const EditProfileScreen()),
-      );
-    }
+    navigateToAppTab(context, 0, index);
   }
 
   @override
@@ -160,286 +187,385 @@ class _HomeScreenState extends State<HomeScreen>
     final items = _filteredInternships;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         bottom: false,
-        child: ListView(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(0, 0, 0, 24),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            await Future.wait([
+              _internshipsViewModel.loadInternships(force: true),
+              _loadStudentProfile(),
+            ]);
+          },
+          color: AppColors.primaryBlue,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            // Top App Bar: Profile or "No connection" Red Banner
+            // 1. Top Header: Profile Icon (left) + Notification Bell (right)
             _buildTopHeader(),
 
-            // Hero Blue Banner Card with Search & Filters
-            _buildHeroBanner(),
+                const SizedBox(height: 16),
 
-            // Horizontal Category Selector Chips
-            _buildCategoryChips(),
+                // 2. Featured Promotional Hero Banner Carousel (Visually matching listing cards)
+                _buildPromoBanner(),
 
-            // "Suggestions" Section Title
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
-              child: Text(
-                'Suggestions',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.heading,
-                ),
+                const SizedBox(height: 16),
+
+                // 3. Search Bar with magnifying glass on the right
+                _buildSearchBar(),
+
+                const SizedBox(height: 16),
+
+                // 4. Horizontal Category Chips Row with Filter Icon Button
+                _buildCategoryChips(),
+
+                const SizedBox(height: 12),
+
+                // Personalized Recommendation Banner
+                _buildPersonalizedMatchBanner(),
+
+                const SizedBox(height: 14),
+
+                // 5. Suggestions Feed List, Skeleton Loader, or Empty State
+                if (_internshipsViewModel.isLoading)
+                  const Column(
+                    children: [
+                      InternshipCardSkeleton(),
+                      InternshipCardSkeleton(),
+                    ],
+                  )
+                else if (items.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 48,
+                    ),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.search_off_rounded,
+                            size: 56,
+                            color: AppColors.hintText.withValues(alpha: 0.5),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            'No internships found',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.heading,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Try searching with different keywords or clearing your filters.',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              color: AppColors.hintText,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  Column(
+                      children: items.map((internship) {
+                        final isSaved =
+                            SavedInternshipsStore.instance.isSaved(internship.id);
+
+                        return InternshipCard(
+                          internship: internship,
+                          isSaved: isSaved,
+                          onToggleSave: () {
+                            SavedInternshipsStore.instance
+                                .toggleSave(internship.id, item: internship);
+                          },
+                        );
+                      }).toList(),
+                    ),
+                ],
               ),
             ),
+          ),
+          bottomNavigationBar: AppBottomNav(
+            currentIndex: 0,
+            onTap: _handleBottomNavTap,
+          ),
+        );
+  }
 
-            // Suggestions List or Skeleton Loading when Offline
-            if (_isOffline)
-              _buildSkeletonList()
-            else if (items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 48,
+  User? get _currentAuthUser {
+    try {
+      return Supabase.instance.client.auth.currentUser;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Top Bar: Profile avatar with Hello & Name on left + Notification bell on right.
+  Widget _buildTopHeader() {
+    final authUser = _currentAuthUser;
+    final metadata = authUser?.userMetadata ?? {};
+
+    final displayName = (_userProfile?.getFullName.isNotEmpty ?? false)
+        ? _userProfile!.getFullName
+        : (metadata['full_name'] ?? metadata['name'] ?? (authUser?.email?.split('@').first ?? 'Student'));
+
+    final avatarPath = _userProfile?.avatarUrl ??
+        metadata['avatar_url'] as String? ??
+        metadata['picture'] as String?;
+
+    return Row(
+      children: [
+        // Profile Icon Button + Hello, User Name (Flexible to avoid overflow)
+        Expanded(
+          child: GestureDetector(
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
                 ),
-                child: Center(
+              );
+              _loadStudentProfile();
+            },
+            child: Row(
+              children: [
+                InitialsAvatar(
+                  name: displayName,
+                  size: 44,
+                  imageAsset: avatarPath,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.search_off_rounded,
-                        size: 56,
-                        color: AppColors.hintText.withValues(alpha: 0.5),
-                      ),
-                      const SizedBox(height: 12),
                       Text(
-                        'No internships found',
+                        'Welcome back,',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.heading,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.bodyText,
                         ),
                       ),
-                      const SizedBox(height: 4),
                       Text(
-                        'Try searching with different keywords or clearing your filters.',
-                        textAlign: TextAlign.center,
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.plusJakartaSans(
-                          fontSize: 13,
-                          color: AppColors.hintText,
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.heading,
                         ),
                       ),
                     ],
                   ),
                 ),
-              )
-            else
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: items.map((internship) {
-                    final isSaved = _savedIds.contains(internship.id);
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
 
-                    return InternshipCard(
-                      internship: internship,
-                      isSaved: isSaved,
-                      onToggleSave: () {
-                        setState(() {
-                          if (isSaved) {
-                            _savedIds.remove(internship.id);
-                          } else {
-                            _savedIds.add(internship.id);
-                          }
-                        });
-                      },
-                    );
-                  }).toList(),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Quick Theme Mode Switcher Button (Sun/Moon)
+            GestureDetector(
+              onTap: () {
+                AppThemeController.instance.toggleTheme();
+              },
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.surface,
+                  border: Border.all(
+                    color: AppColors.cardBorder,
+                    width: 1.2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 6,
+                    ),
+                  ],
+                ),
+                child: Icon(
+                  AppColors.isDark
+                      ? Icons.light_mode_rounded
+                      : Icons.dark_mode_rounded,
+                  color: AppColors.isDark
+                      ? const Color(0xFFFBBF24)
+                      : AppColors.heading,
+                  size: 20,
                 ),
               ),
+            ),
+            const SizedBox(width: 8),
+
+            // Notification Bell with unread dot
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const NotificationsScreen(),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.surface,
+                      border: Border.all(
+                        color: AppColors.cardBorder,
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.04),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      Icons.notifications_rounded,
+                      color: AppColors.heading,
+                      size: 22,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  right: 2,
+                  top: 2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: AppColors.danger,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: AppColors.surface,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
-      ),
-      bottomNavigationBar: AppBottomNav(
-        currentIndex: 0,
-        onTap: _handleBottomNavTap,
-      ),
+      ],
     );
   }
 
-  /// Top Bar: Profile avatar on left (Online) OR Centered "No connection" Pill (Offline).
-  Widget _buildTopHeader() {
-    if (_isOffline) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const SizedBox(width: 44),
-            Expanded(
-              child: Center(
-                child: GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _isOffline = !_isOffline;
-                      if (_isOffline) {
-                        _shimmerController.repeat(reverse: true);
-                      } else {
-                        _shimmerController.stop();
-                      }
-                    });
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFD92D20),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFD92D20).withValues(alpha: 0.35),
-                          blurRadius: 14,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.wifi_off_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 10),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              'No connection',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12.5,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                                height: 1.1,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              'Please check your connection!',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.white.withValues(alpha: 0.95),
-                                height: 1.1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            IconButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsScreen(),
-                  ),
-                );
-              },
-              icon: const Icon(
-                Icons.notifications_none_rounded,
-                color: AppColors.heading,
-                size: 28,
-              ),
-            ),
-          ],
+  /// Personalized Recommendation Match Banner.
+  Widget _buildPersonalizedMatchBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+      decoration: BoxDecoration(
+        color: AppColors.isDark
+            ? const Color(0xFF1E3A8A).withValues(alpha: 0.25)
+            : const Color(0xFFEFF6FF),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: AppColors.isDark
+              ? const Color(0xFF1E40AF)
+              : const Color(0xFFBFDBFE),
         ),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2563EB).withValues(alpha: 0.04),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Greeting Text & Subtitle
+          Container(
+            padding: const EdgeInsets.all(7),
+            decoration: BoxDecoration(
+              color: const Color(0xFF2563EB),
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: const Icon(
+              Icons.school_outlined,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Good afternoon, Max 👋',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.heading,
-                    letterSpacing: -0.2,
-                  ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Recommended for You',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.isDark
+                              ? const Color(0xFF93C5FD)
+                              : const Color(0xFF1E40AF),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF10B981),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        '95% Match',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Find internships that fit you.',
+                  'Curated for your profile and career preferences',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
-                    color: AppColors.hintText,
+                    color: const Color(0xFF3B82F6),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-          ),
-
-          // Notification Bell in styled round card
-          GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsScreen(),
-                ),
-              );
-            },
-            child: Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: Colors.grey.withValues(alpha: 0.18),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  const Icon(
-                    Icons.notifications_none_rounded,
-                    color: AppColors.heading,
-                    size: 22,
-                  ),
-                  Positioned(
-                    right: 10,
-                    top: 10,
-                    child: Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                        color: AppColors.danger,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
           ),
         ],
@@ -447,220 +573,185 @@ class _HomeScreenState extends State<HomeScreen>
     );
   }
 
-  /// Hero Blue Card containing greeting, subtitle, filter button, and search input.
-  Widget _buildHeroBanner() {
+  /// Display-only wide poster banner carousel (auto-changes every 5 seconds, responsive 1280:480 aspect ratio).
+  Widget _buildPromoBanner() {
+    final bannerItems = _internshipsViewModel.internships;
+    if (bannerItems.isEmpty) return const SizedBox.shrink();
+
+    return AspectRatio(
+      aspectRatio: 1280 / 480,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFF0D0141).withValues(alpha: 0.06),
+              blurRadius: 10,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: PageView.builder(
+            controller: _bannerPageController,
+            physics: const NeverScrollableScrollPhysics(),
+            itemBuilder: (BuildContext context, int index) {
+              final item = bannerItems[index % bannerItems.length];
+
+              return Image.asset(
+                item.bannerPosterAssetPath,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: item.brandColor,
+                  child: Center(
+                    child: Text(
+                      item.company,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Search Bar matching card rounded corners (16px) with right search icon
+  Widget _buildSearchBar() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.fromLTRB(18, 20, 18, 18),
+      height: 48,
       decoration: BoxDecoration(
-        color: AppColors.primaryBlue,
-        borderRadius: BorderRadius.circular(20),
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.cardBorder,
+          width: 1.2,
+        ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primaryBlue.withValues(alpha: 0.35),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: const Color(0xFF0D0141).withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Row with "Internship Explorer" and "Filters" Pill
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Internship Explorer',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                ),
-              ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (val) => setState(() {}),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 13.5,
+          color: AppColors.heading,
+        ),
+        decoration: InputDecoration(
+          hintText: 'Search internships...',
+          hintStyle: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: AppColors.hintText,
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+          suffixIcon: Icon(
+            Icons.search_rounded,
+            color: AppColors.heading,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
 
-              // Filters Pill Button
-              GestureDetector(
-                onTap: _openFilters,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.22),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.4),
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.tune_rounded,
-                        size: 14,
-                        color: Colors.white,
+  /// Category Selection Bar: Tabs fitting all labels + Blue Filter Icon Pill
+  Widget _buildCategoryChips() {
+    return Row(
+      children: [
+        // Category Chips Row
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: _categories.map((category) {
+                final isSelected = _selectedCategory == category;
+
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: GestureDetector(
+                    onTap: () {
+                      setState(() => _selectedCategory = category);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 7,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Filters',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primaryBlue
+                            : AppColors.surface,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: isSelected
+                              ? AppColors.primaryBlue
+                              : AppColors.cardBorder,
+                          width: 1,
                         ),
                       ),
-                    ],
+                      child: Text(
+                        category,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight:
+                              isSelected ? FontWeight.w700 : FontWeight.w600,
+                          color: isSelected ? Colors.white : AppColors.heading,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Subtitle
-          Text(
-            'Discover amazing internship opportunities from top companies in Cambodia!',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w400,
-              color: Colors.white.withValues(alpha: 0.9),
-              height: 1.35,
+                );
+              }).toList(),
             ),
           ),
+        ),
 
-          const SizedBox(height: 14),
+        const SizedBox(width: 8),
 
-          // Search Field
-          Container(
-            height: 44,
+        // Filter Button Pill
+        GestureDetector(
+          onTap: _openFilters,
+          child: Container(
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
+              color: AppColors.primaryBlue,
+              borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 8,
+                  color: AppColors.primaryBlue.withValues(alpha: 0.25),
+                  blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: TextField(
-              controller: _searchController,
-              onChanged: (val) => setState(() {}),
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 13.5,
-                color: AppColors.heading,
-              ),
-              decoration: InputDecoration(
-                hintText: 'Search for internships...',
-                hintStyle: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  color: AppColors.hintText,
-                ),
-                prefixIcon: const Icon(
-                  Icons.search_rounded,
-                  color: AppColors.hintText,
-                  size: 20,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(
-                          Icons.clear_rounded,
-                          color: AppColors.hintText,
-                          size: 18,
-                        ),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() {});
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
+            child: const Icon(
+              Icons.filter_list_rounded,
+              color: Colors.white,
+              size: 20,
             ),
           ),
-        ],
-      ),
-    );
-  }
-
-  /// Category Selection Bar (All, Tech, Marketing, Design, Finance).
-  Widget _buildCategoryChips() {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: _categories.map((category) {
-          final isSelected = _selectedCategory == category;
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 12),
-            child: GestureDetector(
-              onTap: () {
-                setState(() => _selectedCategory = category);
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.primaryBlue
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  category,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 13,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                    color: isSelected ? Colors.white : AppColors.heading,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
-  /// Skeleton Loading Placeholders for Error/Offline state.
-  Widget _buildSkeletonList() {
-    return AnimatedBuilder(
-      animation: _shimmerAnimation,
-      builder: (context, child) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: List.generate(3, (index) {
-              return Container(
-                width: double.infinity,
-                height: 146,
-                margin: const EdgeInsets.only(bottom: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFEBEBEB).withValues(
-                    alpha: _shimmerAnimation.value,
-                  ),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              );
-            }),
-          ),
-        );
-      },
+        ),
+      ],
     );
   }
 }
+

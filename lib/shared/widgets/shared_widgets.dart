@@ -19,6 +19,9 @@ class SoftTextField extends StatefulWidget {
   final TextEditingController controller;
   final bool isPassword;
   final bool readOnly;
+  final bool enabled;
+  final String? helperText;
+  final String? hintText;
   final TextInputType keyboardType;
 
   /// Optional icon on the right, for example the calendar icon.
@@ -37,6 +40,9 @@ class SoftTextField extends StatefulWidget {
     required this.controller,
     this.isPassword = false,
     this.readOnly = false,
+    this.enabled = true,
+    this.helperText,
+    this.hintText,
     this.keyboardType = TextInputType.text,
     this.suffix,
     this.onTap,
@@ -66,12 +72,22 @@ class _SoftTextFieldState extends State<SoftTextField> {
         const SizedBox(height: 10),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: !widget.enabled
+                ? (AppColors.isDark
+                    ? Colors.white.withValues(alpha: 0.04)
+                    : const Color(0xFFF1F5F9))
+                : AppColors.surface,
             borderRadius: BorderRadius.circular(12),
-            boxShadow: softShadow,
+            border: Border.all(
+              color: !widget.enabled
+                  ? AppColors.cardBorder.withValues(alpha: 0.6)
+                  : AppColors.cardBorder,
+            ),
+            boxShadow: widget.enabled ? softShadow : null,
           ),
           child: TextFormField(
             controller: widget.controller,
+            enabled: widget.enabled,
             readOnly: widget.readOnly,
             onTap: widget.onTap,
             keyboardType: widget.keyboardType,
@@ -79,10 +95,17 @@ class _SoftTextFieldState extends State<SoftTextField> {
             obscureText: widget.isPassword && _isHidden,
             style: GoogleFonts.plusJakartaSans(
               fontSize: 15,
-              color: AppColors.heading,
+              color: !widget.enabled ? AppColors.hintText : AppColors.heading,
+              fontWeight: !widget.enabled ? FontWeight.w500 : FontWeight.w600,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
+              hintText: widget.hintText,
+              hintStyle: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: AppColors.hintText.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w400,
+              ),
               errorStyle: GoogleFonts.plusJakartaSans(
                 fontSize: 12,
                 color: AppColors.danger,
@@ -108,6 +131,31 @@ class _SoftTextFieldState extends State<SoftTextField> {
             ),
           ),
         ),
+        if (widget.helperText != null) ...[
+          const SizedBox(height: 6),
+          Padding(
+            padding: const EdgeInsets.only(left: 4),
+            child: Row(
+              children: [
+                if (!widget.enabled) ...[
+                  Icon(Icons.lock_outline_rounded,
+                      size: 13, color: AppColors.hintText),
+                  const SizedBox(width: 4),
+                ],
+                Expanded(
+                  child: Text(
+                    widget.helperText!,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: AppColors.hintText,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -138,12 +186,14 @@ class InitialsAvatar extends StatelessWidget {
 
   /// true = square with rounded corners (used for company logos).
   final bool isSquare;
+  final String? imageAsset;
 
   const InitialsAvatar({
     super.key,
     required this.name,
     this.size = 44,
     this.isSquare = false,
+    this.imageAsset,
   });
 
   /// "Taylor Swift" -> "TS".  "Cellcard" -> "C".
@@ -171,6 +221,49 @@ class InitialsAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = isSquare ? BorderRadius.circular(10) : BorderRadius.circular(size / 2);
+
+    if (imageAsset != null && imageAsset!.isNotEmpty) {
+      final isNetwork = imageAsset!.startsWith('http://') || imageAsset!.startsWith('https://');
+      return Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: isSquare ? BoxShape.rectangle : BoxShape.circle,
+          borderRadius: isSquare ? BorderRadius.circular(10) : null,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.08),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: borderRadius,
+          child: isNetwork
+              ? Image.network(
+                  imageAsset!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _buildInitials(),
+                )
+              : Image.asset(
+                  imageAsset!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => _buildInitials(),
+                ),
+        ),
+      );
+    }
+
+    return _buildInitials();
+  }
+
+  Widget _buildInitials() {
     return Container(
       width: size,
       height: size,
@@ -202,7 +295,7 @@ class InitialsAvatar extends StatelessWidget {
 /// If they do, delete this widget and use theirs instead.
 /// It is on purpose in `shared/` so only one version survives.
 class AppBottomNav extends StatelessWidget {
-  /// 0 = Home, 1 = Explore, 2 = Tracker, 3 = Community, 4 = Profile.
+  /// 0 = Home, 1 = Saved, 2 = Applications, 3 = Messages, 4 = Profile.
   final int currentIndex;
 
   /// Called with the index the user tapped.
@@ -218,7 +311,7 @@ class AppBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -228,7 +321,7 @@ class AppBottomNav extends StatelessWidget {
         ],
         border: Border(
           top: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.15),
+            color: AppColors.cardBorder,
             width: 0.8,
           ),
         ),
@@ -246,21 +339,21 @@ class AppBottomNav extends StatelessWidget {
                 index: 0,
               ),
               _navItem(
-                icon: Icons.school_outlined,
-                activeIcon: Icons.school_rounded,
-                label: 'Explore',
+                icon: Icons.bookmark_outline_rounded,
+                activeIcon: Icons.bookmark_rounded,
+                label: 'Saved',
                 index: 1,
               ),
               _navItem(
                 icon: Icons.assignment_outlined,
                 activeIcon: Icons.assignment_rounded,
-                label: 'Tracker',
+                label: 'Applications',
                 index: 2,
               ),
               _navItem(
-                icon: Icons.groups_outlined,
-                activeIcon: Icons.groups_rounded,
-                label: 'Community',
+                icon: Icons.chat_bubble_outline_rounded,
+                activeIcon: Icons.chat_bubble_rounded,
+                label: 'Messages',
                 index: 3,
               ),
               _navItem(
@@ -312,6 +405,8 @@ class AppBottomNav extends StatelessWidget {
             ),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,

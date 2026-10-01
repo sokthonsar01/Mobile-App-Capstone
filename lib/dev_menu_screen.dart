@@ -7,15 +7,16 @@ import 'features/auth/presentation/onboarding_screen.dart';
 import 'features/auth/presentation/reset_success_screen.dart';
 import 'features/auth/presentation/signup_screen.dart';
 import 'features/home/data/internship_model.dart';
-import 'features/home/presentation/application_details_screen.dart';
-import 'features/home/presentation/application_submitted_screen.dart';
-import 'features/home/presentation/company_profile_screen.dart';
+import 'features/home/viewmodel/internships_viewmodel.dart';
+import 'features/applications/presentation/application_details_screen.dart';
+import 'features/applications/presentation/application_submitted_screen.dart';
+import 'features/company/presentation/screens/company_profile_screen.dart';
 import 'features/home/presentation/create_post_screen.dart';
 import 'features/home/presentation/home_screen.dart';
 import 'features/home/presentation/internship_details_screen.dart';
 import 'features/home/presentation/offline_error_screen.dart';
-import 'features/messages/presentation/chat_screen.dart';
-import 'features/messages/presentation/messages_screen.dart';
+import 'features/chat/presentation/chat_screen.dart';
+import 'features/chat/presentation/messages_screen.dart';
 import 'features/notifications/presentation/notifications_screen.dart';
 import 'features/profile/presentation/edit_profile_screen.dart';
 import 'features/profile/presentation/update_password_screen.dart';
@@ -31,10 +32,22 @@ class DevMenuScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sampleInternship = demoInternships.firstWhere(
-      (e) => e.id == 'hanuman-06',
-      orElse: () => demoInternships.first,
-    );
+    final sampleInternship = InternshipsViewModel.instance.internships.isNotEmpty
+        ? InternshipsViewModel.instance.internships.first
+        : const InternshipOpportunity(
+            id: 'dev-sample',
+            role: 'Software Engineer Intern',
+            company: 'Interna',
+            category: 'Tech',
+            location: 'Phnom Penh, Cambodia',
+            schedule: 'Full-Time',
+            paymentStatus: 'Paid',
+            deadline: '2026-12-31',
+            brandColor: Color(0xFF2B59FF),
+            logoKey: '',
+            description: 'Sample description for development preview',
+            requirements: ['Flutter'],
+          );
 
     return Scaffold(
       appBar: AppBar(
@@ -46,39 +59,39 @@ class DevMenuScreen extends StatelessWidget {
           const _SectionTitle('Main App / Dashboard'),
           _open(
             context,
-            '★ Home / Internship Explorer',
+            'Home / Internship Explorer',
             const HomeScreen(),
           ),
           _open(
             context,
-            '★ No Connection / Offline Error State',
+            'No Connection / Offline Error State',
             const OfflineErrorScreen(),
           ),
 
           const _SectionTitle('Internship & Application Screens'),
           _open(
             context,
-            '★ Internship Details (90% Match & Specs)',
+            'Internship Details',
             InternshipDetailsScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Application Submitted (Success Screen)',
+            'Application Submitted (Success Screen)',
             ApplicationSubmittedScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Application Details (Stage Stepper & Submission)',
+            'Application Details (Stage Stepper & Submission)',
             ApplicationDetailsScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Company Profile (Hanuman Estate)',
+            'Company Profile (Hanuman Estate)',
             CompanyProfileScreen(internship: sampleInternship),
           ),
           _open(
             context,
-            '★ Create Post / Community Posting',
+            'Create Post / Community Posting',
             const CreatePostScreen(),
           ),
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../shared/app_colors.dart';
 import '../auth_navigation.dart';
 import '../widgets/auth_widgets.dart';
 import 'reset_success_screen.dart';
@@ -17,7 +18,7 @@ class CheckEmailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(
@@ -73,7 +74,9 @@ class CheckEmailScreen extends StatelessWidget {
                 onLinkTap: () {
                   // TODO(team): send the email again once a backend is chosen.
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Resend is not connected yet.')),
+                    const SnackBar(
+                      content: Text('Resend is not connected yet.'),
+                    ),
                   );
                 },
               ),
