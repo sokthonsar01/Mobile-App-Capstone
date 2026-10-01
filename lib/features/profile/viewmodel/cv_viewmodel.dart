@@ -77,9 +77,9 @@ class CvViewModel extends ChangeNotifier {
     final PlatformFile? file;
     try {
       file = await FilePicker.pickFile(
-        dialogTitle: 'Select your CV (PDF)',
+        dialogTitle: 'Select your CV (PDF or Image)',
         type: FileType.custom,
-        allowedExtensions: const ['pdf'],
+        allowedExtensions: const ['pdf', 'png', 'jpg', 'jpeg'],
       );
     } catch (_) {
       _errorMessage = 'Could not open the file picker. Please try again.';
@@ -135,7 +135,7 @@ class CvViewModel extends ChangeNotifier {
           e.statusCode == '404' ||
           e.error == 'NoSuchBucket') {
         _errorMessage =
-            "Storage bucket 'resumes' not found. Please create a public bucket named 'resumes' in your Supabase dashboard.";
+            "Storage bucket 'resume' not found. Please ensure the bucket named 'resume' is created in your Supabase dashboard.";
       } else {
         _errorMessage = 'Supabase upload failed: ${e.message}';
       }

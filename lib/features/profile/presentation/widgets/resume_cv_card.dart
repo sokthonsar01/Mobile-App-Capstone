@@ -138,10 +138,7 @@ class _ResumeCvCardState extends State<ResumeCvCard> {
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CvPreviewScreen()),
-            ),
+            onPressed: () => CvPreviewScreen.show(context),
             icon: const Icon(Icons.visibility_outlined, size: 16),
             label: Text(
               'Preview CV',

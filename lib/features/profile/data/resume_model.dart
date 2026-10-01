@@ -39,6 +39,14 @@ class ResumeItem {
     return '${(fileSizeBytes! / 1024).ceil()} KB';
   }
 
+  bool get isImage {
+    final lower = displayName.toLowerCase();
+    return lower.endsWith('.png') ||
+        lower.endsWith('.jpg') ||
+        lower.endsWith('.jpeg') ||
+        lower.endsWith('.webp');
+  }
+
   factory ResumeItem.fromJson(Map<String, dynamic> json) {
     DateTime? parseDate(dynamic d) =>
         d != null ? DateTime.tryParse(d.toString()) : null;

@@ -8,9 +8,9 @@ export 'resume_model.dart';
 
 /// Repository for handling CV document upload to Supabase and backend synchronization.
 class ResumeRepository {
-  static const String _bucketName = 'resumes';
+  static const String _bucketName = 'resume';
 
-  /// Uploads PDF bytes to the Supabase Storage 'resumes' bucket and returns its public URL.
+  /// Uploads document bytes to the Supabase Storage 'resume' bucket and returns its public URL.
   static Future<String> uploadCvToSupabase({
     required String fileName,
     required Uint8List bytes,
@@ -21,11 +21,19 @@ class ResumeRepository {
     final cleanFileName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
     final storagePath = '$userId/${timestamp}_$cleanFileName';
 
+    final ext = cleanFileName.split('.').last.toLowerCase();
+    final contentType = switch (ext) {
+      'png' => 'image/png',
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'webp' => 'image/webp',
+      _ => 'application/pdf',
+    };
+
     await storage.uploadBinary(
       storagePath,
       bytes,
-      fileOptions: const FileOptions(
-        contentType: 'application/pdf',
+      fileOptions: FileOptions(
+        contentType: contentType,
         upsert: true,
       ),
     );
@@ -83,7 +91,7 @@ class ResumeRepository {
     // Register a default resume if student has none
     return await createResume(
       fileUrl:
-          'https://fujimqtgrthnslpwjkqf.supabase.co/storage/v1/object/public/resumes/default_student_cv.pdf',
+          'https://fujimqtgrthnslpwjkqf.supabase.co/storage/v1/object/public/resume/default_student_cv.pdf',
       fileName: 'default_student_cv.pdf',
       isDefault: true,
     );
