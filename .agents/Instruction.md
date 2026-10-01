@@ -128,15 +128,12 @@ summary.
 
 ---
 
-## 4. State Management
+## 4. State Management (Standard: MVVM with ChangeNotifier)
 
-Pick **one** approach for the whole app (Provider, Riverpod, or Bloc/Cubit
-— whichever the project already leans toward) and use it consistently.
-Regardless of which:
-- Widgets read state and dispatch events/intents. They never mutate state
-  directly or hold business logic.
-- The state layer (notifier/cubit/controller) never imports `flutter/material.dart`
-  widget classes — it should be plain Dart, testable without a widget tree.
+The designated architecture for this project is **MVVM (Model-View-ViewModel)** using Flutter's native `ChangeNotifier` and `ListenableBuilder` (detailed in §12).
+- **Widgets (Views)** read state and dispatch user intents. They never call backend APIs directly or mutate state manually.
+- **ViewModels** expose read-only state getters (`isLoading`, `errorMessage`, domain data) and trigger UI rebuilds using `notifyListeners()`.
+- The ViewModel layer never imports `flutter/material.dart` widget trees — it is pure Dart logic, directly unit-testable without pumping widgets.
 
 ---
 
@@ -301,3 +298,33 @@ class ProfileScreen extends StatelessWidget {
 
 Each piece can now be understood, tested, and changed without touching
 the others. That's the bar for every file in this app going forward.
+
+---
+
+## 12. Design Decision: MVVM Pattern Standard
+
+### Why MVVM?
+- **Separation of Concerns**: Prevents "God widgets" by decoupling UI presentation from network requests and business logic.
+- **High Testability**: ViewModels run in pure Dart tests without requiring a mock widget tree or `WidgetTester`.
+- **Reusable State**: Multiple widgets (e.g. headers, buttons, feeds) observe the same ViewModel without duplicated state.
+
+### Layer Responsibilities
+1. **Model (`data/`)**:
+   - Immutable data classes with `fromJson` and `toJson`.
+   - Repositories (`*Repository`) handling Supabase calls, NestJS API client requests, and serialization.
+2. **ViewModel (`viewmodel/`)**:
+   - Class name: `<Feature>ViewModel extends ChangeNotifier`.
+   - Exposes singleton instance `static final instance = <Feature>ViewModel._internal();` alongside dependency-injectable constructors for tests.
+   - Observable state fields private (e.g. `_isLoading`, `_errorMessage`, `_data`).
+   - Public read-only getters (e.g. `bool get isLoading`, `List<T> get items`).
+   - Action methods: async functions executing business operations, setting loading states, catching errors cleanly, and calling `notifyListeners()`.
+3. **View (`presentation/screens/`, `presentation/widgets/`)**:
+   - Listens to ViewModel using `ListenableBuilder(listenable: <Feature>ViewModel.instance, builder: (context, _) => ...)`.
+   - Dispatches user actions by calling ViewModel methods directly (e.g. `_authViewModel.signInWithEmail(...)`).
+   - Pure UI: focus management, animations, layouts, and navigation.
+
+### Reference Implementations in Codebase
+- [AuthViewModel](file:///d:/Camtech/interna/lib/features/auth/viewmodel/auth_viewmodel.dart) — authentication states, credential validation, Google OAuth, and error mapping.
+- [InternshipsViewModel](file:///d:/Camtech/interna/lib/features/home/viewmodel/internships_viewmodel.dart) — home feed, loading states, and skeleton coordination.
+- [NotificationsViewModel](file:///d:/Camtech/interna/lib/features/notifications/viewmodel/notifications_viewmodel.dart) — live notifications, unread counts, and mark-as-read actions.
+- [SavedInternshipsViewModel](file:///d:/Camtech/interna/lib/features/saved/viewmodel/saved_internships_viewmodel.dart) — bookmark persistence, optimistic updates, and offline sync.
