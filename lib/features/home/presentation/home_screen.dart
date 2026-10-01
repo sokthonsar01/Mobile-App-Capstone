@@ -322,52 +322,60 @@ class _HomeScreenState extends State<HomeScreen> {
         metadata['picture'] as String?;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        // Profile Icon Button + Hello, User Name
-        GestureDetector(
-          onTap: () async {
-            await Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const EditProfileScreen(),
-              ),
-            );
-            _loadStudentProfile();
-          },
-          child: Row(
-            children: [
-              InitialsAvatar(
-                name: displayName,
-                size: 44,
-                imageAsset: avatarPath,
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Welcome back,',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.bodyText,
-                    ),
+        // Profile Icon Button + Hello, User Name (Flexible to avoid overflow)
+        Expanded(
+          child: GestureDetector(
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const EditProfileScreen(),
+                ),
+              );
+              _loadStudentProfile();
+            },
+            child: Row(
+              children: [
+                InitialsAvatar(
+                  name: displayName,
+                  size: 44,
+                  imageAsset: avatarPath,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'Welcome back,',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.bodyText,
+                        ),
+                      ),
+                      Text(
+                        displayName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.heading,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    displayName,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.heading,
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
+        const SizedBox(width: 8),
 
         Row(
           mainAxisSize: MainAxisSize.min,
