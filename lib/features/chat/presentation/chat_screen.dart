@@ -5,6 +5,7 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../data/chat_repository.dart';
+import '../viewmodel/chat_viewmodel.dart';
 
 /// Live chat screen backed by Supabase WebSocket realtime messages.
 class ChatScreen extends StatefulWidget {
@@ -27,39 +28,22 @@ class ChatScreen extends StatefulWidget {
 
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
-  final ChatRepository _chatRepository = ChatRepository();
-
-  String? _activeConversationId;
-  bool _isLoadingConversation = false;
-  final List<String> _localFallbackMessages = [];
+  late final ChatViewModel _vm;
 
   @override
   void initState() {
     super.initState();
-    _activeConversationId = widget.conversationId;
-    if (_activeConversationId == null && widget.companyId != null) {
-      _initConversation();
-    }
-  }
-
-  Future<void> _initConversation() async {
-    setState(() => _isLoadingConversation = true);
-    try {
-      final res = await _chatRepository.getOrCreateConversation(widget.companyId!);
-      if (mounted) {
-        setState(() {
-          _activeConversationId = res['id'] as String?;
-          _isLoadingConversation = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoadingConversation = false);
-    }
+    _vm = ChatViewModel();
+    _vm.initConversation(
+      conversationId: widget.conversationId,
+      companyId: widget.companyId,
+    );
   }
 
   @override
   void dispose() {
     _messageController.dispose();
+    _vm.dispose();
     super.dispose();
   }
 
@@ -76,11 +60,18 @@ class _ChatScreenState extends State<ChatScreen> {
                 _buildTopBar(),
                 Divider(height: 1, color: AppColors.cardBorder),
                 Expanded(
-                  child: _isLoadingConversation
-                      ? const Center(child: CircularProgressIndicator())
-                      : _activeConversationId != null
-                          ? _buildLiveMessageStream(_activeConversationId!)
-                          : _buildFallbackList(),
+                  child: ListenableBuilder(
+                    listenable: _vm,
+                    builder: (context, _) {
+                      if (_vm.isLoadingConversation) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (_vm.activeConversationId != null) {
+                        return _buildLiveMessageStream(_vm.activeConversationId!);
+                      }
+                      return _buildFallbackList();
+                    },
+                  ),
                 ),
                 _buildInputBar(),
               ],
@@ -191,7 +182,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildLiveMessageStream(String conversationId) {
     return StreamBuilder<List<ChatMessage>>(
-      stream: _chatRepository.streamMessages(conversationId),
+      stream: _vm.streamMessages(conversationId),
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
@@ -220,7 +211,7 @@ class _ChatScreenState extends State<ChatScreen> {
           itemBuilder: (context, index) {
             // Reverse indexing so newest message is at bottom
             final msg = messages[messages.length - 1 - index];
-            final isMe = msg.senderId == _chatRepository.currentUserId;
+            final isMe = msg.senderId == _vm.currentUserId;
 
             return Align(
               alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -250,9 +241,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildFallbackList() {
+    final messages = _vm.localFallbackMessages;
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-      itemCount: _localFallbackMessages.length + 1,
+      itemCount: messages.length + 1,
       itemBuilder: (BuildContext context, int index) {
         if (index == 0) {
           return Center(
@@ -268,7 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           );
         }
-        final text = _localFallbackMessages[index - 1];
+        final text = messages[index - 1];
         return Align(
           alignment: Alignment.centerRight,
           child: Container(
@@ -341,21 +333,11 @@ class _ChatScreenState extends State<ChatScreen> {
     if (text.isEmpty) return;
 
     _messageController.clear();
-
-    if (_activeConversationId != null) {
-      try {
-        await _chatRepository.sendMessage(_activeConversationId!, text);
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to send: $e')),
-          );
-        }
-      }
-    } else {
-      setState(() {
-        _localFallbackMessages.add(text);
-      });
+    final ok = await _vm.sendMessage(text);
+    if (!ok && mounted && _vm.errorMessage != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to send: ${_vm.errorMessage}')),
+      );
     }
   }
 }

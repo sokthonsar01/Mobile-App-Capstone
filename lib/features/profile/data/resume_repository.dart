@@ -8,7 +8,7 @@ export 'resume_model.dart';
 
 /// Repository for handling CV document upload to Supabase and backend synchronization.
 class ResumeRepository {
-  static const String _bucketName = 'resume';
+  static const String _bucketName = 'resumes';
 
   /// Uploads document bytes to the Supabase Storage 'resume' bucket and returns its public URL.
   static Future<String> uploadCvToSupabase({
@@ -21,19 +21,11 @@ class ResumeRepository {
     final cleanFileName = fileName.replaceAll(RegExp(r'[^a-zA-Z0-9._-]'), '_');
     final storagePath = '$userId/${timestamp}_$cleanFileName';
 
-    final ext = cleanFileName.split('.').last.toLowerCase();
-    final contentType = switch (ext) {
-      'png' => 'image/png',
-      'jpg' || 'jpeg' => 'image/jpeg',
-      'webp' => 'image/webp',
-      _ => 'application/pdf',
-    };
-
     await storage.uploadBinary(
       storagePath,
       bytes,
-      fileOptions: FileOptions(
-        contentType: contentType,
+      fileOptions: const FileOptions(
+        contentType: 'application/pdf',
         upsert: true,
       ),
     );

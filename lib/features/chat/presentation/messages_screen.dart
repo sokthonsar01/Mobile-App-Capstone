@@ -5,7 +5,7 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
-import '../data/chat_repository.dart';
+import '../viewmodel/messages_viewmodel.dart';
 import 'chat_screen.dart';
 
 /// The Messages list screen.
@@ -18,48 +18,20 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final ChatRepository _chatRepository = ChatRepository();
-
-  String _searchText = '';
-  List<Map<String, dynamic>> _remoteConversations = [];
-  bool _isLoading = false;
+  late final MessagesViewModel _vm;
 
   @override
   void initState() {
     super.initState();
-    _loadConversations();
-  }
-
-  Future<void> _loadConversations() async {
-    setState(() => _isLoading = true);
-    try {
-      final list = await _chatRepository.getConversations();
-      if (mounted) {
-        setState(() {
-          _remoteConversations = list;
-          _isLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _isLoading = false);
-    }
+    _vm = MessagesViewModel();
+    _vm.loadConversations();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _vm.dispose();
     super.dispose();
-  }
-
-  /// Filtered remote conversations based on search text.
-  List<Map<String, dynamic>> get _visibleConversations {
-    if (_searchText.isEmpty) return _remoteConversations;
-    return _remoteConversations.where((conv) {
-      final company = conv['company'] as Map<String, dynamic>?;
-      final name = ((company?['name'] as String?) ?? '').toLowerCase();
-      final lastMsg = ((conv['lastMessage'] as String?) ?? '').toLowerCase();
-      return name.contains(_searchText) || lastMsg.contains(_searchText);
-    }).toList();
   }
 
   @override
@@ -76,11 +48,18 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 _buildSearchBox(),
                 const SizedBox(height: 8),
                 Expanded(
-                  child: _isLoading
-                      ? const Center(child: CircularProgressIndicator())
-                      : _visibleConversations.isNotEmpty
-                          ? _buildRemoteList()
-                          : _buildEmptyState(),
+                  child: ListenableBuilder(
+                    listenable: _vm,
+                    builder: (context, _) {
+                      if (_vm.isLoading) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      if (_vm.filteredConversations.isNotEmpty) {
+                        return _buildRemoteList();
+                      }
+                      return _buildEmptyState();
+                    },
+                  ),
                 ),
               ],
             ),
@@ -138,10 +117,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   ),
                 );
               } else if (value == 'clear_search') {
-                setState(() {
-                  _searchController.clear();
-                  _searchText = '';
-                });
+                _searchController.clear();
+                _vm.updateSearchQuery('');
               }
             },
             itemBuilder: (context) => [
@@ -198,7 +175,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         child: TextField(
           controller: _searchController,
           onChanged: (String value) {
-            setState(() => _searchText = value.toLowerCase());
+            _vm.updateSearchQuery(value);
           },
           style: GoogleFonts.plusJakartaSans(
             fontSize: 14,
@@ -221,7 +198,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildEmptyState() {
-    final isSearching = _searchText.isNotEmpty;
+    final isSearching = _vm.searchQuery.isNotEmpty;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -269,13 +246,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
   }
 
   Widget _buildRemoteList() {
+    final conversations = _vm.filteredConversations;
     return RefreshIndicator(
-      onRefresh: _loadConversations,
+      onRefresh: _vm.loadConversations,
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 4),
-        itemCount: _visibleConversations.length,
+        itemCount: conversations.length,
         itemBuilder: (BuildContext context, int index) {
-          final conv = _visibleConversations[index];
+          final conv = conversations[index];
           final company = conv['company'] as Map<String, dynamic>?;
           final name = (company?['name'] as String?) ?? 'Recruiter';
           final convId = conv['id']?.toString() ?? '';
@@ -370,8 +348,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                if (_remoteConversations.isNotEmpty)
-                  ..._remoteConversations.map((conv) {
+                if (_vm.conversations.isNotEmpty)
+                  ..._vm.conversations.map((conv) {
                     final company = conv['company'] as Map<String, dynamic>?;
                     final name = (company?['name'] as String?) ?? 'Recruiter';
                     final convId = conv['id']?.toString() ?? '';
