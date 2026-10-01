@@ -1,52 +1,50 @@
 import 'package:flutter/foundation.dart';
 import '../../home/data/internship_model.dart';
+import '../viewmodel/saved_internships_viewmodel.dart';
 
-/// Centralized store managing saved/bookmarked internship opportunities across the app.
-/// Ensures real-time state synchronization between HomeScreen, InternshipDetailsScreen,
-/// InternshipDetailsSheet, and SavedInternshipsScreen.
+/// Adapter store bridging to SavedInternshipsViewModel (MVVM).
+/// Ensures backward compatibility with existing listeners.
 class SavedInternshipsStore {
-  SavedInternshipsStore._();
+  SavedInternshipsStore._() {
+    SavedInternshipsViewModel.instance.addListener(() {
+      savedIdsNotifier.value = SavedInternshipsViewModel.instance.savedIds;
+      isLoadingNotifier.value = SavedInternshipsViewModel.instance.isLoading;
+    });
+  }
+
   static final SavedInternshipsStore instance = SavedInternshipsStore._();
 
-  /// Reactive set of bookmarked opportunity IDs.
   final ValueNotifier<Set<String>> savedIdsNotifier =
-      ValueNotifier<Set<String>>({'cm-01', 'cellcard-03'});
+      ValueNotifier<Set<String>>(<String>{});
 
-  Set<String> get savedIds => savedIdsNotifier.value;
+  final ValueNotifier<bool> isLoadingNotifier = ValueNotifier<bool>(false);
 
-  bool isSaved(String id) => savedIdsNotifier.value.contains(id);
+  Set<String> get savedIds => SavedInternshipsViewModel.instance.savedIds;
 
-  void toggleSave(String id) {
-    final updated = Set<String>.from(savedIdsNotifier.value);
-    if (updated.contains(id)) {
-      updated.remove(id);
-    } else {
-      updated.add(id);
-    }
-    savedIdsNotifier.value = updated;
-  }
+  bool isSaved(String id) => SavedInternshipsViewModel.instance.isSaved(id);
 
-  void save(String id) {
-    if (!savedIdsNotifier.value.contains(id)) {
-      final updated = Set<String>.from(savedIdsNotifier.value)..add(id);
-      savedIdsNotifier.value = updated;
+  Future<void> fetchSavedInternships({bool force = false}) =>
+      SavedInternshipsViewModel.instance.loadSavedInternships(force: force);
+
+  Future<void> toggleSave(String id, {InternshipOpportunity? item}) async {
+    if (item != null) {
+      await SavedInternshipsViewModel.instance.toggleSave(item);
+    } else if (isSaved(id)) {
+      await SavedInternshipsViewModel.instance.remove(id);
     }
   }
 
-  void remove(String id) {
-    if (savedIdsNotifier.value.contains(id)) {
-      final updated = Set<String>.from(savedIdsNotifier.value)..remove(id);
-      savedIdsNotifier.value = updated;
+  Future<void> save(String id, {InternshipOpportunity? item}) async {
+    if (item != null) {
+      await SavedInternshipsViewModel.instance.save(item);
     }
   }
 
-  void clearAll() {
-    savedIdsNotifier.value = <String>{};
-  }
+  Future<void> remove(String id) =>
+      SavedInternshipsViewModel.instance.remove(id);
 
-  /// Returns the list of full InternshipOpportunity models currently saved.
-  List<InternshipOpportunity> getSavedOpportunities() {
-    final ids = savedIdsNotifier.value;
-    return demoInternships.where((item) => ids.contains(item.id)).toList();
-  }
+  Future<void> clearAll() => SavedInternshipsViewModel.instance.clearAll();
+
+  List<InternshipOpportunity> getSavedOpportunities() =>
+      SavedInternshipsViewModel.instance.savedInternships;
 }
