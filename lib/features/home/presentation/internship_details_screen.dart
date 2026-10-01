@@ -6,7 +6,6 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../applications/data/application_tracker_store.dart';
 import '../../chat/presentation/chat_screen.dart';
-import '../../profile/data/user_profile_model.dart';
 import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
@@ -56,7 +55,8 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
   }
 
   void _toggleSave() {
-    SavedInternshipsStore.instance.toggleSave(widget.internship.id);
+    SavedInternshipsStore.instance
+        .toggleSave(widget.internship.id, item: widget.internship);
     setState(() {
       _isSaved = SavedInternshipsStore.instance.isSaved(widget.internship.id);
     });
@@ -512,8 +512,6 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
 
   /// 4. Personalized Candidate Match Card
   Widget _buildPersonalizedMatchCard(InternshipOpportunity item) {
-    final profile = currentDemoProfile;
-
     return Container(
       decoration: BoxDecoration(
         color: AppColors.isDark
@@ -574,7 +572,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
                           ],
                         ),
                         Text(
-                          'Aligned with ${profile.fullName} (CADT)',
+                          'Aligned with your profile and career goals',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             color: AppColors.isDark
@@ -606,20 +604,22 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
               child: Column(
                 children: [
                   _buildMatchCriterion(
-                    'Academic Background',
-                    '${profile.major} (CADT)',
+                    'Category Focus',
+                    item.category,
                     true,
                   ),
                   const SizedBox(height: 6),
                   _buildMatchCriterion(
-                    'Resume Document',
-                    profile.cvFileName,
+                    'Location Fit',
+                    item.location,
                     true,
                   ),
                   const SizedBox(height: 6),
                   _buildMatchCriterion(
                     'Skills Fit',
-                    'Mobile Dev, APIs, Problem Solving (High Match)',
+                    item.requirements.isNotEmpty
+                        ? item.requirements.join(', ')
+                        : 'High Match',
                     true,
                   ),
                 ],
