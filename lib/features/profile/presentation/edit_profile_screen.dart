@@ -1,4 +1,3 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,6 +17,7 @@ import '../widgets/profile_gender_selector.dart';
 import '../widgets/profile_header.dart';
 import '../widgets/profile_phone_field.dart';
 import '../widgets/profile_settings_sheet.dart';
+import 'widgets/resume_cv_card.dart';
 
 /// Comprehensive Internship Seeker Profile Screen.
 /// Contains Academic Major, Resume/CV, Target Internship Roles,
@@ -65,9 +65,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   StudentProfile? _backendProfile;
   DateTime? _selectedDob;
 
-  String? _cvFileName;
-  String? _cvFileSize;
-  String? _cvLastUpdated;
 
   void _startEditing({bool scrollToTop = false}) {
     if (scrollToTop && _scrollController.hasClients) {
@@ -1030,131 +1027,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildResumeCard() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.isDark
-            ? const Color(0xFF4C0519).withValues(alpha: 0.25)
-            : const Color(0xFFFFF1F2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.isDark
-              ? const Color(0xFF9F1239).withValues(alpha: 0.5)
-              : const Color(0xFFFECDD3),
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFE11D48),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Icon(
-                  Icons.picture_as_pdf_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _cvFileName ?? 'No CV attached yet',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.isDark ? const Color(0xFFFDA4AF) : const Color(0xFF881337),
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      _cvFileName != null
-                          ? '${_cvFileSize ?? ""} • Updated ${_cvLastUpdated ?? ""}'
-                          : 'Tap Replace CV to upload your PDF resume',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: AppColors.isDark ? const Color(0xFFF43F5E) : const Color(0xFF9F1239),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  'ATS Ready',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _showCvPreview,
-                  icon: const Icon(Icons.visibility_outlined, size: 16),
-                  label: Text(
-                    'Preview CV',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: const Color(0xFFE11D48),
-                    side: const BorderSide(color: Color(0xFFFDA4AF)),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _handleReplaceCv,
-                  icon: const Icon(Icons.upload_file_rounded, size: 16),
-                  label: Text(
-                    'Replace CV',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE11D48),
-                    foregroundColor: Colors.white,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+    return const ResumeCvCard();
   }
+
 
   Widget _buildCategorySelector() {
     final categories = ['IT', 'Design', 'Business', 'Finance'];
@@ -1660,160 +1535,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _showMessage('Profile summary copied to clipboard.');
   }
 
-  /// Lets the student pick a new PDF and shows it on the CV card.
-  /// Only the local profile is updated here; uploading is done elsewhere.
-  Future<void> _handleReplaceCv() async {
-    final PlatformFile? file;
-    try {
-      file = await FilePicker.pickFile(
-        dialogTitle: 'Select your CV (PDF)',
-        type: FileType.custom,
-        allowedExtensions: const ['pdf'],
-      );
-    } catch (_) {
-      _showMessage('Could not open the file picker. Please try again.');
-      return;
-    }
-    if (file == null) return; // User cancelled.
 
-    final pickedName = file.name;
-    final bytes = await file.xFile.length();
-    if (!mounted) return;
-    setState(() {
-      _cvFileName = pickedName;
-      _cvFileSize = _formatFileSize(bytes);
-      _cvLastUpdated = _formatShortDate(DateTime.now());
-    });
-    _showMessage('CV replaced with $pickedName.');
-  }
-
-  String _formatFileSize(int bytes) {
-    if (bytes >= 1024 * 1024) {
-      return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
-    }
-    return '${(bytes / 1024).ceil()} KB';
-  }
-
-  /// "Sep 27, 2026" — same style as the CV card's "Updated" date.
-  String _formatShortDate(DateTime date) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return '${months[date.month - 1]} ${date.day}, ${date.year}';
-  }
-
-  /// Shows the details of the CV that is attached to applications.
-  void _showCvPreview() {
-    if (_cvFileName == null) {
-      _showMessage('No CV attached yet. Please tap Replace CV to select a PDF.');
-      return;
-    }
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (sheetContext) {
-        Widget row(String label, String value) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  width: 110,
-                  child: Text(
-                    label,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      color: AppColors.bodyText,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Text(
-                    value,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.heading,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFE11D48),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: Colors.white,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'Your CV',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 17,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.heading,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                row('File name', _cvFileName ?? 'None'),
-                row('Size', _cvFileSize ?? '0 KB'),
-                row('Last updated', _cvLastUpdated ?? 'Never'),
-                row('Used for', 'Every application you submit'),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      _handleReplaceCv();
-                    },
-                    icon: const Icon(Icons.upload_file_rounded, size: 18),
-                    label: const Text('Replace CV'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFE11D48),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
 
   void _showMessage(String message) {
     if (!mounted) return;
