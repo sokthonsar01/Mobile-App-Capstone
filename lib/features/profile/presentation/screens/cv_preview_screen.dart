@@ -50,11 +50,8 @@ class CvPreviewScreen extends StatelessWidget {
     ResumeItem? resume,
     CvViewModel vm,
   ) {
-    final screenH = MediaQuery.of(context).size.height;
-    final maxH = (screenH * 0.6).clamp(300.0, 460.0);
-
     return Container(
-      constraints: BoxConstraints(maxWidth: 360, maxHeight: maxH),
+      constraints: const BoxConstraints(maxWidth: 360),
       decoration: BoxDecoration(
         color: AppColors.isDark ? const Color(0xFF1E293B) : Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -71,10 +68,10 @@ class CvPreviewScreen extends StatelessWidget {
         children: [
           CvPaperPreview(resume: resume, vm: vm),
           Positioned(
-            top: 6,
-            right: 6,
+            top: 8,
+            right: 8,
             child: IconButton(
-              icon: const Icon(Icons.close_rounded, size: 22),
+              icon: const Icon(Icons.close_rounded, size: 20),
               color: AppColors.bodyText,
               onPressed: () => Navigator.of(context).pop(),
             ),

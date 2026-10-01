@@ -156,7 +156,7 @@ class CvViewModel extends ChangeNotifier {
           e.statusCode == '404' ||
           e.error == 'NoSuchBucket') {
         _errorMessage =
-            "Storage bucket 'resume' not found. Please ensure the bucket named 'resume' is created in your Supabase dashboard.";
+            "Storage bucket 'resumes' not found. Please ensure the bucket named 'resumes' is created in your Supabase dashboard.";
       } else {
         _errorMessage = 'Supabase upload failed: ${e.message}';
       }
