@@ -89,17 +89,38 @@ class CvViewModel extends ChangeNotifier {
 
     if (file == null) return false; // User cancelled
 
+    // 1. Strict extension validation
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      _errorMessage = 'Invalid file type. Only PDF documents (.pdf) are accepted.';
+      notifyListeners();
+      return false;
+    }
+
     _isUploading = true;
     _errorMessage = null;
     _successMessage = null;
     notifyListeners();
 
     try {
-      // 1. Read bytes directly from PlatformFile
+      // 2. Read bytes directly from PlatformFile
       final bytes = await file.readAsBytes();
+
+      // 3. Strict 5 MB limit check matching Supabase bucket
+      if (bytes.length > 5 * 1024 * 1024) {
+        _errorMessage = 'File too large. CV size must not exceed 5 MB.';
+        return false;
+      }
+
+      // 4. Magic byte signature check: PDF must start with %PDF (0x25, 0x50, 0x44, 0x46)
+      // Disguised .exe files start with MZ (0x4D, 0x5A) and will be blocked here.
+      if (!_isGenuinePdf(bytes)) {
+        _errorMessage = 'Security error: File is not a valid PDF document.';
+        return false;
+      }
+
       _localPdfBytes = bytes;
 
-      // 2. Upload binary to Supabase Storage 'resumes' bucket
+      // 5. Upload binary to Supabase Storage 'resume' bucket
       final publicUrl = await ResumeRepository.uploadCvToSupabase(
         fileName: file.name,
         bytes: bytes,
@@ -135,7 +156,7 @@ class CvViewModel extends ChangeNotifier {
           e.statusCode == '404' ||
           e.error == 'NoSuchBucket') {
         _errorMessage =
-            "Storage bucket 'resumes' not found. Please create a public bucket named 'resumes' in your Supabase dashboard.";
+            "Storage bucket 'resumes' not found. Please ensure the bucket named 'resumes' is created in your Supabase dashboard.";
       } else {
         _errorMessage = 'Supabase upload failed: ${e.message}';
       }
@@ -147,5 +168,15 @@ class CvViewModel extends ChangeNotifier {
       _isUploading = false;
       notifyListeners();
     }
+  }
+
+  /// Verifies the binary magic bytes (%PDF) to detect disguised executables (.exe) or invalid files.
+  bool _isGenuinePdf(Uint8List bytes) {
+    if (bytes.length < 4) return false;
+    // %PDF in ASCII is 0x25, 0x50, 0x44, 0x46
+    return bytes[0] == 0x25 &&
+        bytes[1] == 0x50 &&
+        bytes[2] == 0x44 &&
+        bytes[3] == 0x46;
   }
 }

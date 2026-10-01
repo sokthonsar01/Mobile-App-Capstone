@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../shared/app_colors.dart';
 import '../../viewmodel/cv_viewmodel.dart';
-import '../screens/cv_preview_screen.dart';
 
 /// Reusable CV / Resume card widget adhering to MVVM and project standards.
 class ResumeCvCard extends StatefulWidget {
@@ -41,6 +41,21 @@ class _ResumeCvCardState extends State<ResumeCvCard> {
       );
       _vm.clearMessages();
     }
+  }
+
+  void _openCvPreview() async {
+    final url = _vm.currentResume?.fileUrl;
+    if (url == null || !url.startsWith('http')) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No CV uploaded yet. Tap Replace CV to upload.'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+      return;
+    }
+    final uri = Uri.parse(url);
+    await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
   }
 
   @override
@@ -114,21 +129,6 @@ class _ResumeCvCardState extends State<ResumeCvCard> {
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: const Color(0xFF10B981),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Text(
-            'ATS Ready',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -138,10 +138,7 @@ class _ResumeCvCardState extends State<ResumeCvCard> {
       children: [
         Expanded(
           child: OutlinedButton.icon(
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CvPreviewScreen()),
-            ),
+            onPressed: _openCvPreview,
             icon: const Icon(Icons.visibility_outlined, size: 16),
             label: Text(
               'Preview CV',

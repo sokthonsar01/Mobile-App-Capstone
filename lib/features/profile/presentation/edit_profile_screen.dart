@@ -453,8 +453,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       title: 'Resume / CV Document',
                       icon: Icons.description_rounded,
                       iconColor: const Color(0xFFE11D48),
-                      subtitle:
-                          'Submitted with 1-tap when applying for internships.',
                       children: [
                         _buildResumeCard(),
                       ],
@@ -467,8 +465,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       title: 'Internship Preferences',
                       icon: Icons.track_changes_rounded,
                       iconColor: const Color(0xFF0D9488),
-                      subtitle:
-                          'Select categories to power Home feed recommendations.',
                       children: [
                         Text(
                           'Target Roles',
@@ -538,8 +534,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       title: 'Skills & Tech Stack',
                       icon: Icons.bolt_rounded,
                       iconColor: const Color(0xFFF59E0B),
-                      subtitle:
-                          'Matched against employer internship requirements.',
                       children: [
                         Wrap(
                           spacing: 8,
@@ -954,7 +948,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     required String title,
     required IconData icon,
     required Color iconColor,
-    required String subtitle,
+    String? subtitle,
     required List<Widget> children,
   }) {
     return Container(
@@ -1005,13 +999,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         color: AppColors.heading,
                       ),
                     ),
-                    Text(
-                      subtitle,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        color: AppColors.hintText,
+                    if (subtitle != null && subtitle.trim().isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11.5,
+                          color: AppColors.hintText,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
                 ),
               ),
