@@ -9,6 +9,7 @@ import '../viewmodel/application_tracker_viewmodel.dart';
 import '../../home/widgets/company_logo_widget.dart';
 import '../../home/widgets/internship_details_sheet.dart';
 import '../../home/presentation/home_screen.dart';
+import 'widgets/animated_progress_tracker.dart';
 
 /// The main Application Tracker Page for students to track every internship applied for.
 class ApplicationTrackerScreen extends StatefulWidget {
@@ -1174,126 +1175,6 @@ class _ApplicationTrackerScreenState extends State<ApplicationTrackerScreen> {
 
   /// 4-Stage Visual Stepper Line: Applied → Under Review → Interview → Decision
   Widget _buildProgressTracker(String currentStatus) {
-    final stages = ['Applied', 'Under Review', 'Interview', 'Decision'];
-
-    int activeIndex = 0;
-    if (currentStatus == 'Under Review') {
-      activeIndex = 1;
-    } else if (currentStatus == 'Interview') {
-      activeIndex = 2;
-    } else if (currentStatus == 'Offer' ||
-        currentStatus == 'Rejected' ||
-        currentStatus == 'Withdrawn') {
-      activeIndex = 3;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.isDark
-            ? AppColors.background
-            : const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: List.generate(stages.length, (index) {
-          final isCompleted = index <= activeIndex &&
-              currentStatus != 'Rejected' &&
-              currentStatus != 'Withdrawn';
-          final isCurrent = index == activeIndex;
-          final isRejected = currentStatus == 'Rejected' && index == 3;
-          final isWithdrawn = currentStatus == 'Withdrawn' && index == 3;
-
-          Color nodeColor = const Color(0xFFCBD5E1);
-          if (isRejected) {
-            nodeColor = const Color(0xFFDC2626);
-          } else if (isWithdrawn) {
-            nodeColor = const Color(0xFF64748B);
-          } else if (isCompleted) {
-            nodeColor = AppColors.primaryBlue;
-          }
-
-          return Expanded(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 3,
-                        color: index == 0
-                            ? Colors.transparent
-                            : (index <= activeIndex
-                                ? AppColors.primaryBlue
-                                : const Color(0xFFCBD5E1)),
-                      ),
-                    ),
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        color: isCompleted || isRejected || isWithdrawn
-                            ? nodeColor
-                            : AppColors.surface,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: nodeColor,
-                          width: 2,
-                        ),
-                      ),
-                      child: Center(
-                        child: isCompleted
-                            ? const Icon(
-                                Icons.check_rounded,
-                                size: 12,
-                                color: Colors.white,
-                              )
-                            : (isRejected || isWithdrawn)
-                                ? const Icon(
-                                    Icons.close_rounded,
-                                    size: 12,
-                                    color: Colors.white,
-                                  )
-                                : Container(
-                                    width: 6,
-                                    height: 6,
-                                    decoration: BoxDecoration(
-                                      color: nodeColor,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        height: 3,
-                        color: index == stages.length - 1
-                            ? Colors.transparent
-                            : (index < activeIndex
-                                ? AppColors.primaryBlue
-                                : const Color(0xFFCBD5E1)),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  stages[index],
-                  textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9.5,
-                    fontWeight:
-                        isCurrent ? FontWeight.w800 : FontWeight.w600,
-                    color: isCurrent
-                        ? AppColors.heading
-                        : AppColors.hintText,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-    );
+    return AnimatedProgressTracker(currentStatus: currentStatus);
   }
 }

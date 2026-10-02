@@ -28,5 +28,18 @@ class InternshipRepository {
             InternshipOpportunity.fromJson(json as Map<String, dynamic>))
         .toList();
   }
+
+  /// Fetches a single internship opportunity by ID with full details.
+  static Future<InternshipOpportunity?> getInternshipById(String id) async {
+    if (id.trim().isEmpty) return null;
+    try {
+      final response = await ApiClient.get('/internships/$id');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        return InternshipOpportunity.fromJson(data);
+      }
+    } catch (_) {}
+    return null;
+  }
 }
 

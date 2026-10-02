@@ -5,6 +5,7 @@ import '../../../shared/app_colors.dart';
 import '../../../shared/app_navigation.dart';
 import '../../../shared/theme/app_theme_controller.dart';
 import '../../../shared/widgets/shared_widgets.dart';
+import '../../../shared/widgets/app_skeleton.dart';
 import '../viewmodel/messages_viewmodel.dart';
 import 'chat_screen.dart';
 
@@ -23,14 +24,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
   @override
   void initState() {
     super.initState();
-    _vm = MessagesViewModel();
+    _vm = MessagesViewModel.instance;
     _vm.loadConversations();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _vm.dispose();
     super.dispose();
   }
 
@@ -51,8 +51,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                   child: ListenableBuilder(
                     listenable: _vm,
                     builder: (context, _) {
-                      if (_vm.isLoading) {
-                        return const Center(child: CircularProgressIndicator());
+                      if (_vm.isLoading && !_vm.hasLoadedOnce) {
+                        return _buildSkeletonList();
                       }
                       if (_vm.filteredConversations.isNotEmpty) {
                         return _buildRemoteList();
@@ -72,6 +72,41 @@ class _MessagesScreenState extends State<MessagesScreen> {
       },
     );
   }
+
+  Widget _buildSkeletonList() {
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: 6,
+      separatorBuilder: (context, index) => const SizedBox(height: 16),
+      itemBuilder: (context, index) => Row(
+        children: [
+          const AppSkeleton.circular(size: 48),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    AppSkeleton(width: 130, height: 16, borderRadius: 4),
+                    AppSkeleton(width: 48, height: 12, borderRadius: 4),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                const AppSkeleton(
+                  width: double.infinity,
+                  height: 13,
+                  borderRadius: 4,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
 
   Widget _buildTopBar() {
     return Padding(

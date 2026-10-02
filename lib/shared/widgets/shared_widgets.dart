@@ -431,12 +431,14 @@ class WideButton extends StatelessWidget {
 
   /// Pass a different color for the red CANCEL button.
   final Color color;
+  final bool isLoading;
 
   const WideButton({
     super.key,
     required this.text,
     required this.onPressed,
     this.color = AppColors.primaryBlue,
+    this.isLoading = false,
   });
 
   @override
@@ -445,7 +447,7 @@ class WideButton extends StatelessWidget {
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
-        onPressed: onPressed,
+        onPressed: isLoading ? () {} : onPressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
           foregroundColor: Colors.white,
@@ -454,14 +456,23 @@ class WideButton extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Text(
-          text,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-          ),
-        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : Text(
+                text,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.2,
+                ),
+              ),
       ),
     );
   }
