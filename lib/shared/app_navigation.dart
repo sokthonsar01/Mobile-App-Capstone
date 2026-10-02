@@ -39,27 +39,22 @@ void navigateToAppTab(BuildContext context, int currentIndex, int targetIndex) {
       return;
   }
 
+  final bool isMovingRight = targetIndex > currentIndex;
+
   if (currentIndex == 0) {
     Navigator.push(
       context,
-      createSmoothPageRoute(page: targetScreen),
+      createDirectionalPageRoute(
+        page: targetScreen,
+        isMovingRight: isMovingRight,
+      ),
     );
   } else {
     Navigator.pushReplacement(
       context,
-      PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => targetScreen,
-        transitionDuration: const Duration(milliseconds: 220),
-        reverseTransitionDuration: const Duration(milliseconds: 220),
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          return FadeTransition(
-            opacity: CurvedAnimation(
-              parent: animation,
-              curve: Curves.easeInOut,
-            ),
-            child: child,
-          );
-        },
+      createDirectionalPageRoute(
+        page: targetScreen,
+        isMovingRight: isMovingRight,
       ),
     );
   }

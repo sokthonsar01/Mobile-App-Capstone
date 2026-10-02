@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../../home/data/internship_model.dart';
+import '../../home/viewmodel/internships_viewmodel.dart';
 import '../../profile/data/resume_repository.dart';
 import '../data/application_model.dart';
 import '../data/application_repository.dart';
@@ -104,14 +105,21 @@ class ApplicationTrackerViewModel extends ChangeNotifier {
     }
   }
 
-  /// Optimistically records application locally, then asynchronously syncs
-  /// with live backend using the user's default/uploaded resume.
-  Future<bool> applyToInternship({
+  /// Asynchronously submits application to live backend using the user's default/uploaded resume.
+  /// Returns null on success, or an error message on failure (e.g. 409 Conflict).
+  Future<String?> applyToInternship({
     required InternshipOpportunity item,
     String? coverLetter,
     String? portfolioLink,
   }) async {
-    applyForInternship(item);
+    // 1. Guard against local duplicate application
+    final already = _applications.any((a) =>
+        a.internship.id == item.id ||
+        (a.internship.company.toLowerCase() == item.company.toLowerCase() &&
+            a.internship.role.toLowerCase() == item.role.toLowerCase()));
+    if (already) {
+      return 'You have already applied for this internship.';
+    }
 
     try {
       final resume = await ResumeRepository.getOrCreateDefaultResume();
@@ -121,9 +129,11 @@ class ApplicationTrackerViewModel extends ChangeNotifier {
         coverLetter: coverLetter,
         portfolioLink: portfolioLink,
       );
-      return true;
-    } catch (_) {
-      return false;
+      return null;
+    } on ApiException catch (e) {
+      return e.message;
+    } catch (e) {
+      return 'Failed to submit application. Please try again.';
     }
   }
 
@@ -196,7 +206,23 @@ class ApplicationTrackerViewModel extends ChangeNotifier {
       final rawInternship = raw['internship'] as Map<String, dynamic>?;
       if (rawInternship == null) continue;
 
-      final internship = InternshipOpportunity.fromJson(rawInternship);
+      var internship = InternshipOpportunity.fromJson(rawInternship);
+      final fullCached = InternshipsViewModel.instance.internships
+          .where((i) =>
+              i.id == internship.id ||
+              (i.company.toLowerCase() == internship.company.toLowerCase() &&
+                  i.role.toLowerCase() == internship.role.toLowerCase()))
+          .firstOrNull;
+      if (fullCached != null) {
+        internship = internship.copyWith(
+          description: fullCached.description.isNotEmpty
+              ? fullCached.description
+              : null,
+          requirements: fullCached.requirements.isNotEmpty
+              ? fullCached.requirements
+              : null,
+        );
+      }
       final appliedAt = raw['appliedAt'] != null
           ? DateTime.tryParse(raw['appliedAt'].toString())
           : null;

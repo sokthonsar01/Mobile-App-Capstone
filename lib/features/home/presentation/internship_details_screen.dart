@@ -9,6 +9,7 @@ import '../../chat/presentation/chat_screen.dart';
 import '../../saved/data/saved_internships_store.dart';
 import '../data/internship_model.dart';
 import '../widgets/company_logo_widget.dart';
+import '../../../shared/page_transitions.dart';
 import '../../applications/presentation/application_submitted_screen.dart';
 import '../../company/presentation/screens/company_profile_screen.dart';
 
@@ -39,6 +40,7 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
   late bool _isSaved;
   late TabController _tabController;
   bool _isMatchExpanded = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -77,6 +79,54 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
         duration: const Duration(seconds: 2),
         backgroundColor: AppColors.heading,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
+  }
+
+  Future<void> _handleApply(InternshipOpportunity item) async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final startTime = DateTime.now();
+    final error = await ApplicationTrackerStore.instance.applyToInternship(item: item);
+    final elapsed = DateTime.now().difference(startTime);
+    if (elapsed.inMilliseconds < 650) {
+      await Future.delayed(
+        Duration(milliseconds: 650 - elapsed.inMilliseconds),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      createSmoothPageRoute(
+        page: ApplicationSubmittedScreen(
+          internship: item,
+        ),
       ),
     );
   }
@@ -1111,43 +1161,81 @@ class _InternshipDetailsScreenState extends State<InternshipDetailsScreen>
             // Large vibrant Apply CTA button
             if (widget.showApplyButton) ...[
               const SizedBox(width: 10),
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    ApplicationTrackerStore.instance.applyToInternship(item: item);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ApplicationSubmittedScreen(
-                          internship: item,
+              Builder(
+                builder: (context) {
+                  final isAlreadyApplied = ApplicationTrackerStore.instance.isAlreadyApplied(
+                    item.id,
+                    company: item.company,
+                    role: item.role,
+                  );
+
+                  return Expanded(
+                    child: ElevatedButton(
+                      onPressed: _isSubmitting
+                          ? null
+                          : (isAlreadyApplied
+                              ? () {
+                                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        'You have already applied for this internship.',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 13.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      backgroundColor: const Color(0xFF64748B),
+                                      behavior: SnackBarBehavior.floating,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              : () => _handleApply(item)),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isAlreadyApplied ? const Color(0xFF64748B) : AppColors.primaryBlue,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size.fromHeight(48),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryBlue,
-                    foregroundColor: Colors.white,
-                    minimumSize: const Size.fromHeight(48),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      child: _isSubmitting
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  isAlreadyApplied ? 'Already Applied' : 'Apply Now',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Icon(
+                                  isAlreadyApplied
+                                      ? Icons.check_circle_outline_rounded
+                                      : Icons.arrow_forward_rounded,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
                     ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Apply Now',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_rounded, size: 16),
-                    ],
-                  ),
-                ),
+                  );
+                },
               ),
             ],
           ],

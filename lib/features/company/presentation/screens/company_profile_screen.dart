@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../shared/app_colors.dart';
 import '../../../applications/data/application_tracker_store.dart';
+import '../../../../shared/page_transitions.dart';
 import '../../../applications/presentation/application_submitted_screen.dart';
 import '../../../home/data/internship_model.dart';
 import '../../data/company_model.dart';
@@ -32,6 +33,7 @@ class CompanyProfileScreen extends StatefulWidget {
 
 class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
   late final CompanyViewModel _vm;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -137,34 +139,112 @@ class _CompanyProfileScreenState extends State<CompanyProfileScreen> {
     );
   }
 
-  Widget _buildApplyButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        ApplicationTrackerStore.instance
-            .applyToInternship(item: widget.internship!);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ApplicationSubmittedScreen(
-              internship: widget.internship!,
+  Future<void> _handleApply() async {
+    if (_isSubmitting || widget.internship == null) return;
+    setState(() => _isSubmitting = true);
+
+    final startTime = DateTime.now();
+    final error = await ApplicationTrackerStore.instance
+        .applyToInternship(item: widget.internship!);
+    final elapsed = DateTime.now().difference(startTime);
+    if (elapsed.inMilliseconds < 650) {
+      await Future.delayed(
+        Duration(milliseconds: 650 - elapsed.inMilliseconds),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.push(
+      context,
+      createSmoothPageRoute(
+        page: ApplicationSubmittedScreen(
+          internship: widget.internship!,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildApplyButton(BuildContext context) {
+    final item = widget.internship;
+    final isAlreadyApplied = item != null &&
+        ApplicationTrackerStore.instance.isAlreadyApplied(
+          item.id,
+          company: item.company,
+          role: item.role,
         );
-      },
+
+    return ElevatedButton(
+      onPressed: _isSubmitting
+          ? null
+          : (isAlreadyApplied
+              ? () {
+                  ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'You have already applied for this internship.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                      backgroundColor: const Color(0xFF64748B),
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  );
+                }
+              : _handleApply),
       style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primaryBlue,
+        backgroundColor: isAlreadyApplied ? const Color(0xFF64748B) : AppColors.primaryBlue,
         foregroundColor: Colors.white,
         minimumSize: const Size.fromHeight(52),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         elevation: 0,
       ),
-      child: Text(
-        'Apply Now',
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 16,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
+      child: _isSubmitting
+          ? const SizedBox(
+              width: 22,
+              height: 22,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              ),
+            )
+          : Text(
+              isAlreadyApplied ? 'Already Applied' : 'Apply Now',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
     );
   }
 }
