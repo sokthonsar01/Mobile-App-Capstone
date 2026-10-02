@@ -31,7 +31,7 @@ class ApplicationTrackerStore extends ValueNotifier<List<TrackedApplication>> {
   bool applyForInternship(InternshipOpportunity item) =>
       ApplicationTrackerViewModel.instance.applyForInternship(item);
 
-  Future<bool> applyToInternship({
+  Future<String?> applyToInternship({
     required InternshipOpportunity item,
     String? coverLetter,
     String? portfolioLink,
@@ -47,4 +47,13 @@ class ApplicationTrackerStore extends ValueNotifier<List<TrackedApplication>> {
 
   bool removeFromTracker(String appId) =>
       ApplicationTrackerViewModel.instance.removeFromTracker(appId);
+
+  bool isAlreadyApplied(String internshipId, {String? company, String? role}) {
+    return value.any((app) =>
+        app.internship.id == internshipId ||
+        (company != null &&
+            role != null &&
+            app.internship.company.toLowerCase() == company.toLowerCase() &&
+            app.internship.role.toLowerCase() == role.toLowerCase()));
+  }
 }

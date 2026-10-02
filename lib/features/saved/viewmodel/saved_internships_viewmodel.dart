@@ -12,6 +12,7 @@ class SavedInternshipsViewModel extends ChangeNotifier {
   List<InternshipOpportunity> _savedInternships = [];
   Set<String> _savedIds = <String>{};
   bool _isLoading = false;
+  bool _hasLoadedOnce = false;
   String? _errorMessage;
 
   // Getters
@@ -19,6 +20,7 @@ class SavedInternshipsViewModel extends ChangeNotifier {
       List.unmodifiable(_savedInternships);
   Set<String> get savedIds => _savedIds;
   bool get isLoading => _isLoading;
+  bool get hasLoadedOnce => _hasLoadedOnce;
   String? get errorMessage => _errorMessage;
 
   bool isSaved(String id) => _savedIds.contains(id);
@@ -28,21 +30,26 @@ class SavedInternshipsViewModel extends ChangeNotifier {
     _savedInternships = [];
     _savedIds = <String>{};
     _isLoading = false;
+    _hasLoadedOnce = false;
     _errorMessage = null;
     notifyListeners();
   }
 
   /// Load bookmarked internships from the backend
   Future<void> loadSavedInternships({bool force = false}) async {
-    if (_isLoading && !force) return;
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
+    final isBackground = _hasLoadedOnce && !force;
+    if (!isBackground) {
+      if (_isLoading) return;
+      _isLoading = true;
+      _errorMessage = null;
+      notifyListeners();
+    }
 
     try {
       final remoteList = await SavedInternshipRepository.getSavedInternships();
       _savedInternships = remoteList;
       _savedIds = remoteList.map((item) => item.id).toSet();
+      _hasLoadedOnce = true;
     } catch (e) {
       _errorMessage = e.toString();
     } finally {

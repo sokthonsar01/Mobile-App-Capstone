@@ -8,6 +8,7 @@ import '../../../shared/widgets/shared_widgets.dart';
 import '../../home/data/internship_model.dart';
 import '../../home/presentation/internship_details_screen.dart';
 import '../../home/widgets/company_logo_widget.dart';
+import '../../../shared/widgets/app_skeleton.dart';
 import '../viewmodel/saved_internships_viewmodel.dart';
 
 /// The Saved Internships screen displaying all bookmarked opportunities in real-time.
@@ -92,13 +93,8 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
                   const SizedBox(width: 4),
                 ],
               ),
-              body: isLoading && savedList.isEmpty
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.primaryBlue,
-                        strokeWidth: 2.5,
-                      ),
-                    )
+              body: isLoading && !_viewModel.hasLoadedOnce
+                  ? _buildSkeletonList()
                   : RefreshIndicator(
                       color: AppColors.primaryBlue,
                       onRefresh: () =>
@@ -136,6 +132,66 @@ class _SavedInternshipsScreenState extends State<SavedInternshipsScreen> {
       },
     );
   }
+
+  Widget _buildSkeletonList() {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+      itemCount: 4,
+      itemBuilder: (context, index) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 14),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: AppColors.cardBorder),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const AppSkeleton(width: 48, height: 48, borderRadius: 12),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        AppSkeleton(width: 170, height: 16, borderRadius: 4),
+                        SizedBox(height: 8),
+                        AppSkeleton(width: 110, height: 13, borderRadius: 4),
+                      ],
+                    ),
+                  ),
+                  const AppSkeleton.circular(size: 24),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: const [
+                  AppSkeleton(width: 64, height: 22, borderRadius: 6),
+                  SizedBox(width: 8),
+                  AppSkeleton(width: 72, height: 22, borderRadius: 6),
+                  SizedBox(width: 8),
+                  AppSkeleton(width: 58, height: 22, borderRadius: 6),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  AppSkeleton(width: 100, height: 14, borderRadius: 4),
+                  AppSkeleton(width: 88, height: 32, borderRadius: 10),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
   /// Empty state when no internships are saved
   Widget _buildEmptyState() {

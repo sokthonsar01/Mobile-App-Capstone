@@ -238,7 +238,47 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _gender = 'Male';
     _countryCode = '+855';
 
+    // Apply cached profile immediately on frame 0 to prevent loading flicker
+    final cached = StudentRepository.cachedProfile;
+    if (cached != null) {
+      _applyProfileData(cached);
+    }
+
     _loadBackendProfile();
+  }
+
+  void _applyProfileData(StudentProfile profile) {
+    _backendProfile = profile;
+    if (profile.getFullName.isNotEmpty) {
+      _fullNameController.text = profile.getFullName;
+    }
+    if (profile.currentAddress.isNotEmpty) {
+      _locationController.text = profile.currentAddress;
+    }
+    if (profile.phoneNumber != null && profile.phoneNumber!.isNotEmpty) {
+      _phoneController.text = profile.phoneNumber!;
+    }
+    if (profile.dob != null) {
+      _selectedDob = profile.dob;
+      _birthDateController.text = _formatDate(profile.dob!);
+    }
+    if (profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty) {
+      _uploadedAvatarUrl = profile.avatarUrl;
+    }
+    if (profile.gender.isNotEmpty) {
+      _gender = profile.gender == 'MALE'
+          ? 'Male'
+          : (profile.gender == 'FEMALE' ? 'Female' : 'Other');
+    }
+    if (profile.description != null && profile.description!.contains('student at')) {
+      final parts = profile.description!.split('student at');
+      if (parts.isNotEmpty) {
+        _majorController.text = parts.first.trim();
+      }
+      if (parts.length > 1) {
+        _universityController.text = parts[1].trim();
+      }
+    }
   }
 
   Future<void> _loadBackendProfile() async {
@@ -246,37 +286,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final profile = await StudentRepository.getMyProfile();
       if (profile != null && mounted) {
         setState(() {
-          _backendProfile = profile;
-          if (profile.getFullName.isNotEmpty) {
-            _fullNameController.text = profile.getFullName;
-          }
-          if (profile.currentAddress.isNotEmpty) {
-            _locationController.text = profile.currentAddress;
-          }
-          if (profile.phoneNumber != null && profile.phoneNumber!.isNotEmpty) {
-            _phoneController.text = profile.phoneNumber!;
-          }
-          if (profile.dob != null) {
-            _selectedDob = profile.dob;
-            _birthDateController.text = _formatDate(profile.dob!);
-          }
-          if (profile.avatarUrl != null && profile.avatarUrl!.isNotEmpty) {
-            _uploadedAvatarUrl = profile.avatarUrl;
-          }
-          if (profile.gender.isNotEmpty) {
-            _gender = profile.gender == 'MALE'
-                ? 'Male'
-                : (profile.gender == 'FEMALE' ? 'Female' : 'Other');
-          }
-          if (profile.description != null && profile.description!.contains('student at')) {
-            final parts = profile.description!.split('student at');
-            if (_majorController.text.isEmpty && parts.isNotEmpty) {
-              _majorController.text = parts.first.trim();
-            }
-            if (_universityController.text.isEmpty && parts.length > 1) {
-              _universityController.text = parts[1].trim();
-            }
-          }
+          _applyProfileData(profile);
         });
       }
     } catch (_) {

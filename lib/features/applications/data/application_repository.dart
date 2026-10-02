@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../../../config/api_client.dart';
 import 'application_tracker_store.dart';
 import '../../home/data/internship_model.dart';
+import '../../home/viewmodel/internships_viewmodel.dart';
 
 /// Clean API exception preserving backend status codes and validation messages
 class ApiException implements Exception {
@@ -81,7 +82,23 @@ class ApplicationRepository {
         final rawInternship = raw['internship'] as Map<String, dynamic>?;
         if (rawInternship == null) continue;
 
-        final internship = InternshipOpportunity.fromJson(rawInternship);
+        var internship = InternshipOpportunity.fromJson(rawInternship);
+        final fullCached = InternshipsViewModel.instance.internships
+            .where((i) =>
+                i.id == internship.id ||
+                (i.company.toLowerCase() == internship.company.toLowerCase() &&
+                    i.role.toLowerCase() == internship.role.toLowerCase()))
+            .firstOrNull;
+        if (fullCached != null) {
+          internship = internship.copyWith(
+            description: fullCached.description.isNotEmpty
+                ? fullCached.description
+                : null,
+            requirements: fullCached.requirements.isNotEmpty
+                ? fullCached.requirements
+                : null,
+          );
+        }
         final appliedAt = raw['appliedAt'] != null
             ? DateTime.tryParse(raw['appliedAt'].toString())
             : null;

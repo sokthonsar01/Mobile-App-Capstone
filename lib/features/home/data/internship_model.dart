@@ -41,25 +41,104 @@ class InternshipOpportunity {
   factory InternshipOpportunity.fromJson(Map<String, dynamic> json) {
     final companyObj = json['company'] is Map ? json['company'] as Map<String, dynamic> : null;
     final companyName = companyObj?['name'] as String? ?? (json['company'] as String? ?? 'Company');
+    final roleName = json['title']?.toString() ?? json['role']?.toString() ?? '';
 
     List<String> requirementsList = [];
     if (json['requiredSkills'] is List) {
       requirementsList = (json['requiredSkills'] as List)
-          .map((s) => s['skill']?['name']?.toString() ?? '')
+          .map((s) {
+            if (s is String) return s;
+            if (s is Map) {
+              return s['skill']?['name']?.toString() ??
+                  s['name']?.toString() ??
+                  '';
+            }
+            return '';
+          })
           .where((name) => name.isNotEmpty)
           .toList();
     }
-    if (requirementsList.isEmpty && json['requirements'] is String) {
-      requirementsList = (json['requirements'] as String)
-          .split('\n')
-          .map((e) => e.trim().replaceFirst(RegExp(r'^[-•*]\s*'), ''))
-          .where((e) => e.isNotEmpty)
-          .toList();
+
+    if (requirementsList.isEmpty && json['requirements'] != null) {
+      final rawReq = json['requirements'];
+      if (rawReq is List) {
+        requirementsList = rawReq
+            .map((e) => e is Map ? (e['name']?.toString() ?? '') : e.toString())
+            .where((e) => e.trim().isNotEmpty)
+            .toList();
+      } else if (rawReq is String) {
+        final trimmed = rawReq.trim();
+        if (trimmed.contains('\n')) {
+          requirementsList = trimmed
+              .split('\n')
+              .map((e) => e.trim().replaceFirst(RegExp(r'^[-•*]\s*'), ''))
+              .where((e) => e.isNotEmpty)
+              .toList();
+        } else if (trimmed.contains(';') || trimmed.contains(',')) {
+          requirementsList = trimmed
+              .split(RegExp(r'[;,]\s*'))
+              .map((e) => e.trim().replaceFirst(RegExp(r'^and\s+', caseSensitive: false), ''))
+              .where((e) => e.isNotEmpty)
+              .toList();
+        } else if (trimmed.isNotEmpty) {
+          requirementsList = [trimmed];
+        }
+      }
+    }
+
+    if (requirementsList.isEmpty) {
+      final cat = (json['category']?.toString() ?? 'Tech').toLowerCase();
+      final lowerRole = roleName.toLowerCase();
+      if (lowerRole.contains('flutter') || lowerRole.contains('mobile') || cat.contains('tech')) {
+        requirementsList = [
+          'Pursuing or completed a Degree in Computer Science, Software Engineering, or related field',
+          'Foundational understanding of mobile or web application development',
+          'Familiarity with Git version control and collaborative workflows',
+          'Passion for clean code, problem-solving, and continuous learning',
+        ];
+      } else if (cat.contains('design')) {
+        requirementsList = [
+          'Pursuing or completed a Degree in Design, Multimedia, or related field',
+          'Proficiency with design tools such as Figma, Adobe XD, or Illustrator',
+          'Strong visual eye for typography, color balance, and layout design',
+          'Ability to iterate on feedback and present design concepts clearly',
+        ];
+      } else if (cat.contains('finance') || cat.contains('bank')) {
+        requirementsList = [
+          'Pursuing or completed a Degree in Finance, Accounting, Banking, or Economics',
+          'Strong numerical, analytical, and data verification skills',
+          'Proficiency in Microsoft Excel / Google Sheets and financial spreadsheets',
+          'High integrity, attention to detail, and confidentiality',
+        ];
+      } else if (cat.contains('market') || cat.contains('business')) {
+        requirementsList = [
+          'Pursuing or completed a Degree in Marketing, Business, Communications, or Media',
+          'Strong verbal and written communication skills',
+          'Creative mindset for content creation and social media campaigns',
+          'Team-oriented, proactive, and eager to drive engagement',
+        ];
+      } else {
+        requirementsList = [
+          'Currently enrolled student or recent graduate in a relevant field of study',
+          'Strong enthusiasm, solid work ethic, and eagerness to learn',
+          'Effective communication and collaborative teamwork abilities',
+          'Self-motivated with good time management skills',
+        ];
+      }
+    }
+
+    String desc = json['description']?.toString() ??
+        json['about']?.toString() ??
+        json['overview']?.toString() ??
+        json['responsibilities']?.toString() ??
+        '';
+    if (desc.trim().isEmpty) {
+      desc = 'Join the $companyName team as $roleName. Gain hands-on practical industry experience, work alongside experienced mentors, and contribute to impactful real-world projects.';
     }
 
     return InternshipOpportunity(
       id: json['id']?.toString() ?? '',
-      role: json['title']?.toString() ?? json['role']?.toString() ?? '',
+      role: roleName,
       company: companyName,
       companyId: json['companyId']?.toString() ?? companyObj?['id']?.toString(),
       category: json['category']?.toString() ?? 'Tech',
@@ -70,7 +149,7 @@ class InternshipOpportunity {
       brandColor: _resolveBrandColor(companyName),
       logoKey: _resolveLogoKey(companyName),
       logoUrl: companyObj?['logoUrl']?.toString() ?? json['logoUrl']?.toString(),
-      description: json['description']?.toString() ?? '',
+      description: desc,
       requirements: requirementsList,
       stipend: json['stipend']?.toString() ?? 'Undisclosed',
       isSaved: json['isSaved'] as bool? ?? false,

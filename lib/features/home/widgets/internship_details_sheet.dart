@@ -4,8 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../shared/app_colors.dart';
 import '../../../shared/widgets/shared_widgets.dart';
 import '../../applications/data/application_tracker_store.dart';
+import '../../../shared/page_transitions.dart';
 import '../../applications/presentation/application_submitted_screen.dart';
 import '../data/internship_model.dart';
+import '../data/internship_repository.dart';
+import '../viewmodel/internships_viewmodel.dart';
 import 'company_logo_widget.dart';
 
 /// Bottom sheet displaying full details for an internship opportunity.
@@ -51,10 +54,104 @@ class _InternshipDetailsContent extends StatefulWidget {
 
 class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
   late bool _isSaved = widget.initialSaved;
+  late InternshipOpportunity _internship = widget.internship;
+  bool _isLoadingDetails = false;
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isSaved = widget.initialSaved;
+    _internship = widget.internship;
+    _resolveFullDetails();
+  }
+
+  Future<void> _resolveFullDetails() async {
+    // 1. Try local cache in InternshipsViewModel first
+    if (_internship.id.isNotEmpty) {
+      final cached = InternshipsViewModel.instance.internships
+          .where((i) =>
+              i.id == _internship.id ||
+              (i.company.toLowerCase() == _internship.company.toLowerCase() &&
+                  i.role.toLowerCase() == _internship.role.toLowerCase()))
+          .firstOrNull;
+      if (cached != null &&
+          cached.requirements.isNotEmpty &&
+          cached.description.isNotEmpty) {
+        if (mounted) {
+          setState(() => _internship = cached);
+        }
+        return;
+      }
+    }
+
+    // 2. Fetch live details from backend if ID is valid
+    if (_internship.id.isNotEmpty) {
+      if (mounted) setState(() => _isLoadingDetails = true);
+      final remote = await InternshipRepository.getInternshipById(_internship.id);
+      if (remote != null && mounted) {
+        setState(() {
+          _internship = remote;
+          _isLoadingDetails = false;
+        });
+      } else if (mounted) {
+        setState(() => _isLoadingDetails = false);
+      }
+    }
+  }
+
+  Future<void> _handleApply() async {
+    if (_isSubmitting) return;
+    setState(() => _isSubmitting = true);
+
+    final startTime = DateTime.now();
+    final error = await ApplicationTrackerStore.instance.applyToInternship(item: _internship);
+    final elapsed = DateTime.now().difference(startTime);
+    if (elapsed.inMilliseconds < 650) {
+      await Future.delayed(
+        Duration(milliseconds: 650 - elapsed.inMilliseconds),
+      );
+    }
+
+    if (!mounted) return;
+    setState(() => _isSubmitting = false);
+
+    if (error != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            error,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: const Color(0xFFDC2626),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    Navigator.pop(context);
+    Navigator.push(
+      context,
+      createSmoothPageRoute(
+        page: ApplicationSubmittedScreen(
+          internship: _internship,
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final item = widget.internship;
+    final item = _internship;
 
     return Container(
       constraints: BoxConstraints(
@@ -196,17 +293,34 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
                 ),
 
                 const SizedBox(height: 22),
-                Text(
-                  'About the Internship',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.heading,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'About the Internship',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.heading,
+                      ),
+                    ),
+                    if (_isLoadingDetails) ...[
+                      const SizedBox(width: 8),
+                      const SizedBox(
+                        width: 14,
+                        height: 14,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppColors.primaryBlue,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  item.description,
+                  item.description.isNotEmpty
+                      ? item.description
+                      : 'Join ${item.company} as a ${item.role} to gain practical industry experience and work on impactful projects.',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     height: 1.5,
@@ -224,35 +338,47 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
                   ),
                 ),
                 const SizedBox(height: 10),
-                ...item.requirements.map(
-                  (req) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Padding(
-                          padding: EdgeInsets.only(top: 4),
-                          child: Icon(
-                            Icons.check_circle_outline_rounded,
-                            size: 16,
-                            color: AppColors.primaryBlue,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            req,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13.5,
-                              color: AppColors.bodyText,
-                              height: 1.4,
+                if (item.requirements.isEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      'Enrolled in or completed degree in a relevant field with a strong desire to learn.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13.5,
+                        color: AppColors.bodyText,
+                      ),
+                    ),
+                  )
+                else
+                  ...item.requirements.map(
+                    (req) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(top: 4),
+                            child: Icon(
+                              Icons.check_circle_outline_rounded,
+                              size: 16,
+                              color: AppColors.primaryBlue,
                             ),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              req,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                color: AppColors.bodyText,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 const SizedBox(height: 20),
               ],
             ),
@@ -274,18 +400,40 @@ class _InternshipDetailsContentState extends State<_InternshipDetailsContent> {
               ),
               child: SafeArea(
                 top: false,
-                child: WideButton(
-                  text: 'APPLY NOW',
-                  onPressed: () {
-                    ApplicationTrackerStore.instance.applyToInternship(item: item);
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ApplicationSubmittedScreen(
-                          internship: item,
-                        ),
-                      ),
+                child: Builder(
+                  builder: (context) {
+                    final isAlreadyApplied = ApplicationTrackerStore.instance.isAlreadyApplied(
+                      item.id,
+                      company: item.company,
+                      role: item.role,
+                    );
+
+                    return WideButton(
+                      text: isAlreadyApplied ? 'ALREADY APPLIED' : 'APPLY NOW',
+                      color: isAlreadyApplied ? const Color(0xFF64748B) : AppColors.primaryBlue,
+                      isLoading: _isSubmitting,
+                      onPressed: isAlreadyApplied
+                          ? () {
+                              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'You have already applied for this internship.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  backgroundColor: const Color(0xFF64748B),
+                                  behavior: SnackBarBehavior.floating,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              );
+                            }
+                          : _handleApply,
                     );
                   },
                 ),
