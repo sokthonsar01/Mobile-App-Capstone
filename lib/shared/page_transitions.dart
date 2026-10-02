@@ -51,10 +51,10 @@ class SmoothFadeSlidePageTransitionsBuilder extends PageTransitionsBuilder {
 Route<T> createDirectionalPageRoute<T>({
   required Widget page,
   required bool isMovingRight,
-  Duration duration = const Duration(milliseconds: 350),
+  Duration duration = const Duration(milliseconds: 360),
 }) {
   final beginOffset =
-      isMovingRight ? const Offset(1.0, 0) : const Offset(-1.0, 0);
+      isMovingRight ? const Offset(0.08, 0) : const Offset(-0.08, 0);
 
   return PageRouteBuilder<T>(
     pageBuilder: (context, animation, secondaryAnimation) => page,
@@ -72,13 +72,43 @@ Route<T> createDirectionalPageRoute<T>({
           begin: beginOffset,
           end: Offset.zero,
         ).animate(curvedAnimation),
+        child: FadeTransition(
+          opacity: Tween<double>(begin: 0.15, end: 1.0).animate(curvedAnimation),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+/// Helper function to create a custom smooth animated page route (for detail/child screens).
+Route<T> createSmoothPageRoute<T>({
+  required Widget page,
+  Duration duration = const Duration(milliseconds: 360),
+}) {
+  return PageRouteBuilder<T>(
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionDuration: duration,
+    reverseTransitionDuration: duration,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+
+      return SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(1.0, 0),
+          end: Offset.zero,
+        ).animate(curvedAnimation),
         child: DecoratedBox(
           decoration: BoxDecoration(
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.10),
                 blurRadius: 18,
-                offset: Offset(isMovingRight ? -4 : 4, 0),
+                offset: const Offset(-4, 0),
               ),
             ],
           ),
@@ -89,15 +119,4 @@ Route<T> createDirectionalPageRoute<T>({
   );
 }
 
-/// Helper function to create a custom smooth animated page route.
-Route<T> createSmoothPageRoute<T>({
-  required Widget page,
-  Duration duration = const Duration(milliseconds: 350),
-}) {
-  return createDirectionalPageRoute<T>(
-    page: page,
-    isMovingRight: true,
-    duration: duration,
-  );
-}
 
